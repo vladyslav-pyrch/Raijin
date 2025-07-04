@@ -7,7 +7,6 @@ var tests = builder.AddExecutable(
     "dotnet",
     "../../",
     "test"
-
 );
 
 var problemSolvingServiceApi = builder.AddProject<Njinx_ProblemSolvingService_Api>(
