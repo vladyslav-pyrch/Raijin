@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Domain\Njinx.ProblemSolvingService.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\CommonSat\" />
+  </ItemGroup>
+
 </Project>
