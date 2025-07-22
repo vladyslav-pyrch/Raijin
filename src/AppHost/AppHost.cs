@@ -20,7 +20,7 @@ IResourceBuilder<ExecutableResource> tests = builder.AddExecutable(
     "test"
 );
 
-IResourceBuilder<ProjectResource> problemSolvingServiceApi = builder.AddProject<Njinx_ProblemSolvingService_Api>(
+IResourceBuilder<ProjectResource> problemSolvingServiceApi = builder.AddProject<Raijin_ProblemSolvingService_Api>(
         "problem-solving-service-api")
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints()

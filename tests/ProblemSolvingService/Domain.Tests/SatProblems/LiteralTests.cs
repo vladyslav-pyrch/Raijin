@@ -14,4 +14,34 @@ public class LiteralTests
 
         when.Should().Throw<ArgumentNullException>();
     }
+
+    [Fact]
+    public void GivenNegativeInteger_WhenCreatingFromInteger_ThenCreatesNegatedLiteral()
+    {
+        int value = -1;
+
+        Literal literal = Literal.FromInteger(value);
+
+        literal.Should().Be(new Literal(new Variable(1), isNegated: true));
+    }
+
+    [Fact]
+    public void GivenPositiveInteger_WhenCreatingFromInteger_ThenCreatesNonNegatedLiteral()
+    {
+        int value = 1;
+
+        Literal literal = Literal.FromInteger(value);
+
+        literal.Should().Be(new Literal(new Variable(1), isNegated: false));
+    }
+
+    [Fact]
+    public void GivenZero_WhenCreatingFromInteger_ThenThrowsArgumentOutOfRangeException()
+    {
+        int value = 0;
+
+        Action when = () => Literal.FromInteger(value);
+
+        when.Should().Throw<ArgumentOutOfRangeException>();
+    }
 }

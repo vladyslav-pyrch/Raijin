@@ -12,6 +12,9 @@ public sealed record Literal: ValueObject
         IsNegated = isNegated;
     }
 
+    public static Literal FromInteger(int value) => value < 0 ?
+        new Literal(new Variable(-value), isNegated: true) : new Literal(new Variable(value), isNegated: false);
+
     public Variable Variable { get; }
     public bool IsNegated { get; }
 }
