@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Options;
-using Njinx.ProblemSolvingService.Infrastructure.CryptoMiniSat;
+using Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
 
-namespace Njinx.ProblemSolvingService.Infrastructure.Tests.CryptoMiniSat;
+namespace Raijin.ProblemSolvingService.Infrastructure.Tests.CryptoMiniSat;
 
 public sealed class CryptominisatDockerContainerFixture : IDisposable
 {

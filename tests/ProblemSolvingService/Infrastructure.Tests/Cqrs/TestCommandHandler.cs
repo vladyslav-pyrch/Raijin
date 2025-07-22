@@ -1,6 +1,6 @@
-﻿using Njinx.ProblemSolvingService.Application.Cqrs;
+﻿using Raijin.ProblemSolvingService.Application.Cqrs;
 
-namespace Njinx.ProblemSolvingService.Infrastructure.Tests.Cqrs;
+namespace Raijin.ProblemSolvingService.Infrastructure.Tests.Cqrs;
 
 public sealed class TestCommandHandler : ICommandHandler<TestCommand>
 {

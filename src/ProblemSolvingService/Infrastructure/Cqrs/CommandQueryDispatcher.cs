@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Njinx.ProblemSolvingService.Application.Cqrs;
+using Raijin.ProblemSolvingService.Application.Cqrs;
 
-namespace Njinx.ProblemSolvingService.Infrastructure.Cqrs;
+namespace Raijin.ProblemSolvingService.Infrastructure.Cqrs;
 
 public sealed class CommandQueryDispatcher(IServiceProvider provider) : ICommandDispatcher, IQueryDispatcher
 {

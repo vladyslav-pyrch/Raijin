@@ -1,4 +1,4 @@
-﻿namespace Njinx.ProblemSolvingService.Application.Cqrs;
+﻿namespace Raijin.ProblemSolvingService.Application.Cqrs;
 
 public interface ICommandHandler<in TCommand> where TCommand : ICommand
 {

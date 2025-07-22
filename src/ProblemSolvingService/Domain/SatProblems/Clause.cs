@@ -1,6 +1,6 @@
-﻿using Njinx.ProblemSolvingService.Domain.SharedKernel;
+﻿using Raijin.ProblemSolvingService.Domain.SharedKernel;
 
-namespace Njinx.ProblemSolvingService.Domain.SatProblems;
+namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
 public sealed record Clause : ValueObject
 {

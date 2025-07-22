@@ -1,4 +1,4 @@
-﻿namespace Njinx.ProblemSolvingService.Domain.SatProblems;
+﻿namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
 public sealed class SatProblem
 {

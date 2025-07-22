@@ -1,4 +1,4 @@
-namespace Njinx.ProblemSolvingService.Infrastructure.CryptoMiniSat;
+namespace Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
 
 public sealed record CryptominisatOptions(
     string ContainerName,

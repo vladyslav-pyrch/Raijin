@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Options;
 
-namespace Njinx.ProblemSolvingService.Infrastructure.CryptoMiniSat;
+namespace Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
 
 public sealed class Cryptominisat(IOptions<CryptominisatOptions> options)
 {

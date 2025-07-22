@@ -1,4 +1,4 @@
-﻿namespace Njinx.ProblemSolvingService.Application.Tests;
+﻿namespace Raijin.ProblemSolvingService.Application.Tests;
 
 public class UnitTest1
 {

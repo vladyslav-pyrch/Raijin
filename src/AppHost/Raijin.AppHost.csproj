@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProblemSolvingService\Api\Njinx.ProblemSolvingService.Api.csproj" />
+    <ProjectReference Include="..\ProblemSolvingService\Api\Raijin.ProblemSolvingService.Api.csproj" />
   </ItemGroup>
 
   <Target Name="RestoreNpm" BeforeTargets="Build" Condition=" '$(DesignTimeBuild)' != 'true' ">

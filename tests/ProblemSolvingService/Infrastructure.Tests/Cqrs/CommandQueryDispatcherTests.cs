@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Njinx.ProblemSolvingService.Application.Cqrs;
-using Njinx.ProblemSolvingService.Infrastructure.Cqrs;
+using Raijin.ProblemSolvingService.Application.Cqrs;
+using Raijin.ProblemSolvingService.Infrastructure.Cqrs;
 
-namespace Njinx.ProblemSolvingService.Infrastructure.Tests.Cqrs;
+namespace Raijin.ProblemSolvingService.Infrastructure.Tests.Cqrs;
 
 public class CommandQueryDispatcherTests
 {

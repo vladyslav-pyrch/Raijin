@@ -1,4 +1,4 @@
-namespace Njinx.ProblemSolvingService.Infrastructure.CryptoMiniSat;
+namespace Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
 
 public class CryptominisatException(string inputFileName, string? message = null) : Exception(message)
 {

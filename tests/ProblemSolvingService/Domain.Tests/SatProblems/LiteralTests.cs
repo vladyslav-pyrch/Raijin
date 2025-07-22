@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
-using Njinx.ProblemSolvingService.Domain.SatProblems;
+using Raijin.ProblemSolvingService.Domain.SatProblems;
 
-namespace Njinx.ProblemSolvingService.Domain.Tests.SatProblems;
+namespace Raijin.ProblemSolvingService.Domain.Tests.SatProblems;
 
 public class LiteralTests
 {
