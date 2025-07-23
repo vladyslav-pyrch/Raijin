@@ -17,4 +17,6 @@ public sealed record Literal: ValueObject
 
     public Variable Variable { get; }
     public bool IsNegated { get; }
+
+    internal string ToDimacsString() => IsNegated ? $"-{Variable.ToDimacsString()}" : Variable.ToDimacsString();
 }

@@ -105,4 +105,17 @@ public class SatProblemTests
 
         numberOfClauses.Should().Be(3);
     }
+
+    [Fact]
+    public void GivenSatProblem_WhenGettingDimacs_ThenReturnsValidDimacsString()
+    {
+        var satProblem = new SatProblem();
+        satProblem.AddClause([Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(3)]);
+        satProblem.AddClause([Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(3)]);
+        satProblem.AddClause([Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(-4)]);
+
+        string dimacsString = satProblem.ToDimacsString();
+
+        dimacsString.Should().Be("p cnf 4 3\n-1 -2 3 0\n-1 2 3 0\n1 2 -4 0");
+    }
 }

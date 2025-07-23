@@ -1,4 +1,5 @@
-﻿using Raijin.ProblemSolvingService.Domain.SharedKernel;
+﻿using System.Text;
+using Raijin.ProblemSolvingService.Domain.SharedKernel;
 
 namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
@@ -16,4 +17,13 @@ public sealed record Clause : ValueObject
     public IReadOnlyList<Literal> Literals { get; }
 
     internal int GetNumberOfVariables() => Literals.Select(literal => literal.Variable.Id).Max();
+
+    internal string ToDimacsString()
+    {
+        var stringBuilder = new StringBuilder();
+
+        return stringBuilder.AppendJoin(' ', Literals.Select(literal => literal.ToDimacsString()))
+            .Append(" 0") // Clause ending.
+            .ToString();
+    }
 }

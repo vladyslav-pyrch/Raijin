@@ -12,4 +12,6 @@ public sealed record Variable : ValueObject
     }
 
     public int Id { get; }
+
+    internal string ToDimacsString() => Id.ToString();
 }
