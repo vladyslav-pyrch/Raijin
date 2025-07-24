@@ -13,7 +13,7 @@ public sealed record VariableAssignment : ValueObject
     }
 
     public static VariableAssignment FromInteger(int value) => value < 0 ?
-        new VariableAssignment(new Variable(-value), value: true) : new VariableAssignment(new Variable(value), value: false);
+        new VariableAssignment(new Variable(-value), value: false) : new VariableAssignment(new Variable(value), value: true);
 
     public Variable Variable { get; }
 
