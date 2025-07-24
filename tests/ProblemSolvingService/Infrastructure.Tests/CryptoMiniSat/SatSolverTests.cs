@@ -38,7 +38,7 @@ public abstract class SatSolverTests
             Literal.FromInteger(-1)
         ]);
         satProblem.AddClause([
-            Literal.FromInteger(-1)
+            Literal.FromInteger(1)
         ]);
 
         SatResult satResult = await satSolver.Solve(satProblem);
