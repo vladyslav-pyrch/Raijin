@@ -1,6 +1,5 @@
-using Castle.Core;
 using FluentAssertions;
-using Moq;
+using NSubstitute;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
@@ -18,15 +17,10 @@ public class SolveSatProblemCommandTests
 
         List<VariableAssignment> solution = [VariableAssignment.FromInteger(1), VariableAssignment.FromInteger(2)];
 
-        var satSolverMock = new Mock<ISatSolver>();
-        satSolverMock
-            .Setup(s => s.Solve(
-                It.Is(solvableProblem, ReferenceEqualityComparer<SatProblem>.Instance),
-                It.IsAny<CancellationToken>())
-            ).ReturnsAsync(SatResult.Solvable(solution))
-            .Verifiable(Times.Once);
+        var satSolver = Substitute.For<ISatSolver>();
 
-        ISatSolver satSolver = satSolverMock.Object;
+        satSolver.Solve(Arg.Is(solvableProblem), Arg.Any<CancellationToken>())
+            .Returns(SatResult.Solvable(solution));
 
         var handler = new SolveSatProblemCommandHandler(satSolver);
         var command = new SolveSatProblemCommand(solvableProblem);
@@ -34,7 +28,7 @@ public class SolveSatProblemCommandTests
         SatResult result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().Be(SatResult.Solvable(solution));
-        satSolverMock.Verify();
+        await satSolver.Received(1).Solve(Arg.Is(solvableProblem), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -44,15 +38,9 @@ public class SolveSatProblemCommandTests
         unsolvableProblem.AddClause([Literal.FromInteger(1)]);
         unsolvableProblem.AddClause([Literal.FromInteger(-1)]);
 
-        var satSolverMock = new Mock<ISatSolver>();
-        satSolverMock
-            .Setup(s => s.Solve(
-                It.Is(unsolvableProblem, ReferenceEqualityComparer<SatProblem>.Instance),
-                It.IsAny<CancellationToken>())
-            ).ReturnsAsync(SatResult.Unsolvable())
-            .Verifiable(Times.Once);
-
-        ISatSolver satSolver = satSolverMock.Object;
+        var satSolver = Substitute.For<ISatSolver>();
+        satSolver.Solve(Arg.Is(unsolvableProblem), Arg.Any<CancellationToken>())
+            .Returns(SatResult.Unsolvable());
 
         var handler = new SolveSatProblemCommandHandler(satSolver);
         var command = new SolveSatProblemCommand(unsolvableProblem);
@@ -60,7 +48,7 @@ public class SolveSatProblemCommandTests
         SatResult result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().Be(SatResult.Unsolvable());
-        satSolverMock.Verify();
+        await satSolver.Received(1).Solve(Arg.Is(unsolvableProblem), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -69,16 +57,9 @@ public class SolveSatProblemCommandTests
         var indeterminateProblem = new SatProblem();
         indeterminateProblem.AddClause([Literal.FromInteger(1), Literal.FromInteger(3)]);
 
-        var satSolverMock = new Mock<ISatSolver>();
-
-        satSolverMock
-            .Setup(s => s.Solve(
-                It.Is(indeterminateProblem, ReferenceEqualityComparer<SatProblem>.Instance),
-                It.IsAny<CancellationToken>())
-            ).ReturnsAsync(SatResult.Indeterminate())
-            .Verifiable(Times.Once);
-
-        ISatSolver satSolver = satSolverMock.Object;
+        var satSolver = Substitute.For<ISatSolver>();
+        satSolver.Solve(Arg.Is(indeterminateProblem), Arg.Any<CancellationToken>())
+            .Returns(SatResult.Indeterminate());
 
         var handler = new SolveSatProblemCommandHandler(satSolver);
         var command = new SolveSatProblemCommand(indeterminateProblem);
@@ -86,7 +67,7 @@ public class SolveSatProblemCommandTests
         SatResult result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().Be(SatResult.Indeterminate());
-        satSolverMock.Verify();
+        await satSolver.Received(1).Solve(Arg.Is(indeterminateProblem), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -94,19 +75,14 @@ public class SolveSatProblemCommandTests
     {
         using var cts = new CancellationTokenSource();
 
-        var satSolverMock = new Mock<ISatSolver>();
-        satSolverMock
-            .Setup(s => s.Solve(
-                It.IsAny<SatProblem>(),
-                It.IsAny<CancellationToken>())
-            ).ReturnsAsync((SatProblem _, CancellationToken cancellationToken) =>
+        var satSolver = Substitute.For<ISatSolver>();
+        satSolver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
+            .Returns(async x =>
             {
-                Task.Delay(100, cancellationToken).Wait(cancellationToken);
-
+                var cancellationToken = x.Arg<CancellationToken>();
+                await Task.Delay(100, cancellationToken);
                 return SatResult.Indeterminate();
-            }).Verifiable(Times.Once);
-
-        ISatSolver satSolver = satSolverMock.Object;
+            });
 
         var handler = new SolveSatProblemCommandHandler(satSolver);
         var command = new SolveSatProblemCommand(new SatProblem());
@@ -118,6 +94,6 @@ public class SolveSatProblemCommandTests
         };
 
         await when.Should().ThrowAsync<OperationCanceledException>();
-        satSolverMock.Verify();
+        await satSolver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Is(cts.Token));
     }
 }
