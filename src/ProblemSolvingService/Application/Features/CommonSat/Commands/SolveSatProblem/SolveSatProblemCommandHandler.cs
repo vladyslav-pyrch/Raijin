@@ -1,5 +1,4 @@
 using Raijin.ProblemSolvingService.Application.Cqrs;
-using Raijin.ProblemSolvingService.Application.Features.CommonSat.Dtos;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 
