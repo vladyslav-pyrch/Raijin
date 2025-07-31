@@ -7,12 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Api.ServiceDefaults\Raijin.ProblemSolvingService.Api.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Infrastructure\Raijin.ProblemSolvingService.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Endpoints\V1\CommonSat\Shared\" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Tests.Features.CommonSat.Commands.SolveSatProblem;
 
-public class SolveSatProblemCommandTests
+public class SolveSatProblemInternalCommandTests
 {
     [Fact]
     public async Task GivenSolvableProblem_WhenHandling_ThenReturnsSolvableResult()
@@ -22,8 +22,8 @@ public class SolveSatProblemCommandTests
         satSolver.Solve(Arg.Is(solvableProblem), Arg.Any<CancellationToken>())
             .Returns(SatResult.Solvable(solution));
 
-        var handler = new SolveSatProblemCommandHandler(satSolver);
-        var command = new SolveSatProblemCommand(solvableProblem);
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(solvableProblem);
 
         SatResult result = await handler.Handle(command, CancellationToken.None);
 
@@ -42,8 +42,8 @@ public class SolveSatProblemCommandTests
         satSolver.Solve(Arg.Is(unsolvableProblem), Arg.Any<CancellationToken>())
             .Returns(SatResult.Unsolvable());
 
-        var handler = new SolveSatProblemCommandHandler(satSolver);
-        var command = new SolveSatProblemCommand(unsolvableProblem);
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(unsolvableProblem);
 
         SatResult result = await handler.Handle(command, CancellationToken.None);
 
@@ -61,8 +61,8 @@ public class SolveSatProblemCommandTests
         satSolver.Solve(Arg.Is(indeterminateProblem), Arg.Any<CancellationToken>())
             .Returns(SatResult.Indeterminate());
 
-        var handler = new SolveSatProblemCommandHandler(satSolver);
-        var command = new SolveSatProblemCommand(indeterminateProblem);
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(indeterminateProblem);
 
         SatResult result = await handler.Handle(command, CancellationToken.None);
 
@@ -84,8 +84,8 @@ public class SolveSatProblemCommandTests
                 return SatResult.Indeterminate();
             });
 
-        var handler = new SolveSatProblemCommandHandler(satSolver);
-        var command = new SolveSatProblemCommand(new SatProblem());
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(new SatProblem());
 
         Func<Task> when = async () =>
         {
