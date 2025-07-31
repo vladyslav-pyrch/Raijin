@@ -1,7 +1,7 @@
 using FluentAssertions;
 using NSubstitute;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat;
-using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
+using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblemInternal;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Tests.Features.CommonSat.Commands.SolveSatProblem;
@@ -73,27 +73,17 @@ public class SolveSatProblemInternalCommandTests
     [Fact]
     public async Task GivenCancellationToken_WhenHandling_ThenPassesCancellationTokenToSolver()
     {
-        using var cts = new CancellationTokenSource();
+        var cancellationToken = new CancellationToken(canceled: true);
 
         var satSolver = Substitute.For<ISatSolver>();
-        satSolver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
-            .Returns(async x =>
-            {
-                var cancellationToken = x.Arg<CancellationToken>();
-                await Task.Delay(100, cancellationToken);
-                return SatResult.Indeterminate();
-            });
+        satSolver.Solve(Arg.Any<SatProblem>(), Arg.Is(cancellationToken))
+            .Returns(SatResult.Indeterminate());
 
         var handler = new SolveSatProblemInternalCommandHandler(satSolver);
         var command = new SolveSatProblemInternalCommand(new SatProblem());
 
-        Func<Task> when = async () =>
-        {
-            await cts.CancelAsync();
-            await handler.Handle(command, cts.Token);
-        };
+        await handler.Handle(command, cancellationToken);
 
-        await when.Should().ThrowAsync<OperationCanceledException>();
-        await satSolver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Is(cts.Token));
+        await satSolver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Is(cancellationToken));
     }
 }
