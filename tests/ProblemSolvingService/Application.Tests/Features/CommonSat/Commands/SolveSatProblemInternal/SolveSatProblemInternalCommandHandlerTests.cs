@@ -4,9 +4,9 @@ using Raijin.ProblemSolvingService.Application.Features.CommonSat;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblemInternal;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
 
-namespace Raijin.ProblemSolvingService.Application.Tests.Features.CommonSat.Commands.SolveSatProblem;
+namespace Raijin.ProblemSolvingService.Application.Tests.Features.CommonSat.Commands.SolveSatProblemInternal;
 
-public class SolveSatProblemInternalCommandTests
+public class SolveSatProblemInternalCommandHandlerTests
 {
     [Fact]
     public async Task GivenSolvableProblem_WhenHandling_ThenReturnsSolvableResult()

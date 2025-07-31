@@ -1,6 +1,19 @@
 using Raijin.ProblemSolvingService.Application.Cqrs;
+using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblemInternal;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat.Dtos;
+using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 
-public record SolveSatProblemCommand(List<ClauseDto> Clauses) : ICommand<SolveSatProblemCommandResult>;
+public record SolveSatProblemCommand(List<ClauseDto> Clauses) : ICommand<SolveSatProblemCommandResult>
+{
+    public SolveSatProblemInternalCommand ToInternalCommand()
+    {
+        var satProblem = new SatProblem();
+
+        foreach (List<Literal> literals in Clauses.Select(clauseDto => clauseDto.ToListOfLiterals()))
+            satProblem.AddClause(literals);
+
+        return new SolveSatProblemInternalCommand(satProblem);
+    }
+}
