@@ -21,7 +21,7 @@ public sealed class Cryptominisat(IOptions<CryptominisatOptions> options)
     private async Task<string> WriteProblemInFile(string dimacsSatProblem)
     {
         var fileName = $"problem_{Path.GetRandomFileName()}.cnf";
-        string filePath = Path.Combine(_options.FileExchangeDirectory, fileName);
+        string filePath = Path.Combine(_options.FileExchangeDirectory!, fileName);
 
         await using var fileStream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
         await using var fileWriter = new StreamWriter(fileStream, Encoding.ASCII);

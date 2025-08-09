@@ -35,8 +35,8 @@ public class CryptominisatSatSolverTests : SatSolverTests, IClassFixture<Cryptom
         if (!withZeroTimeout)
             return new CryptominisatSatSolver(new Cryptominisat(_fixture.Options));
 
-        CryptominisatOptions amendedOptionsValue = _fixture.Options.Value with { TimeoutSeconds = 0 };
-        IOptions<CryptominisatOptions> options = Options.Create(amendedOptionsValue);
-        return new CryptominisatSatSolver(new Cryptominisat(options));
+        _fixture.Options.Value.TimeoutSeconds = 0;
+        var cryptominisat = new Cryptominisat(_fixture.Options);
+        return new CryptominisatSatSolver(cryptominisat);
     }
 }

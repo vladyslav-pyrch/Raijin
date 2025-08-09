@@ -6,21 +6,23 @@ namespace Raijin.ProblemSolvingService.Infrastructure.Tests.CryptoMiniSat;
 
 public sealed class CryptominisatDockerContainerFixture : IDisposable
 {
-    private readonly IOptions<CryptominisatOptions> _options = Microsoft.Extensions.Options.Options.Create(new CryptominisatOptions(
-            ContainerName: "cryptominisat-test",
-            WorkingDirectory: "/app/cryptominisat/problems",
-            FileExchangeDirectory: "./shared",
-            RunCommand: "cryptominisat5",
-            TimeoutSeconds: 20
-        )
-    );
+    private readonly IOptions<CryptominisatOptions> _options;
+
+    public CryptominisatDockerContainerFixture()
+    {
+        var containerName = Environment.GetEnvironmentVariable("CRYPTOMINISAT_CONTAINER_NAME") ?? "cryptominisat-test";
+        var runCommand = Environment.GetEnvironmentVariable("CRYPTOMINISAT_RUN_COMMAND") ?? "cryptominisat5";
+        var fileExchangeDirectory = Environment.GetEnvironmentVariable("CRYPTOMINISAT_FILE_EXCHANGE") ?? "./shared";
+        var workingDirectory = Environment.GetEnvironmentVariable("CRYPTOMINISAT_WORKING_DIRECTORY") ?? "/app/cryptominisat/problems";
+        var timeoutSeconds = 20;
+
+        _options = Microsoft.Extensions.Options.Options.Create(new CryptominisatOptions(containerName, workingDirectory,
+            fileExchangeDirectory, runCommand, timeoutSeconds));
+    }
 
     public IOptions<CryptominisatOptions> Options => _options;
 
-    public void Dispose()
-    {
-        StopAndRemoveContainer();
-    }
+    public void Dispose() {}
 
     public void BuildDockerImage()
     {

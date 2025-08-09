@@ -60,6 +60,8 @@ public sealed class CryptominisatTests
         Func<Task> when = async () => await cryptominisat.Solve(_solvableDimacsProblem);
 
         await when.Should().ThrowExactlyAsync<InvalidOperationException>();
+        _fixture.BuildDockerImage();
+        _fixture.RunContainer();
     }
 
     [Fact]
@@ -72,6 +74,7 @@ public sealed class CryptominisatTests
         Func<Task> when = async () => await cryptominisat.Solve(_solvableDimacsProblem);
 
         await when.Should().ThrowExactlyAsync<InvalidOperationException>();
+        _fixture.StartContainer();
     }
 
     [Fact]
@@ -107,10 +110,14 @@ public sealed class CryptominisatTests
     [Fact]
     public async Task GivenTimeoutIsExceeded_WhenSolving_ThenReturnsIndeterminate()
     {
-        CryptominisatOptions amendedOptionsValue = _fixture.Options.Value with { TimeoutSeconds = 0 };
-        IOptions<CryptominisatOptions> amendedOptions = Options.Create(amendedOptionsValue);
+        IOptions<CryptominisatOptions> newOptions = Options.Create(new CryptominisatOptions(containerName: _fixture.Options.Value.ContainerName,
+            workingDirectory: _fixture.Options.Value.WorkingDirectory,
+            fileExchangeDirectory: _fixture.Options.Value.FileExchangeDirectory,
+            runCommand: _fixture.Options.Value.RunCommand,
+            timeoutSeconds: 0
+        ));
 
-        var cryptominisat = new Cryptominisat(amendedOptions);
+        var cryptominisat = new Cryptominisat(newOptions);
 
         string result = await cryptominisat.Solve(_solvableDimacsProblem);
 
