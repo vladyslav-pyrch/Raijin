@@ -3,6 +3,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Domain.Tests.SatProblems;
 
+[Trait("Category", "Unit")]
 public class VariableAssignmentTests
 {
     [Fact]

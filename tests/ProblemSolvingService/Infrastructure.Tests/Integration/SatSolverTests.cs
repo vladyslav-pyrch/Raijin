@@ -2,7 +2,7 @@ using FluentAssertions;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
 
-namespace Raijin.ProblemSolvingService.Infrastructure.Tests.CryptoMiniSat;
+namespace Raijin.ProblemSolvingService.Infrastructure.Tests.Integration;
 
 public abstract class SatSolverTests
 {

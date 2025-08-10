@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Constants\Raijin.Constants.csproj" />
     <ProjectReference Include="..\..\..\src\ProblemSolvingService\Infrastructure\Raijin.ProblemSolvingService.Infrastructure.csproj" />
   </ItemGroup>
 

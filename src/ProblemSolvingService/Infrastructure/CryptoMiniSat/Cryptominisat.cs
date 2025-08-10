@@ -21,7 +21,7 @@ public sealed class Cryptominisat(IOptions<CryptominisatOptions> options)
     private async Task<string> WriteProblemInFile(string dimacsSatProblem)
     {
         var fileName = $"problem_{Path.GetRandomFileName()}.cnf";
-        string filePath = Path.Combine(_options.FileExchangeDirectory!, fileName);
+        string filePath = Path.Combine(_options.FileExchangeLocalPath!, fileName);
 
         await using var fileStream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
         await using var fileWriter = new StreamWriter(fileStream, Encoding.ASCII);
@@ -71,7 +71,7 @@ public sealed class Cryptominisat(IOptions<CryptominisatOptions> options)
         {
             FileName = "docker",
             Arguments =
-                $"exec -w {_options.WorkingDirectory} {_options.ContainerName} {_options.RunCommand} --verb 0 --maxtime {_options.TimeoutSeconds} {fileName}",
+                $"exec -w {_options.FileExchangeContainerPath} {_options.ContainerName} cryptominisat5 --verb 0 --maxtime {_options.TimeoutSeconds} {fileName}",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,

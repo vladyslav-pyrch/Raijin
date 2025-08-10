@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Api.Tests.Endpoints.V1.CommonSat.SolveSatProblem;
 
+[Trait("Category", "Unit")]
 public class SolveSatProblemEndpointTests(ITestOutputHelper output)
 {
     [Fact]
@@ -98,13 +99,13 @@ public class SolveSatProblemEndpointTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData(0)] // Cannot have zero as a variable number
-    [InlineData(-1)] // Cannot have a negative variable number
+    [InlineData(0)]
+    [InlineData(-1)]
     public async Task GivenInvalidVariableNumber_WhenExecuting_ThenReturnsBadRequest(int variableNumber)
     {
         var request = new SolveSatProblemRequest(Clauses: [
             new ClauseRequest(Literals: [
-                new LiteralRequest(variableNumber, IsNegated: false) // Invalid variable number
+                new LiteralRequest(variableNumber, IsNegated: false)
             ])
         ]);
 
@@ -125,7 +126,7 @@ public class SolveSatProblemEndpointTests(ITestOutputHelper output)
     public async Task GivenEmptyClause_WhenExecuting_ThenReturnsBadRequest()
     {
         var request = new SolveSatProblemRequest(Clauses: [
-            new ClauseRequest(Literals: []) // Empty clause
+            new ClauseRequest(Literals: [])
         ]);
 
         var commandDispatcher = Substitute.For<ICommandDispatcher>();

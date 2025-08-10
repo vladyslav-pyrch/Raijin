@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Constants\Raijin.Constants.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\ProblemSolvingService\Api\Raijin.ProblemSolvingService.Api.csproj" />
   </ItemGroup>
 

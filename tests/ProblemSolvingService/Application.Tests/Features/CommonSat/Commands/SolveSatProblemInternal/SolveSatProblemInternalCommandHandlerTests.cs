@@ -6,6 +6,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Tests.Features.CommonSat.Commands.SolveSatProblemInternal;
 
+[Trait("Category", "Unit")]
 public class SolveSatProblemInternalCommandHandlerTests
 {
     [Fact]

@@ -5,6 +5,7 @@ using Raijin.ProblemSolvingService.Infrastructure.Cqrs;
 
 namespace Raijin.ProblemSolvingService.Infrastructure.Tests.Cqrs;
 
+[Trait("Category", "Unit")]
 public class CommandQueryDispatcherTests
 {
     [Fact]

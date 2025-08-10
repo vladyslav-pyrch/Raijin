@@ -9,12 +9,12 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Tests.Features.CommonSat.Commands.SolveSatProblem;
 
+[Trait("Category", "Unit")]
 public class SolveSatProblemCommandHandlerTests
 {
     [Fact]
     public async Task GivenValidCommand_WhenHandling_ThenDispatchesSolveSatProblemInternalCommand()
     {
-        // Arrange
         var command = new SolveSatProblemCommand(Clauses: [
             new ClauseDto(Literals: [
                 new LiteralDto(VariableNumber: 1, IsNegated: false)
@@ -29,10 +29,8 @@ public class SolveSatProblemCommandHandlerTests
 
         var handler = new SolveSatProblemCommandHandler(dispatcher);
 
-        // Act
         SolveSatProblemCommandResult result = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
         result.Should().BeEquivalentTo(new SolveSatProblemCommandResult(
             SolvingStatusDto.Satisfiable,
             VariableAssignments: [
@@ -51,7 +49,6 @@ public class SolveSatProblemCommandHandlerTests
     [Fact]
     public async Task GivenInvalidCommandWithNoClauses_WhenHandling_ThenThrowsValidationException()
     {
-        // Arrange
         var command = new SolveSatProblemCommand(Clauses: []);
 
         var dispatcher = Substitute.For<ICommandDispatcher>();
@@ -62,17 +59,14 @@ public class SolveSatProblemCommandHandlerTests
 
         var handler = new SolveSatProblemCommandHandler(dispatcher);
 
-        // Act
         Func<Task> when = async () => await handler.Handle(command, CancellationToken.None);
 
-        // Assert
         await Assert.ThrowsAsync<ValidationException>(when);
     }
 
     [Fact]
     public async Task GivenInvalidCommandWithEmptyLiterals_WhenHandling_ThenThrowsValidationException()
     {
-        // Arrange
         var command = new SolveSatProblemCommand(Clauses: [
             new ClauseDto(Literals: [])
         ]);
@@ -85,10 +79,8 @@ public class SolveSatProblemCommandHandlerTests
 
         var handler = new SolveSatProblemCommandHandler(dispatcher);
 
-        // Act
         Func<Task> when = async () => await handler.Handle(command, CancellationToken.None);
 
-        // Assert
         await Assert.ThrowsAsync<ValidationException>(when);
     }
 

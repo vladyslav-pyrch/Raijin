@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raijin.ProblemSolvingServic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raijin.ProblemSolvingService.Infrastructure.Tests", "tests\ProblemSolvingService\Infrastructure.Tests\Raijin.ProblemSolvingService.Infrastructure.Tests.csproj", "{98E7D69E-73D2-4E6F-802F-0F55027D8617}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raijin.Constants", "src\Constants\Raijin.Constants.csproj", "{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -164,6 +166,18 @@ Global
 		{98E7D69E-73D2-4E6F-802F-0F55027D8617}.Release|x64.Build.0 = Release|Any CPU
 		{98E7D69E-73D2-4E6F-802F-0F55027D8617}.Release|x86.ActiveCfg = Release|Any CPU
 		{98E7D69E-73D2-4E6F-802F-0F55027D8617}.Release|x86.Build.0 = Release|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Debug|x64.Build.0 = Debug|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Debug|x86.Build.0 = Debug|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Release|x64.ActiveCfg = Release|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Release|x64.Build.0 = Release|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Release|x86.ActiveCfg = Release|Any CPU
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -181,5 +195,6 @@ Global
 		{489549B0-D52D-4CE6-B8AA-FBB65BD586EC} = {2C8DBD0F-46D9-D3BE-1ED6-94D74079D05D}
 		{0EF03AC8-E6B3-490A-9C06-139163A9C8B0} = {2C8DBD0F-46D9-D3BE-1ED6-94D74079D05D}
 		{98E7D69E-73D2-4E6F-802F-0F55027D8617} = {2C8DBD0F-46D9-D3BE-1ED6-94D74079D05D}
+		{E5DAE0C5-2311-4FD9-935E-DFEB5727AF80} = {1C4CA5C1-79E1-410C-9ADF-D7802D8E2E75}
 	EndGlobalSection
 EndGlobal
