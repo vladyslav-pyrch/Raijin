@@ -8,7 +8,7 @@ public sealed class SatProblem
 
     public IReadOnlyList<Clause> Clauses => _clauses;
 
-    public void AddClause(IReadOnlyList<Literal> literals) => _clauses.Add(new Clause(literals));
+    public void AddClause(Clause clause) => _clauses.Add(clause);
 
     public int GetNumberOfVariables() => Clauses.Select(clause => clause.GetNumberOfVariables()).Max();
 

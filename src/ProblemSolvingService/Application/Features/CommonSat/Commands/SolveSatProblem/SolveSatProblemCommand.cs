@@ -11,8 +11,8 @@ public record SolveSatProblemCommand(List<ClauseDto> Clauses) : ICommand<SolveSa
     {
         var satProblem = new SatProblem();
 
-        foreach (List<Literal> literals in Clauses.Select(clauseDto => clauseDto.ToListOfLiterals()))
-            satProblem.AddClause(literals);
+        foreach (Clause clause in Clauses.Select(clauseDto => clauseDto.ToClause()))
+            satProblem.AddClause(clause);
 
         return new SolveSatProblemInternalCommand(satProblem);
     }

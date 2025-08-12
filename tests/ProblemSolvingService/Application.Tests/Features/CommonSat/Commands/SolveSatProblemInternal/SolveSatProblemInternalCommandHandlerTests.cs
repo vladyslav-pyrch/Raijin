@@ -13,8 +13,8 @@ public class SolveSatProblemInternalCommandHandlerTests
     public async Task GivenSolvableProblem_WhenHandling_ThenReturnsSolvableResult()
     {
         var solvableProblem = new SatProblem();
-        solvableProblem.AddClause([Literal.FromInteger(-1), Literal.FromInteger(2)]);
-        solvableProblem.AddClause([Literal.FromInteger(1)]);
+        solvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1), Literal.FromInteger(2)]));
+        solvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(1)]));
 
         List<VariableAssignment> solution = [VariableAssignment.FromInteger(1), VariableAssignment.FromInteger(2)];
 
@@ -36,8 +36,8 @@ public class SolveSatProblemInternalCommandHandlerTests
     public async Task GivenUnsolvableProblem_WhenHandling_ThenReturnsUnsolvableResult()
     {
         var unsolvableProblem = new SatProblem();
-        unsolvableProblem.AddClause([Literal.FromInteger(1)]);
-        unsolvableProblem.AddClause([Literal.FromInteger(-1)]);
+        unsolvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(1)]));
+        unsolvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1)]));
 
         var satSolver = Substitute.For<ISatSolver>();
         satSolver.Solve(Arg.Is(unsolvableProblem), Arg.Any<CancellationToken>())
@@ -56,7 +56,7 @@ public class SolveSatProblemInternalCommandHandlerTests
     public async Task GivenIndeterminateProblem_WhenHandling_ThenReturnsIndeterminateResult()
     {
         var indeterminateProblem = new SatProblem();
-        indeterminateProblem.AddClause([Literal.FromInteger(1), Literal.FromInteger(3)]);
+        indeterminateProblem.AddClause(new Clause(literals: [Literal.FromInteger(1), Literal.FromInteger(3)]));
 
         var satSolver = Substitute.For<ISatSolver>();
         satSolver.Solve(Arg.Is(indeterminateProblem), Arg.Any<CancellationToken>())

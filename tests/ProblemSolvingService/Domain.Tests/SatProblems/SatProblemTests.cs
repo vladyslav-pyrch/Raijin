@@ -10,25 +10,25 @@ public class SatProblemTests
     public void GivenListOfLiterals_WhenAddingClause_ClauseIsAdded()
     {
         var satProblem = new SatProblem();
-        List<Literal> literals =
+        var clause = new Clause(literals:
         [
-            new(new Variable(1)),
-            new(new Variable(2), isNegated: true),
-            new(new Variable(3)),
-        ];
+            Literal.FromInteger(1),
+            Literal.FromInteger(-2),
+            Literal.FromInteger(3)
+        ]);
 
-        satProblem.AddClause(literals);
+        satProblem.AddClause(clause);
 
-        satProblem.Clauses.Should().Contain(new Clause(literals));
+        satProblem.Clauses.Should().Contain(clause);
     }
 
     [Fact]
     public void GivenListOfLiteralsIsNull_WhenAddingClause_ThenThrowArgumentNullException()
     {
-        List<Literal> literals = null!;
         var satProblem = new SatProblem();
+        Clause clause = null!;
 
-        Action when = () => satProblem.AddClause(literals);
+        Action when = () => satProblem.AddClause(clause);
 
         when.Should().Throw<ArgumentNullException>();
     }
@@ -36,15 +36,15 @@ public class SatProblemTests
     [Fact]
     public void GivenOneOfLiteralsIsNull_WhenAddingClause_ThenThrowArgumentException()
     {
-        List<Literal> literals =
-        [
-            new(new Variable(1)),
-            new(new Variable(2), isNegated: true),
-            null!
-        ];
         var satProblem = new SatProblem();
+        var clause = new Clause(literals:
+        [
+            Literal.FromInteger(1),
+            Literal.FromInteger(-2),
+            null!
+        ]);
 
-        Action when = () => satProblem.AddClause(literals);
+        Action when = () => satProblem.AddClause(clause);
 
         when.Should().Throw<ArgumentException>();
     }
@@ -53,27 +53,27 @@ public class SatProblemTests
     public void GivenSatProblem_WhenGettingNumberOfVariables_ThenReturnsMaxId()
     {
         var satProblem = new SatProblem();
-        List<Literal> literals1 =
+        var clause1 = new Clause(literals:
         [
-            new(new Variable(1)),
-            new(new Variable(2), isNegated: true),
-            new(new Variable(3))
-        ];
-        List<Literal> literals2 =
+            Literal.FromInteger(1),
+            Literal.FromInteger(-2),
+            Literal.FromInteger(3)
+        ]);
+        var clause3 = new Clause(literals:
         [
-            new(new Variable(1)),
-            new(new Variable(4), isNegated: true),
-            new(new Variable(3)),
-        ];
-        List<Literal> literals3 =
+            Literal.FromInteger(1),
+            Literal.FromInteger(-4),
+            Literal.FromInteger(3)
+        ]);
+        var clause2 = new Clause(literals:
         [
-            new(new Variable(2)),
-            new(new Variable(4))
-        ];
+            Literal.FromInteger(2),
+            Literal.FromInteger(4)
+        ]);
 
-        satProblem.AddClause(literals1);
-        satProblem.AddClause(literals3);
-        satProblem.AddClause(literals2);
+        satProblem.AddClause(clause1);
+        satProblem.AddClause(clause2);
+        satProblem.AddClause(clause3);
 
         int numberOfVariables = satProblem.GetNumberOfVariables();
 
@@ -83,24 +83,14 @@ public class SatProblemTests
     [Fact]
     public void GivenSatProblem_WhenGettingNumberOfClauses_ReturnsNumberOfClauses()
     {
-
         var satProblem = new SatProblem();
-        List<Literal> literals1 =
-        [
-            new(new Variable(1))
-        ];
-        List<Literal> literals2 =
-        [
-            new(new Variable(3))
-        ];
-        List<Literal> literals3 =
-        [
-            new(new Variable(2))
-        ];
+        var clause1 = new Clause(literals: [Literal.FromInteger(1)]);
+        var clause2 = new Clause(literals: [Literal.FromInteger(3)]);
+        var clause3 = new Clause(literals: [Literal.FromInteger(2)]);
 
-        satProblem.AddClause(literals1);
-        satProblem.AddClause(literals3);
-        satProblem.AddClause(literals2);
+        satProblem.AddClause(clause1);
+        satProblem.AddClause(clause3);
+        satProblem.AddClause(clause2);
 
         int numberOfClauses = satProblem.GetNumberOfClauses();
 
@@ -111,9 +101,12 @@ public class SatProblemTests
     public void GivenSatProblem_WhenGettingDimacs_ThenReturnsValidDimacsString()
     {
         var satProblem = new SatProblem();
-        satProblem.AddClause([Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(3)]);
-        satProblem.AddClause([Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(3)]);
-        satProblem.AddClause([Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(-4)]);
+        satProblem.AddClause(new Clause(literals:
+            [Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(3)]));
+        satProblem.AddClause(new Clause(literals:
+            [Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(3)]));
+        satProblem.AddClause(new Clause(literals:
+            [Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(-4)]));
 
         string dimacsString = satProblem.ToDimacsString();
 

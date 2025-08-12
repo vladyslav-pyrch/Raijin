@@ -14,12 +14,8 @@ public abstract class SatSolverTests
         ISatSolver satSolver = GetSatSolver();
 
         var satProblem = new SatProblem();
-        satProblem.AddClause([
-            Literal.FromInteger(-1)
-        ]);
-        satProblem.AddClause([
-            Literal.FromInteger(2)
-        ]);
+        satProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1)]));
+        satProblem.AddClause(new Clause(literals: [Literal.FromInteger(2)]));
 
         SatResult satResult = await satSolver.Solve(satProblem);
 
@@ -34,12 +30,8 @@ public abstract class SatSolverTests
         ISatSolver satSolver = GetSatSolver();
 
         var satProblem = new SatProblem();
-        satProblem.AddClause([
-            Literal.FromInteger(-1)
-        ]);
-        satProblem.AddClause([
-            Literal.FromInteger(1)
-        ]);
+        satProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1)]));
+        satProblem.AddClause(new Clause(literals: [Literal.FromInteger(1)]));
 
         SatResult satResult = await satSolver.Solve(satProblem);
 
@@ -53,12 +45,8 @@ public abstract class SatSolverTests
         ISatSolver satSolver = GetSatSolver(withZeroTimeout:true);
 
         var satProblem = new SatProblem();
-        satProblem.AddClause([
-            Literal.FromInteger(-1)
-        ]);
-        satProblem.AddClause([
-            Literal.FromInteger(-1)
-        ]);
+        satProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1)]));
+        satProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1)]));
 
         SatResult satResult = await satSolver.Solve(satProblem);
 

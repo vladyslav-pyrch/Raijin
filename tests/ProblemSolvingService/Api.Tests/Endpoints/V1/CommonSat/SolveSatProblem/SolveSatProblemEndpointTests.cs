@@ -7,12 +7,11 @@ using Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat.SolveSatProblem;
 using Raijin.ProblemSolvingService.Application.Cqrs;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat.Dtos;
-using Xunit.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Api.Tests.Endpoints.V1.CommonSat.SolveSatProblem;
 
 [Trait("Category", "Unit")]
-public class SolveSatProblemEndpointTests(ITestOutputHelper output)
+public class SolveSatProblemEndpointTests
 {
     [Fact]
     public async Task GivenValidRequest_WhenExecuting_ThenPassesToCommandDispatcher()
