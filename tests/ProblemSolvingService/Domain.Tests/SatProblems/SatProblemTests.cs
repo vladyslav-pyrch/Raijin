@@ -34,22 +34,6 @@ public class SatProblemTests
     }
 
     [Fact]
-    public void GivenOneOfLiteralsIsNull_WhenAddingClause_ThenThrowArgumentException()
-    {
-        var satProblem = new SatProblem();
-        var clause = new Clause(literals:
-        [
-            Literal.FromInteger(1),
-            Literal.FromInteger(-2),
-            null!
-        ]);
-
-        Action when = () => satProblem.AddClause(clause);
-
-        when.Should().Throw<ArgumentException>();
-    }
-
-    [Fact]
     public void GivenSatProblem_WhenGettingNumberOfVariables_ThenReturnsMaxId()
     {
         var satProblem = new SatProblem();

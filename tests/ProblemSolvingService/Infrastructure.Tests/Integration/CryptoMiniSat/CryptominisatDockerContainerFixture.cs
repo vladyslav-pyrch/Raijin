@@ -22,6 +22,8 @@ public sealed class CryptominisatDockerContainerFixture : IDisposable
             ?? "/app/cryptominisat/problems";
         var timeout =
             Convert.ToInt32(Environment.GetEnvironmentVariable(EnvironmentVariables.Cryptominisat.TimeoutSeconds));
+        if (timeout == 0)
+            timeout = 20;
 
         _options = Microsoft.Extensions.Options.Options.Create(new CryptominisatOptions
         {
