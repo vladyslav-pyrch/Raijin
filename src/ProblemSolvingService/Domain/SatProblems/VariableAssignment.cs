@@ -1,4 +1,4 @@
-using Raijin.ProblemSolvingService.Domain.SharedKernel;
+using Raijin.ProblemSolvingService.Domain.Shared;
 
 namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
