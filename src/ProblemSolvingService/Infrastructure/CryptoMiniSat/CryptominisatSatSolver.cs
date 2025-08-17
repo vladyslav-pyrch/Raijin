@@ -7,6 +7,8 @@ public sealed class CryptominisatSatSolver(Cryptominisat cryptominisat) : ISatSo
 {
     public async Task<SatResult> Solve(SatProblem problem, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         string result = await cryptominisat.Solve(problem.ToDimacsString(), cancellationToken);
 
         if (string.IsNullOrWhiteSpace(result))

@@ -53,4 +53,19 @@ public abstract class SatSolverTests
         satResult.Status.Should().Be(SolvingStatus.Indeterminate);
         satResult.Assignments.Should().BeEquivalentTo(Array.Empty<VariableAssignment>());
     }
+
+    [Fact]
+    public async Task GivenCanceledCancellationToken_WhenSolving_ThenThrowsOperationCanceledException()
+    {
+        ISatSolver satSolver = GetSatSolver();
+
+        var satProblem = new SatProblem();
+        satProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1)]));
+
+        var cancellationToken = new CancellationToken(canceled: true);
+
+        Func<Task> when = async () => await satSolver.Solve(satProblem, cancellationToken);
+
+        await when.Should().ThrowAsync<OperationCanceledException>();
+    }
 }

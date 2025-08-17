@@ -10,6 +10,8 @@ public sealed class Cryptominisat(IOptions<CryptominisatOptions> options)
 
     public async Task<string> Solve(string dimacsSatProblem, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (!await IsContainerRunning(cancellationToken))
             throw new InvalidOperationException($"Container \"{_options.ContainerName}\" is not running or does not exist");
 

@@ -64,4 +64,15 @@ public sealed class CryptominisatTests(CryptominisatDockerContainerFixture fixtu
 
         result.Should().Be("s INDETERMINATE");
     }
+
+    [Fact]
+    public async Task GivenCanceledCancellationToken_WhenSolving_ThenThrowsOperationCanceledException()
+    {
+        var cryptominisat = new Cryptominisat(fixture.Options);
+        var cancellationToken = new CancellationToken(canceled: true);
+
+        Func<Task> when = async () => await cryptominisat.Solve(_solvableDimacsProblem, cancellationToken);
+
+        await when.Should().ThrowAsync<OperationCanceledException>();
+    }
 }
