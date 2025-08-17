@@ -21,9 +21,9 @@ public class SolveSatProblemCommandHandlerTests
             ])
         ]);
 
-        var dispatcher = Substitute.For<ICommandDispatcher>();
-        dispatcher.Dispatch<SolveSatProblemInternalCommand, SatResult>(
-                command: Arg.Any<SolveSatProblemInternalCommand>(),
+        var dispatcher = Substitute.For<ISender>();
+        dispatcher.Send(
+                request: Arg.Any<SolveSatProblemInternalCommand>(),
                 cancellationToken: Arg.Any<CancellationToken>()
             ).Returns(SatResult.Solvable([VariableAssignment.FromInteger(1)]));
 
@@ -37,8 +37,8 @@ public class SolveSatProblemCommandHandlerTests
                 new VariableAssignmentDto(VariableNumber: 1, Assignment: true)
             ]
         ));
-        await dispatcher.Received(1).Dispatch<SolveSatProblemInternalCommand, SatResult>(
-            command: Arg.Is<SolveSatProblemInternalCommand>(internalCommand =>
+        await dispatcher.Received(1).Send(
+            request: Arg.Is<SolveSatProblemInternalCommand>(internalCommand =>
                 internalCommand.SatProblem.GetNumberOfClauses() == 1 &&
                 internalCommand.SatProblem.GetNumberOfVariables() == 1
             ),
@@ -51,9 +51,9 @@ public class SolveSatProblemCommandHandlerTests
     {
         var command = new SolveSatProblemCommand(Clauses: []);
 
-        var dispatcher = Substitute.For<ICommandDispatcher>();
-        dispatcher.Dispatch<SolveSatProblemInternalCommand, SatResult>(
-            command: Arg.Any<SolveSatProblemInternalCommand>(),
+        var dispatcher = Substitute.For<ISender>();
+        dispatcher.Send(
+            request: Arg.Any<SolveSatProblemInternalCommand>(),
             cancellationToken: Arg.Any<CancellationToken>()
         )!.Returns((SatResult)null!);
 
@@ -71,9 +71,9 @@ public class SolveSatProblemCommandHandlerTests
             new ClauseDto(Literals: [])
         ]);
 
-        var dispatcher = Substitute.For<ICommandDispatcher>();
-        dispatcher.Dispatch<SolveSatProblemInternalCommand, SatResult>(
-            command: Arg.Any<SolveSatProblemInternalCommand>(),
+        var dispatcher = Substitute.For<ISender>();
+        dispatcher.Send(
+            request: Arg.Any<SolveSatProblemInternalCommand>(),
             cancellationToken: Arg.Any<CancellationToken>()
         )!.Returns((SatResult)null!);
 
@@ -96,9 +96,9 @@ public class SolveSatProblemCommandHandlerTests
             ])
         ]);
 
-        var dispatcher = Substitute.For<ICommandDispatcher>();
-        dispatcher.Dispatch<SolveSatProblemInternalCommand, SatResult>(
-            command: Arg.Any<SolveSatProblemInternalCommand>(),
+        var dispatcher = Substitute.For<ISender>();
+        dispatcher.Send(
+            request: Arg.Any<SolveSatProblemInternalCommand>(),
             cancellationToken: Arg.Any<CancellationToken>()
         )!.Returns((SatResult)null!);
 

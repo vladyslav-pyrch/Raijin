@@ -5,7 +5,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 
-public record SolveSatProblemCommand(List<ClauseDto> Clauses) : ICommand<SolveSatProblemCommandResult>
+public record SolveSatProblemCommand(List<ClauseDto> Clauses) : IRequest<SolveSatProblemCommandResult>
 {
     public SolveSatProblemInternalCommand ToInternalCommand()
     {

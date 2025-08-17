@@ -22,9 +22,9 @@ public class SolveSatProblemEndpointTests
             ])
         ]);
 
-        var commandDispatcher = Substitute.For<ICommandDispatcher>();
-        commandDispatcher.Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(
-            command: Arg.Is<SolveSatProblemCommand>(c => c.Clauses.Count == 1),
+        var commandDispatcher = Substitute.For<ISender>();
+        commandDispatcher.Send(
+            request: Arg.Is<SolveSatProblemCommand>(c => c.Clauses.Count == 1),
             cancellationToken: Arg.Any<CancellationToken>()
         ).Returns(new SolveSatProblemCommandResult(
             SolvingStatusDto.Satisfiable,
@@ -41,8 +41,8 @@ public class SolveSatProblemEndpointTests
             SolvingStatusResponse.Satisfiable,
             VariableAssignments: [new VariableAssignmentResponse(VariableNumber: 1, Assignment: true)]
         ));
-        await commandDispatcher.Received(1).Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(
-            command: Arg.Is<SolveSatProblemCommand>(c => c.Clauses.Count == 1),
+        await commandDispatcher.Received(1).Send(
+            request: Arg.Is<SolveSatProblemCommand>(c => c.Clauses.Count == 1),
             cancellationToken: Arg.Any<CancellationToken>()
         );
     }
@@ -56,9 +56,9 @@ public class SolveSatProblemEndpointTests
             ])
         ]);
 
-        var commandDispatcher = Substitute.For<ICommandDispatcher>();
-        commandDispatcher.Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(
-            command: Arg.Any<SolveSatProblemCommand>(),
+        var commandDispatcher = Substitute.For<ISender>();
+        commandDispatcher.Send(
+            request: Arg.Any<SolveSatProblemCommand>(),
             cancellationToken: Arg.Any<CancellationToken>()
         ).Returns(new SolveSatProblemCommandResult(
             SolvingStatusDto.Satisfiable,
@@ -73,8 +73,8 @@ public class SolveSatProblemEndpointTests
             );
 
         results.Result.Should().BeOfType<Ok<SolveSatProblemResponse>>();
-        await commandDispatcher.Received(1).Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(
-            command: Arg.Any<SolveSatProblemCommand>(),
+        await commandDispatcher.Received(1).Send(
+            request: Arg.Any<SolveSatProblemCommand>(),
             cancellationToken: cancellationToken
         );
     }
@@ -84,7 +84,7 @@ public class SolveSatProblemEndpointTests
     {
         var request = new SolveSatProblemRequest(Clauses: []);
 
-        var commandDispatcher = Substitute.For<ICommandDispatcher>();
+        var commandDispatcher = Substitute.For<ISender>();
 
         Results<Ok<SolveSatProblemResponse>, ValidationProblem> results =
             await SolveSatProblemEndpoint.Execute(
@@ -92,8 +92,9 @@ public class SolveSatProblemEndpointTests
             );
 
         results.Result.Should().BeOfType<ValidationProblem>();
-        await commandDispatcher.DidNotReceive().Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(
-            Arg.Any<SolveSatProblemCommand>(), Arg.Any<CancellationToken>()
+        await commandDispatcher.DidNotReceive().Send(
+            request: Arg.Any<SolveSatProblemCommand>(),
+            cancellationToken: Arg.Any<CancellationToken>()
         );
     }
 
@@ -108,7 +109,7 @@ public class SolveSatProblemEndpointTests
             ])
         ]);
 
-        var commandDispatcher = Substitute.For<ICommandDispatcher>();
+        var commandDispatcher = Substitute.For<ISender>();
 
         Results<Ok<SolveSatProblemResponse>, ValidationProblem> results =
             await SolveSatProblemEndpoint.Execute(
@@ -116,8 +117,9 @@ public class SolveSatProblemEndpointTests
             );
 
         results.Result.Should().BeOfType<ValidationProblem>();
-        await commandDispatcher.DidNotReceive().Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(
-            Arg.Any<SolveSatProblemCommand>(), Arg.Any<CancellationToken>()
+        await commandDispatcher.DidNotReceive().Send(
+            request: Arg.Any<SolveSatProblemCommand>(),
+            cancellationToken: Arg.Any<CancellationToken>()
         );
     }
 
@@ -128,7 +130,7 @@ public class SolveSatProblemEndpointTests
             new ClauseRequest(Literals: [])
         ]);
 
-        var commandDispatcher = Substitute.For<ICommandDispatcher>();
+        var commandDispatcher = Substitute.For<ISender>();
 
         Results<Ok<SolveSatProblemResponse>, ValidationProblem> results =
             await SolveSatProblemEndpoint.Execute(
@@ -136,8 +138,9 @@ public class SolveSatProblemEndpointTests
             );
 
         results.Result.Should().BeOfType<ValidationProblem>();
-        await commandDispatcher.DidNotReceive().Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(
-            Arg.Any<SolveSatProblemCommand>(), Arg.Any<CancellationToken>()
+        await commandDispatcher.DidNotReceive().Send(
+            request: Arg.Any<SolveSatProblemCommand>(),
+            cancellationToken: Arg.Any<CancellationToken>()
         );
     }
 }

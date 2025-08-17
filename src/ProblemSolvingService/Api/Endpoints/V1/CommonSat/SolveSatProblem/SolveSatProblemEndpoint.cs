@@ -10,7 +10,7 @@ public static class SolveSatProblemEndpoint
 {
     public static async Task<Results<Ok<SolveSatProblemResponse>, ValidationProblem>> Execute(
         [FromBody] SolveSatProblemRequest request,
-        [FromServices] ICommandDispatcher commandDispatcher,
+        [FromServices] ISender sender,
         CancellationToken cancellationToken)
     {
         ValidationResult validationResult = await new SolveSatProblemRequestValidator().ValidateAsync(request, cancellationToken);
@@ -20,9 +20,7 @@ public static class SolveSatProblemEndpoint
 
         SolveSatProblemCommand command = request.ToSolveStaProblemCommand();
 
-        SolveSatProblemCommandResult result =
-            await commandDispatcher.Dispatch<SolveSatProblemCommand, SolveSatProblemCommandResult>(command,
-                cancellationToken);
+        SolveSatProblemCommandResult result = await sender.Send(command, cancellationToken);
 
         return TypedResults.Ok(SolveSatProblemResponse.FromSolveSatProblemCommandResult(result));
     }

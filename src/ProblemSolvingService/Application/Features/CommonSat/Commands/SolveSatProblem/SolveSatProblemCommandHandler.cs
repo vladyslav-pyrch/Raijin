@@ -5,8 +5,8 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 
-public class SolveSatProblemCommandHandler(ICommandDispatcher dispatcher)
-    : ICommandHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>
+public class SolveSatProblemCommandHandler(ISender sender)
+    : IRequestHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>
 {
     public async Task<SolveSatProblemCommandResult> Handle(SolveSatProblemCommand command, CancellationToken cancellationToken = default)
     {
@@ -14,7 +14,7 @@ public class SolveSatProblemCommandHandler(ICommandDispatcher dispatcher)
 
         SolveSatProblemInternalCommand internalCommand = command.ToInternalCommand();
 
-        SatResult satResult = await dispatcher.Dispatch<SolveSatProblemInternalCommand, SatResult>(internalCommand, cancellationToken);
+        SatResult satResult = await sender.Send(internalCommand, cancellationToken);
 
         return SolveSatProblemCommandResult.FromSatResult(satResult);
     }

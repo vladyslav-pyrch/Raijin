@@ -15,12 +15,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
-builder.Services.AddTransient<ICommandHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>,
+builder.Services.AddTransient<IRequestHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>,
         SolveSatProblemCommandHandler>();
-builder.Services.AddTransient<ICommandHandler<SolveSatProblemInternalCommand, SatResult>,
+builder.Services.AddTransient<IRequestHandler<SolveSatProblemInternalCommand, SatResult>,
     SolveSatProblemInternalCommandHandler>();
-builder.Services.AddScoped<ICommandDispatcher, CommandQueryDispatcher>();
-builder.Services.AddScoped<IQueryDispatcher, CommandQueryDispatcher>();
+builder.Services.AddScoped<ISender, DotNetDiSender>();
 builder.Services.AddScoped<ISatSolver, CryptominisatSatSolver>();
 builder.Services.AddScoped<Cryptominisat>();
 builder.Services.AddLogging();
