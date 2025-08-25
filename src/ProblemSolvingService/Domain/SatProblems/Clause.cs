@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Raijin.ProblemSolvingService.Domain.Shared;
+using Raijin.ProblemSolvingService.Domain.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
@@ -16,7 +16,7 @@ public sealed record Clause : ValueObject
 
     public IReadOnlyList<Literal> Literals { get; }
 
-    internal int GetNumberOfVariables() => Literals.Select(literal => literal.Variable.Id).Max();
+    internal int GetNumberOfVariables() => Literals.Select(literal => literal.SatVariable.Id).Max();
 
     internal string ToDimacsString()
     {

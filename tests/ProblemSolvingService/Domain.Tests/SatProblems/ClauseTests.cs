@@ -11,9 +11,9 @@ public class ClauseTests
     {
         List<Literal> literals =
         [
-            new(new Variable(1)),
-            new(new Variable(2), isNegated: true),
-            new(new Variable(3)),
+            new(new SatVariable(1)),
+            new(new SatVariable(2), isNegated: true),
+            new(new SatVariable(3)),
         ];
 
         Action when = () => _ = new Clause(literals);
@@ -36,8 +36,8 @@ public class ClauseTests
     {
         List<Literal> literals =
         [
-            new(new Variable(1)),
-            new(new Variable(2), isNegated: true),
+            new(new SatVariable(1)),
+            new(new SatVariable(2), isNegated: true),
             null!
         ];
 

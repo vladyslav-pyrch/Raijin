@@ -4,14 +4,14 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 namespace Raijin.ProblemSolvingService.Domain.Tests.SatProblems;
 
 [Trait("Category", "Unit")]
-public class VariableTests
+public class SatVariableTests
 {
     [Fact]
     public void GivenNegativeId_WhenCreatingVariable_ThenThrowArgumentOutOfRangeException()
     {
         const int id = -1;
 
-        Action when = () => _ = new Variable(id);
+        Action when = () => _ = new SatVariable(id);
 
         when.Should().Throw<ArgumentOutOfRangeException>();
     }
@@ -21,7 +21,7 @@ public class VariableTests
     {
         const int id = 0;
 
-        Action when = () => _ = new Variable(id);
+        Action when = () => _ = new SatVariable(id);
 
         when.Should().Throw<ArgumentOutOfRangeException>();
     }

@@ -11,8 +11,8 @@ public class SatResultTests
     {
         var assignments = new List<VariableAssignment>
         {
-            new(new Variable(1), true),
-            new(new Variable(2), false)
+            new(new SatVariable(1), true),
+            new(new SatVariable(2), false)
         };
 
         SatResult result = SatResult.Solvable(assignments);

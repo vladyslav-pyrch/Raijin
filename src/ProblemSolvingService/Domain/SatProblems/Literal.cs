@@ -1,22 +1,22 @@
-﻿using Raijin.ProblemSolvingService.Domain.Shared;
+﻿using Raijin.ProblemSolvingService.Domain.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
 public sealed record Literal: ValueObject
 {
-    public Literal(Variable variable, bool isNegated = false)
+    public Literal(SatVariable satVariable, bool isNegated = false)
     {
-        ArgumentNullException.ThrowIfNull(variable, nameof(variable));
+        ArgumentNullException.ThrowIfNull(satVariable, nameof(satVariable));
 
-        Variable = variable;
+        SatVariable = satVariable;
         IsNegated = isNegated;
     }
 
     public static Literal FromInteger(int value) => value < 0 ?
-        new Literal(new Variable(-value), isNegated: true) : new Literal(new Variable(value), isNegated: false);
+        new Literal(new SatVariable(-value), isNegated: true) : new Literal(new SatVariable(value), isNegated: false);
 
-    public Variable Variable { get; }
+    public SatVariable SatVariable { get; }
     public bool IsNegated { get; }
 
-    internal string ToDimacsString() => IsNegated ? $"-{Variable.ToDimacsString()}" : Variable.ToDimacsString();
+    internal string ToDimacsString() => IsNegated ? $"-{SatVariable.ToDimacsString()}" : SatVariable.ToDimacsString();
 }

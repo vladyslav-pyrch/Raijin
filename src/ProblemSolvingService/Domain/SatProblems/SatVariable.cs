@@ -1,10 +1,10 @@
-﻿using Raijin.ProblemSolvingService.Domain.Shared;
+﻿using Raijin.ProblemSolvingService.Domain.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
-public sealed record Variable : ValueObject
+public sealed record SatVariable : ValueObject
 {
-    public Variable(int id)
+    public SatVariable(int id)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id, nameof(id));
 

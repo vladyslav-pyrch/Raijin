@@ -13,7 +13,7 @@ public class VariableAssignmentTests
 
         VariableAssignment assignment = VariableAssignment.FromInteger(value);
 
-        assignment.Should().Be(new VariableAssignment(new Variable(1), true));
+        assignment.Should().Be(new VariableAssignment(new SatVariable(1), true));
     }
 
     [Fact]
@@ -23,15 +23,15 @@ public class VariableAssignmentTests
 
         var assignment = VariableAssignment.FromInteger(value);
 
-        assignment.Should().Be(new VariableAssignment(new Variable(1), false));
+        assignment.Should().Be(new VariableAssignment(new SatVariable(1), false));
     }
 
     [Fact]
     public void GivenNullVariable_WhenCreatingVariableAssignment_ThenThrowsArgumentNullException()
     {
-        Variable variable = null!;
+        SatVariable satVariable = null!;
 
-        Action when = () => _ = new VariableAssignment(variable, true);
+        Action when = () => _ = new VariableAssignment(satVariable, true);
 
         when.Should().Throw<ArgumentNullException>();
     }

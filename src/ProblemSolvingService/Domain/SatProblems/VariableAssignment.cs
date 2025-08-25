@@ -1,21 +1,21 @@
-using Raijin.ProblemSolvingService.Domain.Shared;
+using Raijin.ProblemSolvingService.Domain.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
 public sealed record VariableAssignment : ValueObject
 {
-    public VariableAssignment(Variable variable, bool value)
+    public VariableAssignment(SatVariable satVariable, bool value)
     {
-        ArgumentNullException.ThrowIfNull(variable, nameof(variable));
+        ArgumentNullException.ThrowIfNull(satVariable, nameof(satVariable));
 
-        Variable = variable;
+        SatVariable = satVariable;
         Value = value;
     }
 
     public static VariableAssignment FromInteger(int value) => value < 0 ?
-        new VariableAssignment(new Variable(-value), value: false) : new VariableAssignment(new Variable(value), value: true);
+        new VariableAssignment(new SatVariable(-value), value: false) : new VariableAssignment(new SatVariable(value), value: true);
 
-    public Variable Variable { get; }
+    public SatVariable SatVariable { get; }
 
     public bool Value { get; }
 }

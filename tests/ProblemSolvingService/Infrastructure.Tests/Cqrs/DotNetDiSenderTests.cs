@@ -4,6 +4,7 @@ using Raijin.ProblemSolvingService.Infrastructure.Cqrs;
 
 namespace Raijin.ProblemSolvingService.Infrastructure.Tests.Cqrs;
 
+[Trait("Category", "Integration")]
 public class DotNetDiSenderTests : SenderTests
 {
     protected override ISender GetSender()

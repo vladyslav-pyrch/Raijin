@@ -9,9 +9,9 @@ public class LiteralTests
     [Fact]
     public void GivenVariableIsNull_WhenCreatingLiteral_ThenThrowArgumentNullException()
     {
-        Variable variable = null!;
+        SatVariable satVariable = null!;
 
-        Action when = () => _ = new Literal(variable);
+        Action when = () => _ = new Literal(satVariable);
 
         when.Should().Throw<ArgumentNullException>();
     }
@@ -23,7 +23,7 @@ public class LiteralTests
 
         Literal literal = Literal.FromInteger(value);
 
-        literal.Should().Be(new Literal(new Variable(1), isNegated: true));
+        literal.Should().Be(new Literal(new SatVariable(1), isNegated: true));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class LiteralTests
 
         Literal literal = Literal.FromInteger(value);
 
-        literal.Should().Be(new Literal(new Variable(1), isNegated: false));
+        literal.Should().Be(new Literal(new SatVariable(1), isNegated: false));
     }
 
     [Fact]

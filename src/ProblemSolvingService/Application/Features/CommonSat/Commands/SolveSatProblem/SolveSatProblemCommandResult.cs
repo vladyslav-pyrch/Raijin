@@ -19,7 +19,7 @@ public record SolveSatProblemCommandResult(
         };
 
         List<VariableAssignmentDto> variableAssignments = satResult.Assignments
-            .Select(assignment => new VariableAssignmentDto(assignment.Variable.Id, assignment.Value))
+            .Select(assignment => new VariableAssignmentDto(assignment.SatVariable.Id, assignment.Value))
             .ToList();
 
         return new SolveSatProblemCommandResult(solvingStatus, variableAssignments);
