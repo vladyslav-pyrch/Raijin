@@ -4,14 +4,20 @@ namespace Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
 public sealed record ExclusiveDisjunction(IBooleanExpression Expression1, IBooleanExpression Expression2) : ValueObject, IBooleanExpression
 {
-    public IBooleanExpression Desugar() => new Disjunction(
-        new Conjunction(
-            new Negation(Expression1.Desugar()),
-            Expression2.Desugar()
-        ),
-        new Conjunction(
-            Expression1.Desugar(),
-            new Negation(Expression2.Desugar())
-        )
-    );
+    public IBooleanExpression Desugar()
+    {
+        var expression1Desugared = Expression1.Desugar();
+        var expression2Desugared = Expression2.Desugar();
+
+        return new Disjunction(
+            new Conjunction(
+                new Negation(expression1Desugared),
+                expression2Desugared
+            ),
+            new Conjunction(
+                expression1Desugared,
+                new Negation(expression2Desugared)
+            )
+        );
+    }
 }

@@ -2,24 +2,25 @@ using FluentAssertions;
 using NSubstitute;
 using Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
-namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormula;
+namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormulas;
 
-public class ImplicationTests
+[Trait("Category", "Unit")]
+public class ConjunctionTests
 {
     [Fact]
-    public void GivenImplication_WhenDesugaring_ThenReturnsDesugaredExpressionTree()
+    public void GivenConjunction_WhenDesugaring_ThenReturnsDesugaredExpressionTree()
     {
         var subExpression = Substitute.For<IBooleanExpression>();
         subExpression.Desugar().Returns(subExpression);
         var subExpression2 = Substitute.For<IBooleanExpression>();
         subExpression2.Desugar().Returns(subExpression2);
 
-        var implication = new Implication(Condition: subExpression, Consequence: subExpression2);
+        var exclusiveDisjunction = new Conjunction(subExpression, subExpression2);
 
-        IBooleanExpression desugared = implication.Desugar();
+        IBooleanExpression desugared = exclusiveDisjunction.Desugar();
 
-        desugared.Should().BeEquivalentTo(new Disjunction(
-            new Negation(subExpression),
+        desugared.Should().BeEquivalentTo(new Conjunction(
+            subExpression,
             subExpression2
         ));
         subExpression.Received(1).Desugar();

@@ -2,8 +2,9 @@ using FluentAssertions;
 using NSubstitute;
 using Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
-namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormula;
+namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormulas;
 
+[Trait("Category", "Unit")]
 public sealed class NegationTests
 {
     [Fact]

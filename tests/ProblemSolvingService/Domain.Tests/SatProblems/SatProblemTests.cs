@@ -96,4 +96,80 @@ public class SatProblemTests
 
         dimacsString.Should().Be("p cnf 4 3\n-1 -2 3 0\n-1 2 3 0\n1 2 -4 0");
     }
+
+    [Fact]
+    public void GivenSatProblem_WhenAddingClause_ThenAddsVariablesContainVariablesFromTheClause()
+    {
+        var satProblem = new SatProblem();
+
+        satProblem.AddClause(new Clause(literals:
+            [Literal.FromInteger(1), Literal.FromInteger(-3)]));
+
+        satProblem.Variables.Should().Contain([new SatVariable(1), new SatVariable(3)]);
+    }
+
+    [Fact]
+    public void GivenSatProblemWithVariables_WhenAddingClauseWithTheSameVariables_ThenVariablesShouldNotContainDuplicates()
+    {
+        var satProblem = new SatProblem();
+        satProblem.AddClause(new Clause(literals:
+            [Literal.FromInteger(1), Literal.FromInteger(3)]));
+
+        satProblem.AddClause(new Clause(literals:
+            [Literal.FromInteger(1), Literal.FromInteger(2)]));
+
+        satProblem.Variables.Should().OnlyHaveUniqueItems();
+    }
+
+    [Fact]
+    public void GivenSatProblemWithVariables_WhenGettingVariableById_ThenReturnsVariableWithPassedId()
+    {
+        var satProblem = new SatProblem();
+        satProblem.AddClause(new Clause(literals:
+            [Literal.FromInteger(1), Literal.FromInteger(3)]));
+
+        SatVariable variable = satProblem.GetVariableById(1);
+
+        variable.Id.Should().Be(1);
+    }
+
+    [Fact]
+    public void GivenSatProblemWithoutVariable_WhenGettingVariableById_ThenThrowsInvalidOperationException()
+    {
+        var satProblem = new SatProblem();
+
+        Action when = () => satProblem.GetVariableById(1);
+
+        when.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GivenNegativeId_WhenGettingVariableById_ThenThrowsArgumentOutOfRangeException()
+    {
+        var satProblem = new SatProblem();
+
+        Action when = () => satProblem.GetVariableById(-1);
+
+        when.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void GivenZeroAsId_WhenGettingVariableById_ThenThrowsArgumentOutOfRangeException()
+    {
+        var satProblem = new SatProblem();
+
+        Action when = () => satProblem.GetVariableById(0);
+
+        when.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void GivenListOfLiterals_WhenAddingClause_ThenEquivalentClauseIsAdded()
+    {
+        var satProblem = new SatProblem();
+
+        satProblem.AddClause(Literal.FromInteger(1), Literal.FromInteger(2));
+
+        satProblem.Clauses.Should().ContainEquivalentOf(new Clause(Literal.FromInteger(1), Literal.FromInteger(2)));
+    }
 }

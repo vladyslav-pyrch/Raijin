@@ -5,7 +5,7 @@ namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
 public sealed record Clause : ValueObject
 {
-    public Clause(IReadOnlyList<Literal> literals)
+    public Clause(params IReadOnlyList<Literal> literals)
     {
         ArgumentNullException.ThrowIfNull(literals, nameof(literals));
         if (literals.Any(element => element is null) || !literals.Any())

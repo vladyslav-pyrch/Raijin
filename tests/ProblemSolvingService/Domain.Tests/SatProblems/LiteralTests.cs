@@ -45,4 +45,24 @@ public class LiteralTests
 
         when.Should().Throw<ArgumentOutOfRangeException>();
     }
+
+    [Fact]
+    public void GivenSatVariable_WhenCreatingAffirmedLiteral_ThenReturnsAffirmedLiteral()
+    {
+        var variable = new SatVariable(1);
+
+        Literal literal = Literal.Affirmed(variable);
+
+        literal.Should().BeEquivalentTo(new Literal(variable));
+    }
+
+    [Fact]
+    public void GivenSatVariable_WhenCreatingNegatedLiteral_ThenReturnsNegatedLiteral()
+    {
+        var variable = new SatVariable(1);
+
+        Literal literal = Literal.Negated(variable);
+
+        literal.Should().BeEquivalentTo(new Literal(variable, isNegated: true));
+    }
 }

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
-namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormula;
+namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormulas;
 
 [Trait("Category", "Unit")]
 public class VariableTests
