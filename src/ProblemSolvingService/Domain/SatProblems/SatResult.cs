@@ -18,10 +18,4 @@ public sealed record SatResult
     public static SatResult Unsolvable() => new(SolvingStatus.Unsolvable, []);
 
     public static SatResult Indeterminate() => new(SolvingStatus.Indeterminate, []);
-
-    public void Deconstruct(out SolvingStatus status, out IReadOnlyList<VariableAssignment> assignments)
-    {
-        status = Status;
-        assignments = Assignments;
-    }
 }

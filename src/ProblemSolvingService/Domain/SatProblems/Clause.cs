@@ -16,8 +16,6 @@ public sealed record Clause : ValueObject
 
     public IReadOnlyList<Literal> Literals { get; }
 
-    internal int GetNumberOfVariables() => Literals.Select(literal => literal.SatVariable.Id).Max();
-
     internal string ToDimacsString()
     {
         var stringBuilder = new StringBuilder();
