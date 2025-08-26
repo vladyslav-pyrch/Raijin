@@ -11,14 +11,14 @@ public sealed class TseitinTransformer
         symbolTable = new Dictionary<Variable, SatVariable>();
         var varId = 1;
 
-        Transform(desugaredExpression, satProblem, symbolTable, newSatVariable: () => new SatVariable(varId++));
+        RecursiveTransform(desugaredExpression, satProblem, symbolTable, newSatVariable: () => new SatVariable(varId++));
 
         return satProblem;
     }
 
-    private static SatVariable Transform(IBooleanExpression expression, SatProblem satProblem, Dictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
+    private static SatVariable RecursiveTransform(IBooleanExpression expression, SatProblem satProblem, Dictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
     {
-        Func<IBooleanExpression, SatVariable> transform = exp => Transform(exp, satProblem, symbolTable, newSatVariable);
+        Func<IBooleanExpression, SatVariable> transform = exp => RecursiveTransform(exp, satProblem, symbolTable, newSatVariable);
 
         switch (expression)
         {
@@ -46,7 +46,7 @@ public sealed class TseitinTransformer
 
                 satProblem.AddClause(Literal.Negated(xAndY), Literal.Affirmed(x));
                 satProblem.AddClause(Literal.Negated(xAndY), Literal.Affirmed(y));
-                satProblem.AddClause(Literal.Negated(x), Literal.Negated(y), Literal.Affirmed(xAndY));
+                satProblem.AddClause(Literal.Affirmed(xAndY), Literal.Negated(x), Literal.Negated(y));
 
                 return xAndY;
             }
@@ -56,9 +56,9 @@ public sealed class TseitinTransformer
                 SatVariable y = transform(disjunction.Expression2);
                 SatVariable xOrY = newSatVariable();
 
-                satProblem.AddClause(Literal.Negated(xOrY), Literal.Affirmed(x));
-                satProblem.AddClause(Literal.Negated(xOrY), Literal.Affirmed(y));
-                satProblem.AddClause(Literal.Negated(xOrY), Literal.Affirmed(x), Literal.Negated(y));
+                satProblem.AddClause(Literal.Affirmed(xOrY), Literal.Negated(x));
+                satProblem.AddClause(Literal.Affirmed(xOrY), Literal.Negated(y));
+                satProblem.AddClause(Literal.Negated(xOrY), Literal.Affirmed(x), Literal.Affirmed(y));
 
                 return xOrY;
             }
