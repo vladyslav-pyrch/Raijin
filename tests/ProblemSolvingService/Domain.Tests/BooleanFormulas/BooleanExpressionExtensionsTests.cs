@@ -4,6 +4,7 @@ using Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
 namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormulas;
 
+[Trait("Category", "Unit")]
 public class BooleanExpressionExtensionsTests
 {
     [Fact]
