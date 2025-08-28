@@ -19,15 +19,9 @@ public class EquivalenceTests
 
         IBooleanExpression desugared = equivalence.Desugar();
 
-        desugared.Should().BeEquivalentTo(new Disjunction(
-            new Conjunction(
-                subExpression,
-                subExpression2
-            ),
-            new Conjunction(
-                new Negation(subExpression),
-                new Negation(subExpression2)
-            )
+        desugared.Should().BeOfType<Equivalence>().And.BeEquivalentTo(new Equivalence(
+            subExpression,
+            subExpression2
         ));
         subExpression.Received(1).Desugar();
         subExpression2.Received(1).Desugar();

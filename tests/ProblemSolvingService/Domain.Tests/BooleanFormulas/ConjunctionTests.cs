@@ -19,7 +19,7 @@ public class ConjunctionTests
 
         IBooleanExpression desugared = exclusiveDisjunction.Desugar();
 
-        desugared.Should().BeEquivalentTo(new Conjunction(
+        desugared.Should().BeOfType<Conjunction>().And.BeEquivalentTo(new Conjunction(
             subExpression,
             subExpression2
         ));

@@ -16,7 +16,7 @@ public sealed class NegationTests
 
         IBooleanExpression desugared = negation.Desugar();
 
-        desugared.Should().BeEquivalentTo(new Negation(subExpression));
+        desugared.Should().BeOfType<Negation>().And.BeEquivalentTo(new Negation(subExpression));
         subExpression.Received(1).Desugar();
     }
 }

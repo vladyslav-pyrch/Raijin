@@ -13,8 +13,9 @@ public class TseitinTransformerTests
     {
         var variable = new Variable("1");
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        SatProblem satProblem = tseitinTransformer.Transform(new BooleanFormula(variable),
+        tseitinTransformer.Transform(new BooleanFormula(variable), satProblem,
             out Dictionary<Variable, SatVariable> symbolTable);
 
         satProblem.Clauses.Should().BeEmpty();
@@ -29,8 +30,9 @@ public class TseitinTransformerTests
     {
         Negation negation = new Variable("1").Negated();
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        SatProblem satProblem = tseitinTransformer.Transform(new BooleanFormula(negation),
+        tseitinTransformer.Transform(new BooleanFormula(negation), satProblem,
             out Dictionary<Variable, SatVariable> symbolTable);
 
         satProblem.Clauses.Should().BeEquivalentTo([
@@ -48,8 +50,9 @@ public class TseitinTransformerTests
     {
         Conjunction conjunction = new Variable("1").And(new Variable("2"));
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        SatProblem satProblem = tseitinTransformer.Transform(new BooleanFormula(conjunction),
+        tseitinTransformer.Transform(new BooleanFormula(conjunction), satProblem,
             out Dictionary<Variable, SatVariable> symbolTable);
 
         satProblem.Clauses.Should().BeEquivalentTo([
@@ -65,12 +68,35 @@ public class TseitinTransformerTests
     }
 
     [Fact]
+    public void GivenNegatedConjunction_WhenTransforming_ThenReturnsAppropriateSatProblemAndSymbolTable()
+    {
+        NegatedConjunction conjunction = new Variable("1").Nand(new Variable("2"));
+        var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
+
+        tseitinTransformer.Transform(new BooleanFormula(conjunction), satProblem,
+            out Dictionary<Variable, SatVariable> symbolTable);
+
+        satProblem.Clauses.Should().BeEquivalentTo([
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(2), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(-3))
+        ]);
+        symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
+        {
+            [new Variable("1")] = new(1),
+            [new Variable("2")] = new(2)
+        });
+    }
+
+    [Fact]
     public void GivenDisjunction_WhenTransforming_ThenReturnsAppropriateSatProblemAndSymbolTable()
     {
         Disjunction disjunction = new Variable("1").Or(new Variable("2"));
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        SatProblem satProblem = tseitinTransformer.Transform(new BooleanFormula(disjunction),
+        tseitinTransformer.Transform(new BooleanFormula(disjunction), satProblem,
             out Dictionary<Variable, SatVariable> symbolTable);
 
         satProblem.Clauses.Should().BeEquivalentTo([
@@ -86,34 +112,42 @@ public class TseitinTransformerTests
     }
 
     [Fact]
+    public void GivenNegatedDisjunction_WhenTransforming_ThenReturnsAppropriateSatProblemAndSymbolTable()
+    {
+        NegatedDisjunction disjunction = new Variable("1").Nor(new Variable("2"));
+        var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
+
+        tseitinTransformer.Transform(new BooleanFormula(disjunction), satProblem,
+            out Dictionary<Variable, SatVariable> symbolTable);
+
+        satProblem.Clauses.Should().BeEquivalentTo([
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(-2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(3))
+        ]);
+        symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
+        {
+            [new Variable("1")] = new(1),
+            [new Variable("2")] = new(2)
+        });
+    }
+
+    [Fact]
     public void GivenEquivalence_WhenTransforming_ThenReturnsAppropriateSatProblemAndSymbolTable()
     {
         Equivalence equivalence = new Variable("1").Equal(new Variable("2"));
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        SatProblem satProblem = tseitinTransformer.Transform(new BooleanFormula(equivalence),
+        tseitinTransformer.Transform(new BooleanFormula(equivalence), satProblem,
             out Dictionary<Variable, SatVariable> symbolTable);
 
         satProblem.Clauses.Should().BeEquivalentTo([
-            new Clause(Literal.FromInteger(1), Literal.FromInteger(-3)),
-            new Clause(Literal.FromInteger(2), Literal.FromInteger(-3)),
             new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(3)),
-
-
-            new Clause(Literal.FromInteger(1), Literal.FromInteger(4)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-4)),
-
-            new Clause(Literal.FromInteger(2), Literal.FromInteger(5)),
-            new Clause(Literal.FromInteger(-2), Literal.FromInteger(-5)),
-
-            new Clause(Literal.FromInteger(4), Literal.FromInteger(-6)),
-            new Clause(Literal.FromInteger(5), Literal.FromInteger(-6)),
-            new Clause(Literal.FromInteger(-4), Literal.FromInteger(-5), Literal.FromInteger(6)),
-
-
-            new Clause(Literal.FromInteger(-3), Literal.FromInteger(7)),
-            new Clause(Literal.FromInteger(-6), Literal.FromInteger(7)),
-            new Clause(Literal.FromInteger(3), Literal.FromInteger(6), Literal.FromInteger(-7))
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(-2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(-3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -127,35 +161,21 @@ public class TseitinTransformerTests
     {
         ExclusiveDisjunction disjunction = new Variable("1").Xor(new Variable("2"));
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        SatProblem satProblem = tseitinTransformer.Transform(new BooleanFormula(disjunction),
+        tseitinTransformer.Transform(new BooleanFormula(disjunction), satProblem,
             out Dictionary<Variable, SatVariable> symbolTable);
 
         satProblem.Clauses.Should().BeEquivalentTo([
-            new Clause(Literal.FromInteger(1), Literal.FromInteger(2)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2)),
-
-            new Clause(Literal.FromInteger(2), Literal.FromInteger(-4)),
-            new Clause(Literal.FromInteger(3), Literal.FromInteger(-4)),
-            new Clause(Literal.FromInteger(-2), Literal.FromInteger(-3), Literal.FromInteger(4)),
-
-
-            new Clause(Literal.FromInteger(3), Literal.FromInteger(5)),
-            new Clause(Literal.FromInteger(-3), Literal.FromInteger(-5)),
-
-            new Clause(Literal.FromInteger(1), Literal.FromInteger(-6)),
-            new Clause(Literal.FromInteger(5), Literal.FromInteger(-6)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-5), Literal.FromInteger(6)),
-
-
-            new Clause(Literal.FromInteger(-4), Literal.FromInteger(7)),
-            new Clause(Literal.FromInteger(-6), Literal.FromInteger(7)),
-            new Clause(Literal.FromInteger(4), Literal.FromInteger(6), Literal.FromInteger(-7))
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(-2), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(3)),
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
             [new Variable("1")] = new(1),
-            [new Variable("2")] = new(3)
+            [new Variable("2")] = new(2)
         });
     }
 
@@ -164,22 +184,20 @@ public class TseitinTransformerTests
     {
         Implication disjunction = new Variable("1").Imply(new Variable("2"));
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        SatProblem satProblem = tseitinTransformer.Transform(new BooleanFormula(disjunction),
+        tseitinTransformer.Transform(new BooleanFormula(disjunction), satProblem,
             out Dictionary<Variable, SatVariable> symbolTable);
 
         satProblem.Clauses.Should().BeEquivalentTo([
-            new Clause(Literal.FromInteger(1), Literal.FromInteger(2)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2)),
-
-            new Clause(Literal.FromInteger(-2), Literal.FromInteger(4)),
-            new Clause(Literal.FromInteger(-3), Literal.FromInteger(4)),
-            new Clause(Literal.FromInteger(2), Literal.FromInteger(3), Literal.FromInteger(-4))
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(-2), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(-3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
             [new Variable("1")] = new(1),
-            [new Variable("2")] = new(3)
+            [new Variable("2")] = new(2)
         });
     }
 
@@ -189,8 +207,9 @@ public class TseitinTransformerTests
         var booleanExpression = Substitute.For<IBooleanExpression>();
         booleanExpression.Desugar().Returns(booleanExpression);
         var tseitinTransformer = new TseitinTransformer();
+        var satProblem = new SatProblem();
 
-        Action when = () => tseitinTransformer.Transform(new BooleanFormula(booleanExpression),
+        Action when = () => tseitinTransformer.Transform(new BooleanFormula(booleanExpression), satProblem,
             out Dictionary<Variable, SatVariable> _);
 
         when.Should().Throw<NotSupportedException>();

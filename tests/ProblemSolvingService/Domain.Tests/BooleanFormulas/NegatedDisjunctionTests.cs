@@ -5,21 +5,21 @@ using Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 namespace Raijin.ProblemSolvingService.Domain.Tests.BooleanFormulas;
 
 [Trait("Category", "Unit")]
-public class ImplicationTests
+public class NegatedDisjunctionTests
 {
     [Fact]
-    public void GivenImplication_WhenDesugaring_ThenReturnsDesugaredExpressionTree()
+    public void GivenNegatedDisjunction_WhenDesugaring_ThenReturnsDesugaredExpressionTree()
     {
         var subExpression = Substitute.For<IBooleanExpression>();
         subExpression.Desugar().Returns(subExpression);
         var subExpression2 = Substitute.For<IBooleanExpression>();
         subExpression2.Desugar().Returns(subExpression2);
 
-        var implication = new Implication(Condition: subExpression, Consequence: subExpression2);
+        var negatedDisjunction = new NegatedDisjunction(subExpression, subExpression2);
 
-        IBooleanExpression desugared = implication.Desugar();
+        IBooleanExpression desugared = negatedDisjunction.Desugar();
 
-        desugared.Should().BeOfType<Implication>().And.BeEquivalentTo(new Implication(
+        desugared.Should().BeOfType<NegatedDisjunction>().And.BeEquivalentTo(new NegatedDisjunction(
             subExpression,
             subExpression2
         ));

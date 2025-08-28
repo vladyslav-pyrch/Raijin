@@ -4,16 +4,13 @@ namespace Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
 public sealed class TseitinTransformer
 {
-    public SatProblem Transform(BooleanFormula booleanFormula, out Dictionary<Variable, SatVariable> symbolTable)
+    public void Transform(BooleanFormula booleanFormula, SatProblem satProblem, out Dictionary<Variable, SatVariable> symbolTable)
     {
         IBooleanExpression desugaredExpression = booleanFormula.Expression.Desugar();
-        var satProblem = new SatProblem();
         symbolTable = new Dictionary<Variable, SatVariable>();
         var varId = 1;
 
         RecursiveTransform(desugaredExpression, satProblem, symbolTable, newSatVariable: () => new SatVariable(varId++));
-
-        return satProblem;
     }
 
     private static SatVariable RecursiveTransform(IBooleanExpression expression, SatProblem satProblem, Dictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
@@ -50,6 +47,19 @@ public sealed class TseitinTransformer
 
                 return xAndY;
             }
+            case NegatedConjunction negatedConjunction:
+            {
+                SatVariable x = transform(negatedConjunction.Expression1);
+                SatVariable y = transform(negatedConjunction.Expression2);
+                SatVariable xNandY = newSatVariable();
+
+                satProblem.AddClause(Literal.Affirmed(xNandY), Literal.Affirmed(x));
+                satProblem.AddClause(Literal.Affirmed(xNandY), Literal.Affirmed(y));
+                satProblem.AddClause(Literal.Negated(xNandY), Literal.Negated(x), Literal.Negated(y));
+
+                return xNandY;
+
+            }
             case Disjunction disjunction:
             {
                 SatVariable x = transform(disjunction.Expression1);
@@ -61,6 +71,57 @@ public sealed class TseitinTransformer
                 satProblem.AddClause(Literal.Negated(xOrY), Literal.Affirmed(x), Literal.Affirmed(y));
 
                 return xOrY;
+            }
+            case NegatedDisjunction negatedDisjunction:
+            {
+                SatVariable x = transform(negatedDisjunction.Expression1);
+                SatVariable y = transform(negatedDisjunction.Expression2);
+                SatVariable xNorY = newSatVariable();
+
+                satProblem.AddClause(Literal.Negated(xNorY), Literal.Negated(x));
+                satProblem.AddClause(Literal.Negated(xNorY), Literal.Negated(y));
+                satProblem.AddClause(Literal.Affirmed(xNorY), Literal.Affirmed(x), Literal.Affirmed(y));
+
+                return xNorY;
+            }
+            case Equivalence equivalence:
+            {
+                SatVariable x = transform(equivalence.Expression1);
+                SatVariable y = transform(equivalence.Expression2);
+                SatVariable xEqualY = newSatVariable();
+
+                satProblem.AddClause(Literal.Affirmed(xEqualY), Literal.Negated(y), Literal.Negated(x));
+                satProblem.AddClause(Literal.Affirmed(xEqualY), Literal.Affirmed(y), Literal.Affirmed(x));
+                satProblem.AddClause(Literal.Negated(xEqualY), Literal.Negated(y), Literal.Affirmed(x));
+                satProblem.AddClause(Literal.Negated(xEqualY), Literal.Affirmed(y), Literal.Negated(x));
+
+                return xEqualY;
+            }
+            case ExclusiveDisjunction exclusiveDisjunction:
+            {
+                SatVariable x = transform(exclusiveDisjunction.Expression1);
+                SatVariable y = transform(exclusiveDisjunction.Expression2);
+                SatVariable xXorY = newSatVariable();
+
+                satProblem.AddClause(Literal.Negated(xXorY), Literal.Negated(y), Literal.Negated(x));
+                satProblem.AddClause(Literal.Negated(xXorY), Literal.Affirmed(y), Literal.Affirmed(x));
+                satProblem.AddClause(Literal.Affirmed(xXorY), Literal.Negated(y), Literal.Affirmed(x));
+                satProblem.AddClause(Literal.Affirmed(xXorY), Literal.Affirmed(y), Literal.Negated(x));
+
+                return xXorY;
+
+            }
+            case Implication implication:
+            {
+                SatVariable x = transform(implication.Condition);
+                SatVariable y = transform(implication.Consequence);
+                SatVariable xImplyY = newSatVariable();
+
+                satProblem.AddClause(Literal.Affirmed(xImplyY), Literal.Affirmed(x));
+                satProblem.AddClause(Literal.Affirmed(xImplyY), Literal.Negated(y));
+                satProblem.AddClause(Literal.Negated(xImplyY), Literal.Negated(x), Literal.Affirmed(y));
+
+                return xImplyY;
             }
             default:
                 throw new NotSupportedException($"Unsupported node: {expression.GetType().Name}");

@@ -19,15 +19,9 @@ public class ExclusiveDisjunctionTests
 
         IBooleanExpression desugared = exclusiveDisjunction.Desugar();
 
-        desugared.Should().BeEquivalentTo(new Disjunction(
-            new Conjunction(
-                new Negation(subExpression),
-                subExpression2
-            ),
-            new Conjunction(
-                subExpression,
-                new Negation(subExpression2)
-            )
+        desugared.Should().BeOfType<ExclusiveDisjunction>().And.BeEquivalentTo(new ExclusiveDisjunction(
+            subExpression,
+            subExpression2
         ));
         subExpression.Received(1).Desugar();
         subExpression2.Received(1).Desugar();
