@@ -13,7 +13,13 @@ public static class BooleanExpressionExtensions
     public static Disjunction Or(this IBooleanExpression expression1, IBooleanExpression expression2) =>
         new(expression1, expression2);
 
+    public static NegatedDisjunction Nor(this IBooleanExpression expression1, IBooleanExpression expression2) =>
+        new(expression1, expression2);
+
     public static Conjunction And(this IBooleanExpression expression1, IBooleanExpression expression2) =>
+        new(expression1, expression2);
+
+    public static NegatedConjunction Nand(this IBooleanExpression expression1, IBooleanExpression expression2) =>
         new(expression1, expression2);
 
     public static Equivalence Equal(this IBooleanExpression expression1, IBooleanExpression expression2) =>

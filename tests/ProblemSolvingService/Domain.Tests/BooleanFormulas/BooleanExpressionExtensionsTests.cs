@@ -41,12 +41,34 @@ public class BooleanExpressionExtensionsTests
     }
 
     [Fact]
+    public void GivenTwoBooleanExpression_WhenNand_ReturnsConjunction()
+    {
+        var booleanExpression1 = Substitute.For<IBooleanExpression>();
+        var booleanExpression2 = Substitute.For<IBooleanExpression>();
+
+        NegatedConjunction conjunction = booleanExpression1.Nand(booleanExpression2);
+
+        conjunction.Should().BeEquivalentTo(new Conjunction(booleanExpression1, booleanExpression2));
+    }
+
+    [Fact]
     public void GivenTwoBooleanExpression_WhenOr_ReturnsDisjunction()
     {
         var booleanExpression1 = Substitute.For<IBooleanExpression>();
         var booleanExpression2 = Substitute.For<IBooleanExpression>();
 
         Disjunction disjunction = booleanExpression1.Or(booleanExpression2);
+
+        disjunction.Should().BeEquivalentTo(new Disjunction(booleanExpression1, booleanExpression2));
+    }
+
+    [Fact]
+    public void GivenTwoBooleanExpression_WhenNor_ReturnsDisjunction()
+    {
+        var booleanExpression1 = Substitute.For<IBooleanExpression>();
+        var booleanExpression2 = Substitute.For<IBooleanExpression>();
+
+        NegatedDisjunction disjunction = booleanExpression1.Nor(booleanExpression2);
 
         disjunction.Should().BeEquivalentTo(new Disjunction(booleanExpression1, booleanExpression2));
     }
