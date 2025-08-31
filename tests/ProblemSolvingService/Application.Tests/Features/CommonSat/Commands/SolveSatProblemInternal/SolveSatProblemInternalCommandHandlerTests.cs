@@ -16,7 +16,7 @@ public class SolveSatProblemInternalCommandHandlerTests
         solvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1), Literal.FromInteger(2)]));
         solvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(1)]));
 
-        List<VariableAssignment> solution = [VariableAssignment.FromInteger(1), VariableAssignment.FromInteger(2)];
+        List<SatVariableAssignment> solution = [SatVariableAssignment.FromInteger(1), SatVariableAssignment.FromInteger(2)];
 
         var satSolver = Substitute.For<ISatSolver>();
 

@@ -4,16 +4,16 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 namespace Raijin.ProblemSolvingService.Domain.Tests.SatProblems;
 
 [Trait("Category", "Unit")]
-public class VariableAssignmentTests
+public class SatVariableAssignmentTests
 {
     [Fact]
     public void GivenPositiveInteger_WhenCreatingFromInteger_ThenCreatesTrueAssignment()
     {
         const int value = 1;
 
-        VariableAssignment assignment = VariableAssignment.FromInteger(value);
+        SatVariableAssignment assignment = SatVariableAssignment.FromInteger(value);
 
-        assignment.Should().Be(new VariableAssignment(new SatVariable(1), true));
+        assignment.Should().Be(new SatVariableAssignment(new SatVariable(1), true));
     }
 
     [Fact]
@@ -21,9 +21,9 @@ public class VariableAssignmentTests
     {
         const int value = -1;
 
-        var assignment = VariableAssignment.FromInteger(value);
+        var assignment = SatVariableAssignment.FromInteger(value);
 
-        assignment.Should().Be(new VariableAssignment(new SatVariable(1), false));
+        assignment.Should().Be(new SatVariableAssignment(new SatVariable(1), false));
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class VariableAssignmentTests
     {
         SatVariable satVariable = null!;
 
-        Action when = () => _ = new VariableAssignment(satVariable, true);
+        Action when = () => _ = new SatVariableAssignment(satVariable, true);
 
         when.Should().Throw<ArgumentNullException>();
     }
@@ -41,7 +41,7 @@ public class VariableAssignmentTests
     {
         const int value = 0;
 
-        Action when = () => _ = VariableAssignment.FromInteger(value);
+        Action when = () => _ = SatVariableAssignment.FromInteger(value);
 
         when.Should().Throw<ArgumentOutOfRangeException>();
     }

@@ -2,7 +2,7 @@ namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
 public sealed record SatResult
 {
-    private SatResult(SolvingStatus status, IReadOnlyList<VariableAssignment> assignments)
+    private SatResult(SolvingStatus status, IReadOnlyList<SatVariableAssignment> assignments)
     {
         Status = status;
         Assignments = assignments;
@@ -10,9 +10,9 @@ public sealed record SatResult
 
     public SolvingStatus Status { get; }
 
-    public IReadOnlyList<VariableAssignment> Assignments { get; }
+    public IReadOnlyList<SatVariableAssignment> Assignments { get; }
 
-    public static SatResult Solvable(IReadOnlyList<VariableAssignment> assignments) =>
+    public static SatResult Solvable(IReadOnlyList<SatVariableAssignment> assignments) =>
         new(SolvingStatus.Solvable, assignments);
 
     public static SatResult Unsolvable() => new(SolvingStatus.Unsolvable, []);

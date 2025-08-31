@@ -25,7 +25,7 @@ public class SolveSatProblemCommandHandlerTests
         dispatcher.Send(
                 request: Arg.Any<SolveSatProblemInternalCommand>(),
                 cancellationToken: Arg.Any<CancellationToken>()
-            ).Returns(SatResult.Solvable([VariableAssignment.FromInteger(1)]));
+            ).Returns(SatResult.Solvable([SatVariableAssignment.FromInteger(1)]));
 
         var handler = new SolveSatProblemCommandHandler(dispatcher);
 
@@ -34,7 +34,7 @@ public class SolveSatProblemCommandHandlerTests
         result.Should().BeEquivalentTo(new SolveSatProblemCommandResult(
             SolvingStatusDto.Satisfiable,
             VariableAssignments: [
-                new VariableAssignmentDto(VariableNumber: 1, Assignment: true)
+                new SatVariableAssignmentDto(VariableNumber: 1, Assignment: true)
             ]
         ));
         await dispatcher.Received(1).Send(

@@ -26,12 +26,12 @@ public sealed class CryptominisatSatSolver(Cryptominisat cryptominisat) : ISatSo
 
     private static SatResult ParseSatisfiableResult(string[] lines)
     {
-        List<VariableAssignment> assignments = lines
+        List<SatVariableAssignment> assignments = lines
             .Where(line => line.StartsWith("v "))
             .SelectMany(line => line[2..].Split(' ', StringSplitOptions.RemoveEmptyEntries))
             .Select(int.Parse)
             .Where(value => value != 0)
-            .Select(VariableAssignment.FromInteger)
+            .Select(SatVariableAssignment.FromInteger)
             .ToList();
 
         return SatResult.Solvable(assignments);

@@ -172,4 +172,14 @@ public class SatProblemTests
 
         satProblem.Clauses.Should().ContainEquivalentOf(new Clause(Literal.FromInteger(1), Literal.FromInteger(2)));
     }
+
+    [Fact]
+    public void GivenSatProblemWithNoClauses_WhenGettingNumberOfVariables_ReturnsZero()
+    {
+        var satProblem = new SatProblem();
+
+        int numberOfVariables = satProblem.GetNumberOfVariables();
+
+        numberOfVariables.Should().Be(0);
+    }
 }

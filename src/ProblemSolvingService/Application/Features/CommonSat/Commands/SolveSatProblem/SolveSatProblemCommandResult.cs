@@ -5,7 +5,7 @@ namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.S
 
 public record SolveSatProblemCommandResult(
     SolvingStatusDto SolvingStatus,
-    List<VariableAssignmentDto> VariableAssignments)
+    List<SatVariableAssignmentDto> VariableAssignments)
 {
     public static SolveSatProblemCommandResult FromSatResult(SatResult satResult)
     {
@@ -18,8 +18,8 @@ public record SolveSatProblemCommandResult(
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        List<VariableAssignmentDto> variableAssignments = satResult.Assignments
-            .Select(assignment => new VariableAssignmentDto(assignment.SatVariable.Id, assignment.Value))
+        List<SatVariableAssignmentDto> variableAssignments = satResult.Assignments
+            .Select(assignment => new SatVariableAssignmentDto(assignment.SatVariable.Id, assignment.Value))
             .ToList();
 
         return new SolveSatProblemCommandResult(solvingStatus, variableAssignments);

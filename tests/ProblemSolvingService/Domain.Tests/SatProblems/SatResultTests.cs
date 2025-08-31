@@ -9,7 +9,7 @@ public class SatResultTests
     [Fact]
     public void GivenAssignments_WhenCreatingSolvableResult_ThenResultIsSolvableWithAssignments()
     {
-        var assignments = new List<VariableAssignment>
+        var assignments = new List<SatVariableAssignment>
         {
             new(new SatVariable(1), true),
             new(new SatVariable(2), false)

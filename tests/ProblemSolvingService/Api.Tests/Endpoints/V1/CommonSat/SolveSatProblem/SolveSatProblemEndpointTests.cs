@@ -28,7 +28,7 @@ public class SolveSatProblemEndpointTests
             cancellationToken: Arg.Any<CancellationToken>()
         ).Returns(new SolveSatProblemCommandResult(
             SolvingStatusDto.Satisfiable,
-            VariableAssignments: [new VariableAssignmentDto(VariableNumber: 1, Assignment: true)]
+            VariableAssignments: [new SatVariableAssignmentDto(VariableNumber: 1, Assignment: true)]
         ));
 
         Results<Ok<SolveSatProblemResponse>, ValidationProblem> results = await SolveSatProblemEndpoint.Execute(
@@ -62,7 +62,7 @@ public class SolveSatProblemEndpointTests
             cancellationToken: Arg.Any<CancellationToken>()
         ).Returns(new SolveSatProblemCommandResult(
             SolvingStatusDto.Satisfiable,
-            VariableAssignments: [new VariableAssignmentDto(VariableNumber: 1, Assignment: true)]
+            VariableAssignments: [new SatVariableAssignmentDto(VariableNumber: 1, Assignment: true)]
         ));
 
         var cancellationToken = new CancellationToken(canceled: false);

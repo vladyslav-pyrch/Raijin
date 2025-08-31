@@ -36,7 +36,7 @@ public sealed class SatProblem
             : throw new InvalidOperationException("No variable with such Id.");
     }
 
-    public int GetNumberOfVariables() => _variables.Values.Select(variable => variable.Id).Max();
+    public int GetNumberOfVariables() => _variables.Values.Select(variable => variable.Id).Append(0).Max();
 
     public int GetNumberOfClauses() => Clauses.Count;
 

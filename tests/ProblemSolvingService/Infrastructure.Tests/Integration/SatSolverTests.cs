@@ -21,7 +21,7 @@ public abstract class SatSolverTests
 
         satResult.Status.Should().Be(SolvingStatus.Solvable);
         satResult.Assignments.Should()
-            .BeEquivalentTo([VariableAssignment.FromInteger(-1), VariableAssignment.FromInteger(2)]);
+            .BeEquivalentTo([SatVariableAssignment.FromInteger(-1), SatVariableAssignment.FromInteger(2)]);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public abstract class SatSolverTests
         SatResult satResult = await satSolver.Solve(satProblem);
 
         satResult.Status.Should().Be(SolvingStatus.Unsolvable);
-        satResult.Assignments.Should().BeEquivalentTo(Array.Empty<VariableAssignment>());
+        satResult.Assignments.Should().BeEquivalentTo(Array.Empty<SatVariableAssignment>());
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public abstract class SatSolverTests
         SatResult satResult = await satSolver.Solve(satProblem);
 
         satResult.Status.Should().Be(SolvingStatus.Indeterminate);
-        satResult.Assignments.Should().BeEquivalentTo(Array.Empty<VariableAssignment>());
+        satResult.Assignments.Should().BeEquivalentTo(Array.Empty<SatVariableAssignment>());
     }
 
     [Fact]

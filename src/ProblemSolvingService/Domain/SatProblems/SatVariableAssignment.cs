@@ -2,9 +2,9 @@ using Raijin.ProblemSolvingService.Domain.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
-public sealed record VariableAssignment : ValueObject
+public sealed record SatVariableAssignment : ValueObject
 {
-    public VariableAssignment(SatVariable satVariable, bool value)
+    public SatVariableAssignment(SatVariable satVariable, bool value)
     {
         ArgumentNullException.ThrowIfNull(satVariable, nameof(satVariable));
 
@@ -12,8 +12,8 @@ public sealed record VariableAssignment : ValueObject
         Value = value;
     }
 
-    public static VariableAssignment FromInteger(int value) => value < 0 ?
-        new VariableAssignment(new SatVariable(-value), value: false) : new VariableAssignment(new SatVariable(value), value: true);
+    public static SatVariableAssignment FromInteger(int value) => value < 0 ?
+        new SatVariableAssignment(new SatVariable(-value), value: false) : new SatVariableAssignment(new SatVariable(value), value: true);
 
     public SatVariable SatVariable { get; }
 
