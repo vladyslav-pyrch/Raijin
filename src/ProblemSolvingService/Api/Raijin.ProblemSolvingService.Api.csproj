@@ -13,8 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Constants\Raijin.Constants.csproj" />
-    <ProjectReference Include="..\Api.ServiceDefaults\Raijin.ProblemSolvingService.Api.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Infrastructure\Raijin.ProblemSolvingService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\ServiceDefaults\Raijin.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>
