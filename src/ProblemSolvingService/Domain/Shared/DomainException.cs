@@ -1,3 +1,3 @@
 ﻿namespace Raijin.ProblemSolvingService.Domain.Shared;
 
-public class DomainException(string message) : Exception(message);
+public sealed class DomainException(string message) : Exception(message);

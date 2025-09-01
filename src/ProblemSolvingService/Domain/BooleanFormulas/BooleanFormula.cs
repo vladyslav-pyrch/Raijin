@@ -2,7 +2,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
-public class BooleanFormula(IBooleanExpression expression)
+public sealed class BooleanFormula(IBooleanExpression expression)
 {
     public IBooleanExpression Expression => expression;
 

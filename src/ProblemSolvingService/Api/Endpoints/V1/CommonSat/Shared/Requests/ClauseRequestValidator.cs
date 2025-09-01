@@ -2,7 +2,7 @@ using FluentValidation;
 
 namespace Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat.Shared.Requests;
 
-public class ClauseRequestValidator : AbstractValidator<ClauseRequest>
+public sealed class ClauseRequestValidator : AbstractValidator<ClauseRequest>
 {
     public ClauseRequestValidator()
     {

@@ -4,7 +4,7 @@ using Raijin.ProblemSolvingService.Application.Features.CommonSat.Dtos;
 
 namespace Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat.SolveSatProblem;
 
-public record SolveSatProblemResponse(
+public sealed record SolveSatProblemResponse(
     SolvingStatusResponse SolvingStatus,
     List<VariableAssignmentResponse> VariableAssignments)
 {

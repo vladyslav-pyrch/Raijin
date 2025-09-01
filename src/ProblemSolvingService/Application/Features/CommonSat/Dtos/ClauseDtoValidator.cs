@@ -2,7 +2,7 @@ using FluentValidation;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Dtos;
 
-public class ClauseDtoValidator : AbstractValidator<ClauseDto>
+public sealed class ClauseDtoValidator : AbstractValidator<ClauseDto>
 {
     public ClauseDtoValidator()
     {

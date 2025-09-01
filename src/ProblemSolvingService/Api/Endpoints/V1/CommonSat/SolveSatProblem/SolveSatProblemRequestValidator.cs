@@ -3,7 +3,7 @@ using Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat.Shared.Requests;
 
 namespace Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat.SolveSatProblem;
 
-public class SolveSatProblemRequestValidator : AbstractValidator<SolveSatProblemRequest>
+public sealed class SolveSatProblemRequestValidator : AbstractValidator<SolveSatProblemRequest>
 {
     public SolveSatProblemRequestValidator()
     {

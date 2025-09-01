@@ -5,7 +5,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 
-public class SolveSatProblemCommandHandler(ISender sender)
+public sealed class SolveSatProblemCommandHandler(ISender sender)
     : IRequestHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>
 {
     public async Task<SolveSatProblemCommandResult> Handle(SolveSatProblemCommand command, CancellationToken cancellationToken = default)

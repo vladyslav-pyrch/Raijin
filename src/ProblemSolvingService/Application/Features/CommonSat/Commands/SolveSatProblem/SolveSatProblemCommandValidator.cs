@@ -3,7 +3,7 @@ using Raijin.ProblemSolvingService.Application.Features.CommonSat.Dtos;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 
-public class SolveSatProblemCommandValidator : AbstractValidator<SolveSatProblemCommand>
+public sealed class SolveSatProblemCommandValidator : AbstractValidator<SolveSatProblemCommand>
 {
     public SolveSatProblemCommandValidator()
     {

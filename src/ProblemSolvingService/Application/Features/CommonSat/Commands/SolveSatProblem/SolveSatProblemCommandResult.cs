@@ -3,7 +3,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 
-public record SolveSatProblemCommandResult(
+public sealed record SolveSatProblemCommandResult(
     SolvingStatusDto SolvingStatus,
     List<SatVariableAssignmentDto> VariableAssignments)
 {

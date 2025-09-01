@@ -2,7 +2,7 @@ using FluentValidation;
 
 namespace Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat.Shared.Requests;
 
-public class LiteralRequestValidator : AbstractValidator<LiteralRequest>
+public sealed class LiteralRequestValidator : AbstractValidator<LiteralRequest>
 {
     public LiteralRequestValidator()
     {
