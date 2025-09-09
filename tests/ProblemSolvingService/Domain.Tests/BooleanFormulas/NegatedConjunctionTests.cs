@@ -15,6 +15,7 @@ public class NegatedConjunctionTests
         var subExpression2 = Substitute.For<IBooleanExpression>();
         subExpression2.Desugar().Returns(subExpression2);
 
+        subExpression.Nand(subExpression2);
         var negatedConjunction = new NegatedConjunction(subExpression, subExpression2);
 
         IBooleanExpression desugared = negatedConjunction.Desugar();

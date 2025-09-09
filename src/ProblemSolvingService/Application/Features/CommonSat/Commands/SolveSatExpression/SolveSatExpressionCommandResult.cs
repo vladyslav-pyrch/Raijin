@@ -1,0 +1,3 @@
+namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatExpression;
+
+public sealed record SolveSatExpressionCommandResult;
