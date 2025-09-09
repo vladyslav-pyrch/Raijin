@@ -1,6 +1,5 @@
 using FluentResults;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
-using Raijin.ProblemSolvingService.Domain.Shared;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatExpression;
 

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Raijin.ProblemSolvingService.Application.Cqrs;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatExpression;
