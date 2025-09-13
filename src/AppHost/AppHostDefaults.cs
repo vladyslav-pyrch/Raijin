@@ -18,7 +18,7 @@ internal static class AppHostDefaults
         public static readonly string ContextPath = "../cryptominisat";
 
         public static readonly string FileExchangeLocalPath =
-            Path.Combine(Directory.GetCurrentDirectory(), @"..\file_exchange\cryptominisat");
+            Path.Combine(Directory.GetCurrentDirectory(), "../file_exchange/cryptominisat");
 
         public static readonly string FileExchangeContainerPath = "/app/cryptominisat/problems";
 

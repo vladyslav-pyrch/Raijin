@@ -1,3 +1,5 @@
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Projects;
 using Raijin.AppHost;
 using Raijin.Constants;
@@ -28,7 +30,7 @@ IResourceBuilder<ProjectResource> problemSolvingService = builder.AddProject<Rai
 builder.AddNpmApp("angular-spa", "../Spa")
     .WithReference(problemSolvingService)
     .WaitFor(problemSolvingService)
-    .WithHttpEndpoint(env: "Port")
+    .WithHttpEndpoint(env: "PORT")
     .PublishAsDockerFile();
 
 builder.AddExecutable(
