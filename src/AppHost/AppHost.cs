@@ -16,7 +16,6 @@ IResourceBuilder<ContainerResource> cryptominisat = builder.AddDockerfile(AppHos
 IResourceBuilder<ProjectResource> problemSolvingService = builder.AddProject<Raijin_ProblemSolvingService_Api>(
         AppHostDefaults.ProblemSolvingService.Name)
     .WithHttpHealthCheck(AppHostDefaults.ProblemSolvingService.HealthCheckPath)
-    .WithExternalHttpEndpoints()
     .WaitFor(cryptominisat)
     .WithEnvironment(EnvironmentVariables.Cryptominisat.ContainerName,
         AppHostDefaults.Cryptominisat.ContainerName)
@@ -27,25 +26,17 @@ IResourceBuilder<ProjectResource> problemSolvingService = builder.AddProject<Rai
     .WithEnvironment(EnvironmentVariables.Cryptominisat.TimeoutSeconds,
         AppHostDefaults.Cryptominisat.TimeoutSeconds);
 
-builder.AddNpmApp("angular-spa", "../Spa")
+builder.AddNpmApp("angular-spa", "../Spa", scriptName: OperatingSystem.IsLinux() ? "start" : "win:start")
     .WithReference(problemSolvingService)
     .WaitFor(problemSolvingService)
     .WithHttpEndpoint(env: "PORT")
     .PublishAsDockerFile();
 
-builder.AddExecutable(
-        "unit-tests",
-        "dotnet",
-        "../../",
-        "test", "--filter", "Category=Unit")
+builder.AddExecutable("unit-tests", "dotnet", "../../", "test", "--filter", "Category=Unit")
     .WaitFor(problemSolvingService)
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Test");
 
-builder.AddExecutable(
-    "integration-tests",
-    "dotnet",
-    "../../",
-    "test", "--filter", "Category=Integration")
+builder.AddExecutable("integration-tests", "dotnet", "../../", "test", "--filter", "Category=Integration")
     .WaitFor(problemSolvingService)
     .WithReference(problemSolvingService)
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Test")
