@@ -5,8 +5,6 @@ using Raijin.ProblemSolvingService.Application.Cqrs;
 using Raijin.ProblemSolvingService.Application.Features;
 using Raijin.ProblemSolvingService.Application.Features.SolveSatExpression;
 using Raijin.ProblemSolvingService.Application.Features.SolveSatProblem;
-using Raijin.ProblemSolvingService.Application.Features.SolveSatProblemInternal;
-using Raijin.ProblemSolvingService.Domain.SatProblems;
 using Raijin.ProblemSolvingService.Infrastructure.Cqrs;
 using Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
 
@@ -21,8 +19,6 @@ builder.Services.AddTransient<IRequestHandler<SolveSatProblemCommand, SolveSatPr
         SolveSatProblemCommandHandler>();
 builder.Services.AddTransient<IRequestHandler<SolveSatExpressionCommand, Result<SolveSatExpressionCommandResult>>,
         SolveSatExpressionCommandHandler>();
-builder.Services.AddTransient<IRequestHandler<SolveSatProblemInternalCommand, SatResult>,
-    SolveSatProblemInternalCommandHandler>();
 builder.Services.AddScoped<ISender, DotNetDiSender>();
 builder.Services.AddScoped<ISatSolver, CryptominisatSatSolver>();
 builder.Services.AddScoped<Cryptominisat>();
