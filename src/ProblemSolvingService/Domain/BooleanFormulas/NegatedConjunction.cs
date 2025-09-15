@@ -1,4 +1,5 @@
 using Raijin.ProblemSolvingService.Domain.SatProblems;
+using Raijin.ProblemSolvingService.Domain.Shared;
 
 namespace Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
@@ -6,7 +7,7 @@ public sealed record NegatedConjunction(IBooleanExpression Expression1, IBoolean
 {
     public IBooleanExpression Desugar() => new NegatedConjunction(Expression1.Desugar(), Expression2.Desugar());
 
-    public SatVariable TseitinTransform(SatProblem satProblem, Dictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
+    public SatVariable TseitinTransform(SatProblem satProblem, BijectiveDictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
     {
         SatVariable x = Expression1.TseitinTransform(satProblem, symbolTable, newSatVariable);
         SatVariable y = Expression2.TseitinTransform(satProblem, symbolTable, newSatVariable);

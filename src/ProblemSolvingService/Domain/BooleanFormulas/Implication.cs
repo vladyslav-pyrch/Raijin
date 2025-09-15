@@ -1,12 +1,13 @@
 using Raijin.ProblemSolvingService.Domain.Abstractions;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
+using Raijin.ProblemSolvingService.Domain.Shared;
 
 namespace Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
 public sealed record Implication(IBooleanExpression Condition, IBooleanExpression Consequence) : ValueObject, IBooleanExpression
 {
     public IBooleanExpression Desugar() => new Implication(Condition.Desugar(), Consequence.Desugar());
-    public SatVariable TseitinTransform(SatProblem satProblem, Dictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
+    public SatVariable TseitinTransform(SatProblem satProblem, BijectiveDictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
     {
         SatVariable x = Condition.TseitinTransform(satProblem, symbolTable, newSatVariable);
         SatVariable y = Consequence.TseitinTransform(satProblem, symbolTable, newSatVariable);

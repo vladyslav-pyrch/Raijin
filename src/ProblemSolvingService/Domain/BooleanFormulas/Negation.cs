@@ -1,5 +1,6 @@
 using Raijin.ProblemSolvingService.Domain.Abstractions;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
+using Raijin.ProblemSolvingService.Domain.Shared;
 
 namespace Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
@@ -7,7 +8,7 @@ public sealed record Negation(IBooleanExpression Expression) : ValueObject, IBoo
 {
     public IBooleanExpression Desugar() => new Negation(Expression.Desugar());
 
-    public SatVariable TseitinTransform(SatProblem satProblem, Dictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
+    public SatVariable TseitinTransform(SatProblem satProblem, BijectiveDictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
     {
         SatVariable x = Expression.TseitinTransform(satProblem, symbolTable, newSatVariable);
         SatVariable notX = newSatVariable();

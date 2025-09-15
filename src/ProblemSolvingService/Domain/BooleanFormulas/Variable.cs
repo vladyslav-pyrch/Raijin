@@ -1,5 +1,6 @@
 ﻿using Raijin.ProblemSolvingService.Domain.Abstractions;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
+using Raijin.ProblemSolvingService.Domain.Shared;
 
 namespace Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 
@@ -15,7 +16,7 @@ public sealed record Variable : ValueObject, IBooleanExpression
 
     public IBooleanExpression Desugar() => this;
 
-    public SatVariable TseitinTransform(SatProblem satProblem, Dictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
+    public SatVariable TseitinTransform(SatProblem satProblem, BijectiveDictionary<Variable, SatVariable> symbolTable, Func<SatVariable> newSatVariable)
     {
         if (!symbolTable.TryGetValue(this, out SatVariable? satVariable))
             symbolTable[this] = satVariable = newSatVariable();
