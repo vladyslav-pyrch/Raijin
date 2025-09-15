@@ -1,0 +1,8 @@
+using Raijin.ProblemSolvingService.Domain.SatProblems;
+
+namespace Raijin.ProblemSolvingService.Application.Features.Dtos;
+
+public sealed record LiteralDto(int VariableNumber, bool IsNegated)
+{
+    public Literal ToLiteral() => new(new SatVariable(VariableNumber), IsNegated);
+}
