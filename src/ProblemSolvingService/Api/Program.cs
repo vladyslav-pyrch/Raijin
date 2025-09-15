@@ -1,11 +1,11 @@
 using FluentResults;
 using Raijin.Constants;
-using Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat;
+using Raijin.ProblemSolvingService.Api.Endpoints.V1;
 using Raijin.ProblemSolvingService.Application.Cqrs;
-using Raijin.ProblemSolvingService.Application.Features.CommonSat;
-using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatExpression;
-using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
-using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblemInternal;
+using Raijin.ProblemSolvingService.Application.Features;
+using Raijin.ProblemSolvingService.Application.Features.SolveSatExpression;
+using Raijin.ProblemSolvingService.Application.Features.SolveSatProblem;
+using Raijin.ProblemSolvingService.Application.Features.SolveSatProblemInternal;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
 using Raijin.ProblemSolvingService.Infrastructure.Cqrs;
 using Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
@@ -52,6 +52,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapDefaultEndpoints();
-app.MapCommonSatEndpoints();
+app.MapEndpoints();
 
 app.Run();

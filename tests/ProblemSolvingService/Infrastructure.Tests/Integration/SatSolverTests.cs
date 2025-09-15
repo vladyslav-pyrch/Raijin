@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Raijin.ProblemSolvingService.Application.Features.CommonSat;
+using Raijin.ProblemSolvingService.Application.Features;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Infrastructure.Tests.Integration;

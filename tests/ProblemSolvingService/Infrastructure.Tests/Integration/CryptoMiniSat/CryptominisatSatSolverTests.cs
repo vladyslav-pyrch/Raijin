@@ -1,4 +1,4 @@
-using Raijin.ProblemSolvingService.Application.Features.CommonSat;
+using Raijin.ProblemSolvingService.Application.Features;
 using Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
 
 namespace Raijin.ProblemSolvingService.Infrastructure.Tests.Integration.CryptoMiniSat;

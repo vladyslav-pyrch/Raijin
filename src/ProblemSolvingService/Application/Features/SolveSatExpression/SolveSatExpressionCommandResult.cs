@@ -1,0 +1,5 @@
+using Raijin.ProblemSolvingService.Application.Features.Dtos;
+
+namespace Raijin.ProblemSolvingService.Application.Features.SolveSatExpression;
+
+public sealed record SolveSatExpressionCommandResult(SolvingStatusDto SolvingStatus, List<NamedSatVariableAssignmentDto> VariableAssignments);

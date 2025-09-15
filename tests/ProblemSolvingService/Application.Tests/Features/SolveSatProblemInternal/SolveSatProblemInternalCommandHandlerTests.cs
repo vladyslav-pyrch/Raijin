@@ -1,0 +1,90 @@
+using FluentAssertions;
+using NSubstitute;
+using Raijin.ProblemSolvingService.Application.Features;
+using Raijin.ProblemSolvingService.Application.Features.SolveSatProblemInternal;
+using Raijin.ProblemSolvingService.Domain.SatProblems;
+
+namespace Raijin.ProblemSolvingService.Application.Tests.Features.SolveSatProblemInternal;
+
+[Trait("Category", "Unit")]
+public class SolveSatProblemInternalCommandHandlerTests
+{
+    [Fact]
+    public async Task GivenSolvableProblem_WhenHandling_ThenReturnsSolvableResult()
+    {
+        var solvableProblem = new SatProblem();
+        solvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1), Literal.FromInteger(2)]));
+        solvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(1)]));
+
+        List<SatVariableAssignment> solution = [SatVariableAssignment.FromInteger(1), SatVariableAssignment.FromInteger(2)];
+
+        var satSolver = Substitute.For<ISatSolver>();
+
+        satSolver.Solve(Arg.Is(solvableProblem), Arg.Any<CancellationToken>())
+            .Returns(SatResult.Solvable(solution));
+
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(solvableProblem);
+
+        SatResult result = await handler.Handle(command, CancellationToken.None);
+
+        result.Should().Be(SatResult.Solvable(solution));
+        await satSolver.Received(1).Solve(Arg.Is(solvableProblem), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenUnsolvableProblem_WhenHandling_ThenReturnsUnsolvableResult()
+    {
+        var unsolvableProblem = new SatProblem();
+        unsolvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(1)]));
+        unsolvableProblem.AddClause(new Clause(literals: [Literal.FromInteger(-1)]));
+
+        var satSolver = Substitute.For<ISatSolver>();
+        satSolver.Solve(Arg.Is(unsolvableProblem), Arg.Any<CancellationToken>())
+            .Returns(SatResult.Unsolvable());
+
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(unsolvableProblem);
+
+        SatResult result = await handler.Handle(command, CancellationToken.None);
+
+        result.Should().Be(SatResult.Unsolvable());
+        await satSolver.Received(1).Solve(Arg.Is(unsolvableProblem), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenIndeterminateProblem_WhenHandling_ThenReturnsIndeterminateResult()
+    {
+        var indeterminateProblem = new SatProblem();
+        indeterminateProblem.AddClause(new Clause(literals: [Literal.FromInteger(1), Literal.FromInteger(3)]));
+
+        var satSolver = Substitute.For<ISatSolver>();
+        satSolver.Solve(Arg.Is(indeterminateProblem), Arg.Any<CancellationToken>())
+            .Returns(SatResult.Indeterminate());
+
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(indeterminateProblem);
+
+        SatResult result = await handler.Handle(command, CancellationToken.None);
+
+        result.Should().Be(SatResult.Indeterminate());
+        await satSolver.Received(1).Solve(Arg.Is(indeterminateProblem), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenCancellationToken_WhenHandling_ThenPassesCancellationTokenToSolver()
+    {
+        var cancellationToken = new CancellationToken(canceled: true);
+
+        var satSolver = Substitute.For<ISatSolver>();
+        satSolver.Solve(Arg.Any<SatProblem>(), Arg.Is(cancellationToken))
+            .Returns(SatResult.Indeterminate());
+
+        var handler = new SolveSatProblemInternalCommandHandler(satSolver);
+        var command = new SolveSatProblemInternalCommand(new SatProblem());
+
+        await handler.Handle(command, cancellationToken);
+
+        await satSolver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Is(cancellationToken));
+    }
+}
