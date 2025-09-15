@@ -4,18 +4,18 @@ namespace Raijin.ProblemSolvingService.Domain.SatProblems;
 
 public sealed record SatVariableAssignment : ValueObject
 {
-    public SatVariableAssignment(SatVariable satVariable, bool value)
+    public SatVariableAssignment(SatVariable satVariable, bool assignment)
     {
         ArgumentNullException.ThrowIfNull(satVariable, nameof(satVariable));
 
         SatVariable = satVariable;
-        Value = value;
+        Assignment = assignment;
     }
 
     public static SatVariableAssignment FromInteger(int value) => value < 0 ?
-        new SatVariableAssignment(new SatVariable(-value), value: false) : new SatVariableAssignment(new SatVariable(value), value: true);
+        new SatVariableAssignment(new SatVariable(-value), assignment: false) : new SatVariableAssignment(new SatVariable(value), assignment: true);
 
     public SatVariable SatVariable { get; }
 
-    public bool Value { get; }
+    public bool Assignment { get; }
 }

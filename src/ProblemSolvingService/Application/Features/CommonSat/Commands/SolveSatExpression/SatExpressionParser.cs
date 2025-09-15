@@ -1,67 +1,91 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentResults;
-using Raijin.ProblemSolvingService.Domain.SatProblems;
+using Raijin.ProblemSolvingService.Application.Features.CommonSat.Dtos;
+using Raijin.ProblemSolvingService.Domain.Shared;
 
 namespace Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatExpression;
 
-public class SatExpressionParser()
+public sealed class SatExpressionParser
 {
-    public Result<IDictionary<string, SatVariable>> ParseInto(string satExpression, SatProblem satProblem)
+    private int _varId = 1;
+
+    private readonly BijectiveDictionary<string, int> _symbolTable = [];
+
+    public BijectiveDictionary<string, int> SymbolTable => _symbolTable;
+
+    public Result<List<ClauseDto>> ParseClauses(string satExpression)
     {
-        List<SatToken> tokens = SatExpressionTokenizer.Tokenize(satExpression).ToList();
-        var symbolTable = new Dictionary<string, SatVariable>();
-        var varId = 1;
+        var tokens = new SatTokens(SatExpressionTokenizer.Tokenize(satExpression).ToList());
 
-        if (tokens.Any(IsUnknown))
-        {
-            SatToken unknownToken = tokens.First(IsUnknown);
+        if (tokens.AnyIsUnknown(out SatToken? unknownToken))
             return new SatParseError($"Unknown token '{unknownToken.Value}'", unknownToken.Index);
-        }
 
-        var i = -1;
-        while (CanTakeTokens())
+        var clauses = new List<ClauseDto>();
+        while (tokens.CanPopToken())
         {
-            if (TakeToken() is { Type: not SatTokenType.LeftBracket} notLeftBracket)
+            if (tokens.PopToken() is { Type: not SatTokenType.LeftBracket } notLeftBracket)
                 return new SatParseError("Expected '('", notLeftBracket.Index);
 
-            var literals = new List<Literal>();
-            while (CanTakeTokens() && TakeToken() is { Type: SatTokenType.Literal } literalToken)
+            var literals = new List<LiteralDto>();
+            while (tokens.CanPopToken() && tokens.PopToken() is { Type: SatTokenType.Literal } literalToken)
             {
-                string variableName = GetNameOf(literalToken);
-                bool negated = IsNegate(literalToken);
-                SatVariable satVariable = GetSatVariableOf(variableName);
-                literals.Add(negated ? Literal.Negated(satVariable) : Literal.Affirmed(satVariable));
+                string variableName = NameOf(literalToken);
+                bool negated = IsNegated(literalToken);
+                int variableNumber = GetVariableNumberOf(variableName);
+                literals.Add(new LiteralDto(variableNumber, negated));
             }
 
-            if (!ThereAreTokens())
+            if (tokens.CouldNotPopToken())
                 return new SatParseError("Expected ')'", satExpression.Length - 1);
 
-            if (CurrentToken() is { Type: not SatTokenType.RightBracket} notRightBracket)
+            if (tokens.PreviousToken() is { Type: not SatTokenType.RightBracket } notRightBracket)
                 return new SatParseError("Expected ')'", notRightBracket.Index);
 
             if (literals.Count == 0)
-                return new SatParseError("No empty clauses are allowed.", PreviousToken().Index);
+                return new SatParseError("No empty clauses are allowed.", tokens.PreviousToken().Index);
 
-            satProblem.AddClause(literals);
+            clauses.Add(new ClauseDto(literals));
         }
 
-        return Result.Ok();
+        return clauses;
+    }
 
-        SatToken PreviousToken() => tokens[i - 1];
-        SatToken CurrentToken() => tokens[i];
-        SatToken TakeToken() => tokens[++i];
-        bool ThereAreTokens() => i < tokens.Count;
-        bool CanTakeTokens() => i + 1 < tokens.Count;
-        bool IsUnknown(SatToken token) => token is { Type: SatTokenType.Unknown };
+    public void Clear()
+    {
+        _varId = 1;
+        _symbolTable.Clear();
+    }
 
-        bool IsNegate(SatToken token) => token.Value.StartsWith('~');
-        string GetNameOf(SatToken token) => token.Value.Trim('~');
-        SatVariable NextSatVariable() => new(varId++);
-        SatVariable GetSatVariableOf(string name)
+    private int GetVariableNumberOf(string name)
+    {
+        if (!_symbolTable.TryGetValue(name, out int satVariable))
+            _symbolTable[name] = satVariable = _varId++;
+
+        return satVariable;
+    }
+
+    private static bool IsUnknown(SatToken token) => token.Type == SatTokenType.Unknown;
+
+    private static bool IsNegated(SatToken token) => token.Value.StartsWith('~');
+
+    private static string NameOf(SatToken token) => token.Value.Trim('~');
+
+    private struct SatTokens(List<SatToken> tokens)
+    {
+        private int _currentIndex = 0;
+
+        public bool CanPopToken () => _currentIndex < tokens.Count;
+
+        public bool CouldNotPopToken() => _currentIndex - 1 >= tokens.Count;
+
+        public SatToken PopToken() => tokens[_currentIndex++];
+
+        public SatToken PreviousToken() => tokens[_currentIndex - 1];
+
+        public bool AnyIsUnknown([NotNullWhen(true)] out SatToken? firstUnknownToken)
         {
-            if (!symbolTable.TryGetValue(name, out SatVariable? satVariable))
-                symbolTable[name] = satVariable = NextSatVariable();
-
-            return satVariable;
+            firstUnknownToken = tokens.FirstOrDefault(IsUnknown);
+            return firstUnknownToken is not null;
         }
     }
 }

@@ -1,7 +1,9 @@
+using FluentResults;
 using Raijin.Constants;
 using Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat;
 using Raijin.ProblemSolvingService.Application.Cqrs;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat;
+using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatExpression;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblem;
 using Raijin.ProblemSolvingService.Application.Features.CommonSat.Commands.SolveSatProblemInternal;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
@@ -17,6 +19,8 @@ builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddTransient<IRequestHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>,
         SolveSatProblemCommandHandler>();
+builder.Services.AddTransient<IRequestHandler<SolveSatExpressionCommand, Result<SolveSatExpressionCommandResult>>,
+        SolveSatExpressionCommandHandler>();
 builder.Services.AddTransient<IRequestHandler<SolveSatProblemInternalCommand, SatResult>,
     SolveSatProblemInternalCommandHandler>();
 builder.Services.AddScoped<ISender, DotNetDiSender>();

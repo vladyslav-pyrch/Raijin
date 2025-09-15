@@ -22,6 +22,6 @@ public static class SolveSatProblemEndpoint
 
         SolveSatProblemCommandResult result = await sender.Send(command, cancellationToken);
 
-        return TypedResults.Ok(SolveSatProblemResponse.FromSolveSatProblemCommandResult(result));
+        return TypedResults.Ok(SolveSatProblemResponse.From(result));
     }
 }

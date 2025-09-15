@@ -4,5 +4,5 @@ namespace Raijin.ProblemSolvingService.Api.Endpoints.V1.CommonSat.Shared.Respons
 
 public sealed record VariableAssignmentResponse(int VariableNumber, bool Assignment)
 {
-    public static VariableAssignmentResponse FromVariableAssignmentDto(SatVariableAssignmentDto dto) => new(dto.VariableNumber, dto.Assignment);
+    public static VariableAssignmentResponse From(SatVariableAssignmentDto dto) => new(dto.VariableNumber, dto.Assignment);
 }
