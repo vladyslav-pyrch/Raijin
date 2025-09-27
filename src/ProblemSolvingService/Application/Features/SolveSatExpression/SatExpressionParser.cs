@@ -35,8 +35,8 @@ public sealed class SatExpressionParser
                 literals.Add(new LiteralDto(variableNumber, negated));
             }
 
-            if (tokens.CouldNotPopToken())
-                return new SatParseError("Expected ')'", satExpression.Length - 1);
+            if (tokens.CannotPopToken() && tokens.PreviousToken() is { Type: not SatTokenType.RightBracket })
+                return new SatParseError("Expected ')'", satExpression.Length);
 
             if (tokens.PreviousToken() is { Type: not SatTokenType.RightBracket } notRightBracket)
                 return new SatParseError("Expected ')'", notRightBracket.Index);
@@ -76,7 +76,7 @@ public sealed class SatExpressionParser
 
         public bool CanPopToken () => _currentIndex < tokens.Count;
 
-        public bool CouldNotPopToken() => _currentIndex - 1 >= tokens.Count;
+        public bool CannotPopToken() => !CanPopToken();
 
         public SatToken PopToken() => tokens[_currentIndex++];
 
