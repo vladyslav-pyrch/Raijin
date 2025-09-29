@@ -15,10 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
-builder.Services.AddTransient<IRequestHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>,
-        SolveSatProblemCommandHandler>();
-builder.Services.AddTransient<IRequestHandler<SolveSatExpressionCommand, Result<SolveSatExpressionCommandResult>>,
-        SolveSatExpressionCommandHandler>();
+builder.Services.AddTransient<IRequestHandler<SolveSatProblemCommand, SolveSatProblemResult>, SolveSatProblemHandler>();
+builder.Services.AddTransient<IRequestHandler<SolveSatExpressionCommand, Result<SolveSatExpressionResult>>,
+        SolveSatExpressionHandler>();
 builder.Services.AddScoped<ISender, DotNetDiSender>();
 builder.Services.AddScoped<ISatSolver, CryptominisatSatSolver>();
 builder.Services.AddScoped<Cryptominisat>();

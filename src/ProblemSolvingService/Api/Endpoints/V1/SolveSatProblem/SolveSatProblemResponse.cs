@@ -7,9 +7,9 @@ public sealed record SolveSatProblemResponse(
     SolvingStatusResponse SolvingStatus,
     List<VariableAssignmentResponse> VariableAssignments)
 {
-    public static SolveSatProblemResponse From(SolveSatProblemCommandResult commandResult) =>
+    public static SolveSatProblemResponse From(SolveSatProblemResult result) =>
         new(
-            commandResult.SolvingStatus.ToSolvingStatusResponse(),
-            commandResult.VariableAssignments.Select(VariableAssignmentResponse.From).ToList()
+            result.SolvingStatus.ToSolvingStatusResponse(),
+            result.VariableAssignments.Select(VariableAssignmentResponse.From).ToList()
         );
 }

@@ -3,11 +3,11 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.SolveSatProblem;
 
-public sealed record SolveSatProblemCommandResult(
+public sealed record SolveSatProblemResult(
     SolvingStatusDto SolvingStatus,
     List<SatVariableAssignmentDto> VariableAssignments)
 {
-    public static SolveSatProblemCommandResult FromSatResult(SatResult satResult)
+    public static SolveSatProblemResult FromSatResult(SatResult satResult)
     {
         // Map result back to DTOs
         SolvingStatusDto solvingStatus = satResult.Status switch
@@ -22,6 +22,6 @@ public sealed record SolveSatProblemCommandResult(
             .Select(assignment => new SatVariableAssignmentDto(assignment.SatVariable.Id, assignment.Assignment))
             .ToList();
 
-        return new SolveSatProblemCommandResult(solvingStatus, variableAssignments);
+        return new SolveSatProblemResult(solvingStatus, variableAssignments);
     }
 }

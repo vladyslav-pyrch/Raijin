@@ -17,7 +17,7 @@ public class SolveSatExpressionEndpointTests
     public async Task GivenValidRequest_WhenExpressionIsSatisfiable_ThenReturnsOkWithSolution()
     {
         var request = new SolveSatExpressionRequest(SatExpression: "(a b) (a ~b) (b)");
-        var commandResult = new SolveSatExpressionCommandResult(SolvingStatusDto.Satisfiable, [
+        var commandResult = new SolveSatExpressionResult(SolvingStatusDto.Satisfiable, [
             new NamedSatVariableAssignmentDto("a", true),
             new NamedSatVariableAssignmentDto("b", true)
         ]);
@@ -38,7 +38,7 @@ public class SolveSatExpressionEndpointTests
     public async Task GivenValidRequest_WhenExpressionIsUnsatisfiable_ThenReturnsOkWithSolution()
     {
         var request = new SolveSatExpressionRequest(SatExpression: "(a b) (a ~b) (b) (~a)");
-        var commandResult = new SolveSatExpressionCommandResult(SolvingStatusDto.Unsatisfiable, []);
+        var commandResult = new SolveSatExpressionResult(SolvingStatusDto.Unsatisfiable, []);
         var sender = Substitute.For<ISender>();
         sender.Send(Arg.Any<SolveSatExpressionCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok(commandResult));
@@ -55,7 +55,7 @@ public class SolveSatExpressionEndpointTests
     public async Task GivenValidRequest_WhenExpressionIsIndeterminate_ThenReturnsOkWithSolution()
     {
         var request = new SolveSatExpressionRequest(SatExpression: "(a b) (a ~b) (b) (~a)");
-        var commandResult = new SolveSatExpressionCommandResult(SolvingStatusDto.Indeterminate, []);
+        var commandResult = new SolveSatExpressionResult(SolvingStatusDto.Indeterminate, []);
         var sender = Substitute.For<ISender>();
         sender.Send(Arg.Any<SolveSatExpressionCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok(commandResult));
@@ -74,7 +74,7 @@ public class SolveSatExpressionEndpointTests
         var request = new SolveSatExpressionRequest(SatExpression: "(a b (a ~b) (b)");
         var sender = Substitute.For<ISender>();
         sender.Send(Arg.Any<SolveSatExpressionCommand>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Fail<SolveSatExpressionCommandResult>(new SatParseError("Expected ')'", 4)));
+            .Returns(Result.Fail<SolveSatExpressionResult>(new SatParseError("Expected ')'", 4)));
 
         Results<Ok<SolveSatExpressionResponse>, ValidationProblem> response =
             await SolveSatExpressionEndpoint.Execute(request, sender);

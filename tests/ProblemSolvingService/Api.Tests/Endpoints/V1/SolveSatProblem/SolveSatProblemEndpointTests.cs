@@ -26,7 +26,7 @@ public class SolveSatProblemEndpointTests
         commandDispatcher.Send(
             request: Arg.Is<SolveSatProblemCommand>(c => c.Clauses.Count == 1),
             cancellationToken: Arg.Any<CancellationToken>()
-        ).Returns(new SolveSatProblemCommandResult(
+        ).Returns(new SolveSatProblemResult(
             SolvingStatusDto.Satisfiable,
             VariableAssignments: [new SatVariableAssignmentDto(VariableNumber: 1, Assignment: true)]
         ));
@@ -60,7 +60,7 @@ public class SolveSatProblemEndpointTests
         commandDispatcher.Send(
             request: Arg.Any<SolveSatProblemCommand>(),
             cancellationToken: Arg.Any<CancellationToken>()
-        ).Returns(new SolveSatProblemCommandResult(
+        ).Returns(new SolveSatProblemResult(
             SolvingStatusDto.Satisfiable,
             VariableAssignments: [new SatVariableAssignmentDto(VariableNumber: 1, Assignment: true)]
         ));

@@ -20,7 +20,7 @@ public static class SolveSatProblemEndpoint
 
         SolveSatProblemCommand command = request.ToSolveStaProblemCommand();
 
-        SolveSatProblemCommandResult result = await sender.Send(command, cancellationToken);
+        SolveSatProblemResult result = await sender.Send(command, cancellationToken);
 
         return TypedResults.Ok(SolveSatProblemResponse.From(result));
     }

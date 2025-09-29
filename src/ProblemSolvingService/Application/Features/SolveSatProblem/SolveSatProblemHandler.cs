@@ -4,12 +4,12 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.SolveSatProblem;
 
-public sealed class SolveSatProblemCommandHandler(ISatSolver satSolver)
-    : IRequestHandler<SolveSatProblemCommand, SolveSatProblemCommandResult>
+public sealed class SolveSatProblemHandler(ISatSolver satSolver)
+    : IRequestHandler<SolveSatProblemCommand, SolveSatProblemResult>
 {
-    public async Task<SolveSatProblemCommandResult> Handle(SolveSatProblemCommand command, CancellationToken cancellationToken = default)
+    public async Task<SolveSatProblemResult> Handle(SolveSatProblemCommand command, CancellationToken cancellationToken = default)
     {
-        await new SolveSatProblemCommandValidator().ValidateAndThrowAsync(command, cancellationToken);
+        await new SolveSatProblemValidator().ValidateAndThrowAsync(command, cancellationToken);
 
         var satProblem = new SatProblem();
 
@@ -18,6 +18,6 @@ public sealed class SolveSatProblemCommandHandler(ISatSolver satSolver)
 
         SatResult satResult = await satSolver.Solve(satProblem, cancellationToken);
 
-        return SolveSatProblemCommandResult.FromSatResult(satResult);
+        return SolveSatProblemResult.FromSatResult(satResult);
     }
 }

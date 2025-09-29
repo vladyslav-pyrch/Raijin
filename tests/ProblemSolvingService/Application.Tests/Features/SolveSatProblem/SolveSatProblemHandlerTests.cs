@@ -9,7 +9,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 namespace Raijin.ProblemSolvingService.Application.Tests.Features.SolveSatProblem;
 
 [Trait("Category", "Unit")]
-public class SolveSatProblemCommandHandlerTests
+public class SolveSatProblemHandlerTests
 {
     [Fact]
     public async Task GivenInvalidCommandWithNoClauses_WhenHandling_ThenThrowsValidationException()
@@ -17,7 +17,7 @@ public class SolveSatProblemCommandHandlerTests
         var command = new SolveSatProblemCommand(Clauses: []);
 
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatProblemCommandHandler(solver);
+        var handler = new SolveSatProblemHandler(solver);
 
         Func<Task> when = async () => await handler.Handle(command, CancellationToken.None);
 
@@ -32,7 +32,7 @@ public class SolveSatProblemCommandHandlerTests
         ]);
 
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatProblemCommandHandler(solver);
+        var handler = new SolveSatProblemHandler(solver);
 
         Func<Task> when = async () => await handler.Handle(command, CancellationToken.None);
 
@@ -51,7 +51,7 @@ public class SolveSatProblemCommandHandlerTests
         ]);
 
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatProblemCommandHandler(solver);
+        var handler = new SolveSatProblemHandler(solver);
 
         Func<Task> when = async () => await handler.Handle(command, CancellationToken.None);
 
@@ -71,11 +71,11 @@ public class SolveSatProblemCommandHandlerTests
         solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
             .Returns(SatResult.Solvable(assignments));
 
-        var handler = new SolveSatProblemCommandHandler(solver);
+        var handler = new SolveSatProblemHandler(solver);
 
-        SolveSatProblemCommandResult result = await handler.Handle(command, CancellationToken.None);
+        SolveSatProblemResult result = await handler.Handle(command, CancellationToken.None);
 
-        result.Should().BeEquivalentTo(new SolveSatProblemCommandResult(
+        result.Should().BeEquivalentTo(new SolveSatProblemResult(
             SolvingStatusDto.Satisfiable,
             VariableAssignments: [new SatVariableAssignmentDto(VariableNumber: 1, Assignment: true)]
         ));
@@ -95,11 +95,11 @@ public class SolveSatProblemCommandHandlerTests
         solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
             .Returns(SatResult.Unsolvable());
 
-        var handler = new SolveSatProblemCommandHandler(solver);
+        var handler = new SolveSatProblemHandler(solver);
 
-        SolveSatProblemCommandResult result = await handler.Handle(command, CancellationToken.None);
+        SolveSatProblemResult result = await handler.Handle(command, CancellationToken.None);
 
-        result.Should().BeEquivalentTo(new SolveSatProblemCommandResult(
+        result.Should().BeEquivalentTo(new SolveSatProblemResult(
             SolvingStatusDto.Unsatisfiable,
             VariableAssignments: []
         ));
@@ -118,11 +118,11 @@ public class SolveSatProblemCommandHandlerTests
         solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
             .Returns(SatResult.Indeterminate());
 
-        var handler = new SolveSatProblemCommandHandler(solver);
+        var handler = new SolveSatProblemHandler(solver);
 
-        SolveSatProblemCommandResult result = await handler.Handle(command, CancellationToken.None);
+        SolveSatProblemResult result = await handler.Handle(command, CancellationToken.None);
 
-        result.Should().BeEquivalentTo(new SolveSatProblemCommandResult(
+        result.Should().BeEquivalentTo(new SolveSatProblemResult(
             SolvingStatusDto.Indeterminate,
             VariableAssignments: []
         ));
@@ -144,7 +144,7 @@ public class SolveSatProblemCommandHandlerTests
         solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
             .Returns(SatResult.Solvable(assignments));
 
-        await new SolveSatProblemCommandHandler(solver).Handle(command, cancellationToken);
+        await new SolveSatProblemHandler(solver).Handle(command, cancellationToken);
 
         await solver.Received(1).Solve(Arg.Any<SatProblem>(), cancellationToken);
     }

@@ -13,7 +13,7 @@ public static class SolveSatExpressionEndpoint
         [FromServices] ISender sender,
         CancellationToken cancellationToken = default)
     {
-        Result<SolveSatExpressionCommandResult> result =
+        Result<SolveSatExpressionResult> result =
             await sender.Send(request.ToSolveSatExpressionCommand(), cancellationToken);
 
         if (!result.IsFailed)

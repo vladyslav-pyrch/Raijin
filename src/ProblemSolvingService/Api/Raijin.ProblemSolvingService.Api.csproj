@@ -17,4 +17,8 @@
     <ProjectReference Include="..\..\ServiceDefaults\Raijin.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\V1\SolveBooleanExpression\" />
+  </ItemGroup>
+
 </Project>

@@ -9,7 +9,7 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 namespace Raijin.ProblemSolvingService.Application.Tests.Features.SolveSatExpression;
 
 [Trait("Category", "Unit")]
-public class SolveSatExpressionCommandHandlerTests
+public class SolveSatExpressionHandlerTests
 {
     [Fact]
     public async Task GivenSatisfiableExpression_WhenHandled_ThenReturnsSatisfiableResult()
@@ -22,12 +22,12 @@ public class SolveSatExpressionCommandHandlerTests
                 SatVariableAssignment.FromInteger(2)
             ]));
 
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(new SolveSatExpressionCommandResult(SolvingStatusDto.Satisfiable, [
+        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Satisfiable, [
             new NamedSatVariableAssignmentDto("a", true),
             new NamedSatVariableAssignmentDto("b", true)
         ]));
@@ -41,12 +41,12 @@ public class SolveSatExpressionCommandHandlerTests
         solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
             .Returns(SatResult.Unsolvable());
 
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(new SolveSatExpressionCommandResult(SolvingStatusDto.Unsatisfiable, []));
+        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Unsatisfiable, []));
     }
 
     [Fact]
@@ -57,12 +57,12 @@ public class SolveSatExpressionCommandHandlerTests
         solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
             .Returns(SatResult.Indeterminate());
 
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(new SolveSatExpressionCommandResult(SolvingStatusDto.Indeterminate, []));
+        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Indeterminate, []));
     }
 
     [Fact]
@@ -74,12 +74,12 @@ public class SolveSatExpressionCommandHandlerTests
         await cts.CancelAsync();
         solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>())
             .Returns(SatResult.Indeterminate());
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, cts.Token);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, cts.Token);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(new SolveSatExpressionCommandResult(SolvingStatusDto.Indeterminate, []));
+        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Indeterminate, []));
     }
 
     [Fact]
@@ -87,9 +87,9 @@ public class SolveSatExpressionCommandHandlerTests
     {
         var command = new SolveSatExpressionCommand("(a b) () (b) (~a)");
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle();
@@ -102,9 +102,9 @@ public class SolveSatExpressionCommandHandlerTests
     {
         var command = new SolveSatExpressionCommand("(a b (a ~b) (b) (~a)");
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle();
@@ -117,9 +117,9 @@ public class SolveSatExpressionCommandHandlerTests
     {
         var command = new SolveSatExpressionCommand("(a b) (a ~b) (b) (~a");
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle();
@@ -132,9 +132,9 @@ public class SolveSatExpressionCommandHandlerTests
     {
         var command = new SolveSatExpressionCommand("(a b) (a ( ~b) (b) (~a)");
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle();
@@ -147,9 +147,9 @@ public class SolveSatExpressionCommandHandlerTests
     {
         var command = new SolveSatExpressionCommand("(a b) (a ) ~b) (b) (~a");
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle();
@@ -162,9 +162,9 @@ public class SolveSatExpressionCommandHandlerTests
     {
         var command = new SolveSatExpressionCommand("(a b) (a ~b) |32 (b) (~a)");
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle();
@@ -177,9 +177,9 @@ public class SolveSatExpressionCommandHandlerTests
     {
         var command = new SolveSatExpressionCommand("(a b) (a ~b) (b) (~a) \\fea3");
         var solver = Substitute.For<ISatSolver>();
-        var handler = new SolveSatExpressionCommandHandler(solver);
+        var handler = new SolveSatExpressionHandler(solver);
 
-        Result<SolveSatExpressionCommandResult> result = await handler.Handle(command, CancellationToken.None);
+        Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle();

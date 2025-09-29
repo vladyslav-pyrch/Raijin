@@ -63,8 +63,8 @@ public static class BooleanExpressionParser
 
             while (HasMore)
             {
-                BooleanToken token = PopToken()!;
                 BooleanToken? previous = PreviousToken();
+                BooleanToken token = PopToken()!;
 
                 if (previous != null && IsOperator(previous) && IsOperator(token))
                     return new BooleanExpressionParseError("Two operators in a row.", token.Index);
@@ -83,10 +83,10 @@ public static class BooleanExpressionParser
                     }
                     case BooleanTokenType.RightBracket:
                     {
-                        while (stack.Count > 0 && stack.Peek().Type != BooleanTokenType.LeftBracket)
+                        while (stack.Count > 0 && stack.Peek() is { Type: not BooleanTokenType.LeftBracket })
                             postfix.Add(stack.Pop());
 
-                        if (stack.Count == 0 || stack.Peek().Type != BooleanTokenType.LeftBracket)
+                        if (stack.Count == 0 || stack.Peek() is { Type: not BooleanTokenType.LeftBracket })
                             return new BooleanExpressionParseError("Mismatched parentheses.", token.Index);
                         stack.Pop();
                         break;
@@ -95,7 +95,7 @@ public static class BooleanExpressionParser
                         or BooleanTokenType.Not or BooleanTokenType.Implication or BooleanTokenType.ImplicationBackward
                         or BooleanTokenType.Equivalence or BooleanTokenType.Xor:
                     {
-                        while (stack.Count > 0 && IsOperator(stack.Peek().Type) &&
+                        while (stack.Count > 0 && IsOperator(stack.Peek()) &&
                                ((IsLeftAssociative(token.Type) &&
                                  Precedences[token.Type] <= Precedences[stack.Peek().Type]) ||
                                 (IsRightAssociative(token.Type) &&
@@ -107,6 +107,13 @@ public static class BooleanExpressionParser
                     default:
                         return new BooleanExpressionParseError("Unknown operator.", token.Index);
                 }
+            }
+            // what is somthing is laft on the stack
+            while (stack.Count > 0)
+            {
+                if (stack.Peek() is { Type: BooleanTokenType.LeftBracket or BooleanTokenType.RightBracket })
+                    return new BooleanExpressionParseError("Mismatched parentheses.", stack.Peek().Index);
+                postfix.Add(stack.Pop());
             }
 
             return new PostfixBooleanTokens(postfix);
@@ -224,8 +231,7 @@ public static class BooleanExpressionParser
                         break;
                     }
                     default:
-                        return new BooleanExpressionParseError(
-                            $"Unknown token type '{token.Type}'.", token.Index);
+                        throw new ArgumentOutOfRangeException(nameof(token), $"Unexpected token type {token.Type}.");
                 }
             }
 
