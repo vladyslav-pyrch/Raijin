@@ -17,6 +17,7 @@ public sealed record Disjunction(IBooleanExpression Expression1, IBooleanExpress
         satProblem.AddClause(Literal.Affirmed(xOrY), Literal.Negated(x));
         satProblem.AddClause(Literal.Affirmed(xOrY), Literal.Negated(y));
         satProblem.AddClause(Literal.Negated(xOrY), Literal.Affirmed(x), Literal.Affirmed(y));
+        satProblem.AddClause(Literal.Affirmed(xOrY));
 
         return xOrY;
     }

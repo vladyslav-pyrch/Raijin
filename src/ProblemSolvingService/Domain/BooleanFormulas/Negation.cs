@@ -15,6 +15,7 @@ public sealed record Negation(IBooleanExpression Expression) : ValueObject, IBoo
 
         satProblem.AddClause(Literal.Negated(x), Literal.Negated(notX));
         satProblem.AddClause(Literal.Affirmed(x), Literal.Affirmed(notX));
+        satProblem.AddClause(Literal.Affirmed(notX));
 
         return notX;
     }

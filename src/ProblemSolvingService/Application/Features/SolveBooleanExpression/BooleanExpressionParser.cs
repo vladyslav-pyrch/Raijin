@@ -28,6 +28,9 @@ public static class BooleanExpressionParser
 
     public static Result<IBooleanExpression> ParseExpression(string expression)
     {
+        if (expression == string.Empty)
+            return new BooleanExpressionParseError("The expression is empty.", 0);
+
         var tokens = new BooleanTokens(BooleanExpressionTokenizer.Tokenize(expression).ToList());
 
         if (tokens.AnyIsUnknown(out BooleanToken? token))
@@ -41,8 +44,6 @@ public static class BooleanExpressionParser
         PostfixBooleanTokens postfixTokens = postfixResult.Value;
         return postfixTokens.ToExpression();
     }
-
-    private static bool IsOperator(BooleanTokenType type) => Precedences.ContainsKey(type);
 
     private static bool IsOperator(BooleanToken token) => Precedences.ContainsKey(token.Type);
 
@@ -64,9 +65,14 @@ public static class BooleanExpressionParser
             while (HasMore)
             {
                 BooleanToken? previous = PreviousToken();
+                BooleanToken? next = NextToken();
                 BooleanToken token = PopToken()!;
 
-                if (previous != null && IsOperator(previous) && IsOperator(token))
+                if (token is { Type: BooleanTokenType.Not } &&
+                    next is null or { Type: not BooleanTokenType.Variable and not BooleanTokenType.LeftBracket and not BooleanTokenType.Not })
+                    return new BooleanExpressionParseError("'not' (~) operator must be followed by a variable, a left parenthesis, or another 'not' operator.", token.Index);
+
+                if (previous != null && IsOperator(previous) && IsOperator(token) && token.Type != BooleanTokenType.Not)
                     return new BooleanExpressionParseError("Two operators in a row.", token.Index);
 
                 switch (token.Type)
@@ -128,6 +134,8 @@ public static class BooleanExpressionParser
         private BooleanToken? PopToken() => _position < tokens.Count ? tokens[_position++] : null;
 
         private BooleanToken? PreviousToken() => _position > 0 ? tokens[_position - 1] : null;
+
+        private BooleanToken? NextToken() => _position < tokens.Count - 1 ? tokens[_position + 1] : null;
 
         private bool HasMore => _position < tokens.Count;
     }
@@ -236,7 +244,7 @@ public static class BooleanExpressionParser
             }
 
             if (stack.Count != 1)
-                return new BooleanExpressionParseError("Invalid expression: leftover operands after parsing.", -1);
+                return new BooleanExpressionParseError($"Invalid expression: leftover operands after parsing.", -1);
 
             return Result.Ok(stack.Pop());
         }

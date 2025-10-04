@@ -17,6 +17,7 @@ public sealed record ExclusiveDisjunction(IBooleanExpression Expression1, IBoole
         satProblem.AddClause(Literal.Negated(xXorY), Literal.Affirmed(y), Literal.Affirmed(x));
         satProblem.AddClause(Literal.Affirmed(xXorY), Literal.Negated(y), Literal.Affirmed(x));
         satProblem.AddClause(Literal.Affirmed(xXorY), Literal.Affirmed(y), Literal.Negated(x));
+        satProblem.AddClause(Literal.Affirmed(xXorY));
 
         return xXorY;
     }

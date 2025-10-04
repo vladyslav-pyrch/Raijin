@@ -16,6 +16,7 @@ public sealed record Implication(IBooleanExpression Condition, IBooleanExpressio
         satProblem.AddClause(Literal.Affirmed(xImplyY), Literal.Affirmed(x));
         satProblem.AddClause(Literal.Affirmed(xImplyY), Literal.Negated(y));
         satProblem.AddClause(Literal.Negated(xImplyY), Literal.Negated(x), Literal.Affirmed(y));
+        satProblem.AddClause(Literal.Affirmed(xImplyY));
 
         return xImplyY;
     }

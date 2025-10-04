@@ -25,6 +25,7 @@ public sealed class SolveBooleanExpressionHandler(ISatSolver solver) : IRequestH
 
         SolvingStatusDto solvingStatus = satResult.Status.ToDto();
         List<VariableAssignmentDto> variableAssignments = satResult.Assignments
+            .Where(satVariableAssignment => variableMap.ContainsKey(satVariableAssignment.SatVariable))
             .Select(satVariableAssignment =>
                 new VariableAssignmentDto(variableMap[satVariableAssignment.SatVariable].Name,
                     satVariableAssignment.Assignment)).ToList();

@@ -39,7 +39,7 @@ public class SolveSatProblemEndpointTests
         var result = (Ok<SolveSatProblemResponse>)results.Result;
         result.Value.Should().BeEquivalentTo(new SolveSatProblemResponse(
             SolvingStatusResponse.Satisfiable,
-            VariableAssignments: [new VariableAssignmentResponse(VariableNumber: 1, Assignment: true)]
+            VariableAssignments: [new SatVariableAssignmentResponse(VariableNumber: 1, Assignment: true)]
         ));
         await commandDispatcher.Received(1).Send(
             request: Arg.Is<SolveSatProblemCommand>(c => c.Clauses.Count == 1),
