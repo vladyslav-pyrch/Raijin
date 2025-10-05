@@ -13,8 +13,8 @@ public static class SolvingStatusResponseHelpers
 {
     public static SolvingStatusResponse ToSolvingStatusResponse(this SolvingStatusDto statusDto) => statusDto switch
     {
-        SolvingStatusDto.Satisfiable => SolvingStatusResponse.Satisfiable,
-        SolvingStatusDto.Unsatisfiable => SolvingStatusResponse.Unsatisfiable,
+        SolvingStatusDto.Solvable => SolvingStatusResponse.Satisfiable,
+        SolvingStatusDto.Unsolvable => SolvingStatusResponse.Unsatisfiable,
         SolvingStatusDto.Indeterminate => SolvingStatusResponse.Indeterminate,
         _ => throw new ArgumentOutOfRangeException(nameof(statusDto), statusDto, "Unhandled solving status")
     };

@@ -18,7 +18,6 @@ public sealed record Equivalence(IBooleanExpression Expression1, IBooleanExpress
         satProblem.AddClause(Literal.Affirmed(xEqualY), Literal.Affirmed(y), Literal.Affirmed(x));
         satProblem.AddClause(Literal.Negated(xEqualY), Literal.Negated(y), Literal.Affirmed(x));
         satProblem.AddClause(Literal.Negated(xEqualY), Literal.Affirmed(y), Literal.Negated(x));
-        satProblem.AddClause(Literal.Affirmed(xEqualY));
 
         return xEqualY;
     }

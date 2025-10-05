@@ -27,7 +27,7 @@ public class SolveSatExpressionHandlerTests
         Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Satisfiable, [
+        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Solvable, [
             new NamedSatVariableAssignmentDto("a", true),
             new NamedSatVariableAssignmentDto("b", true)
         ]));
@@ -46,7 +46,7 @@ public class SolveSatExpressionHandlerTests
         Result<SolveSatExpressionResult> result = await handler.Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Unsatisfiable, []));
+        result.Value.Should().BeEquivalentTo(new SolveSatExpressionResult(SolvingStatusDto.Unsolvable, []));
     }
 
     [Fact]

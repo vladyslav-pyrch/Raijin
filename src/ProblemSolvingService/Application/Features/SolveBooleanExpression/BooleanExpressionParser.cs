@@ -28,7 +28,7 @@ public static class BooleanExpressionParser
 
     public static Result<IBooleanExpression> ParseExpression(string expression)
     {
-        if (expression == string.Empty)
+        if (string.IsNullOrWhiteSpace(expression))
             return new BooleanExpressionParseError("The expression is empty.", 0);
 
         var tokens = new BooleanTokens(BooleanExpressionTokenizer.Tokenize(expression).ToList());
@@ -111,10 +111,10 @@ public static class BooleanExpressionParser
                         break;
                     }
                     default:
-                        return new BooleanExpressionParseError("Unknown operator.", token.Index);
+                        throw new ArgumentOutOfRangeException(nameof(token), $"Unexpected token type {token.Type}.");
                 }
             }
-            // what is somthing is laft on the stack
+
             while (stack.Count > 0)
             {
                 if (stack.Peek() is { Type: BooleanTokenType.LeftBracket or BooleanTokenType.RightBracket })
@@ -244,7 +244,8 @@ public static class BooleanExpressionParser
             }
 
             if (stack.Count != 1)
-                return new BooleanExpressionParseError($"Invalid expression: leftover operands after parsing.", -1);
+                throw new InvalidOperationException(
+                    "The expression could not be parsed into a single boolean expression; leftover operands after parsing.");
 
             return Result.Ok(stack.Pop());
         }

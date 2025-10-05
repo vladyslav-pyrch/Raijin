@@ -1,5 +1,4 @@
 using FluentAssertions;
-using NSubstitute;
 using Raijin.ProblemSolvingService.Domain.BooleanFormulas;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
 
@@ -16,7 +15,9 @@ public class BooleanFormulaTests
 
         Dictionary<Variable, SatVariable> symbolTable = new BooleanFormula(variable).TransformToSat(satProblem);
 
-        satProblem.Clauses.Should().BeEmpty();
+        satProblem.Clauses.Should().BeEquivalentTo([
+            new Clause(Literal.FromInteger(1))
+        ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
             [new Variable("1")] = new(1)
@@ -33,7 +34,8 @@ public class BooleanFormulaTests
 
         satProblem.Clauses.Should().BeEquivalentTo([
             new Clause(Literal.FromInteger(1), Literal.FromInteger(2)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2))
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2)),
+            new Clause(Literal.FromInteger(2))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -52,7 +54,8 @@ public class BooleanFormulaTests
         satProblem.Clauses.Should().BeEquivalentTo([
             new Clause(Literal.FromInteger(1), Literal.FromInteger(-3)),
             new Clause(Literal.FromInteger(2), Literal.FromInteger(-3)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(3))
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -72,7 +75,8 @@ public class BooleanFormulaTests
         satProblem.Clauses.Should().BeEquivalentTo([
             new Clause(Literal.FromInteger(1), Literal.FromInteger(3)),
             new Clause(Literal.FromInteger(2), Literal.FromInteger(3)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(-3))
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -92,7 +96,8 @@ public class BooleanFormulaTests
         satProblem.Clauses.Should().BeEquivalentTo([
             new Clause(Literal.FromInteger(-1), Literal.FromInteger(3)),
             new Clause(Literal.FromInteger(-2), Literal.FromInteger(3)),
-            new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(-3))
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -112,7 +117,8 @@ public class BooleanFormulaTests
         satProblem.Clauses.Should().BeEquivalentTo([
             new Clause(Literal.FromInteger(-1), Literal.FromInteger(-3)),
             new Clause(Literal.FromInteger(-2), Literal.FromInteger(-3)),
-            new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(3))
+            new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -133,7 +139,8 @@ public class BooleanFormulaTests
             new Clause(Literal.FromInteger(-1), Literal.FromInteger(-2), Literal.FromInteger(3)),
             new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(3)),
             new Clause(Literal.FromInteger(1), Literal.FromInteger(-2), Literal.FromInteger(-3)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(-3))
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -155,6 +162,7 @@ public class BooleanFormulaTests
             new Clause(Literal.FromInteger(1), Literal.FromInteger(2), Literal.FromInteger(-3)),
             new Clause(Literal.FromInteger(1), Literal.FromInteger(-2), Literal.FromInteger(3)),
             new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(3)),
+            new Clause(Literal.FromInteger(3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {
@@ -174,7 +182,8 @@ public class BooleanFormulaTests
         satProblem.Clauses.Should().BeEquivalentTo([
             new Clause(Literal.FromInteger(1), Literal.FromInteger(3)),
             new Clause(Literal.FromInteger(-2), Literal.FromInteger(3)),
-            new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(-3))
+            new Clause(Literal.FromInteger(-1), Literal.FromInteger(2), Literal.FromInteger(-3)),
+            new Clause(Literal.FromInteger(3))
         ]);
         symbolTable.Should().BeEquivalentTo(new Dictionary<Variable, SatVariable>
         {

@@ -17,7 +17,7 @@ public class SolveSatExpressionEndpointTests
     public async Task GivenValidRequest_WhenExpressionIsSatisfiable_ThenReturnsOkWithSolution()
     {
         var request = new SolveSatExpressionRequest(SatExpression: "(a b) (a ~b) (b)");
-        var commandResult = new SolveSatExpressionResult(SolvingStatusDto.Satisfiable, [
+        var commandResult = new SolveSatExpressionResult(SolvingStatusDto.Solvable, [
             new NamedSatVariableAssignmentDto("a", true),
             new NamedSatVariableAssignmentDto("b", true)
         ]);
@@ -38,7 +38,7 @@ public class SolveSatExpressionEndpointTests
     public async Task GivenValidRequest_WhenExpressionIsUnsatisfiable_ThenReturnsOkWithSolution()
     {
         var request = new SolveSatExpressionRequest(SatExpression: "(a b) (a ~b) (b) (~a)");
-        var commandResult = new SolveSatExpressionResult(SolvingStatusDto.Unsatisfiable, []);
+        var commandResult = new SolveSatExpressionResult(SolvingStatusDto.Unsolvable, []);
         var sender = Substitute.For<ISender>();
         sender.Send(Arg.Any<SolveSatExpressionCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Ok(commandResult));

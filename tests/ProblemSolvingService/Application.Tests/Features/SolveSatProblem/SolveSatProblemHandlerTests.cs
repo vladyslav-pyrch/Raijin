@@ -76,7 +76,7 @@ public class SolveSatProblemHandlerTests
         SolveSatProblemResult result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().BeEquivalentTo(new SolveSatProblemResult(
-            SolvingStatusDto.Satisfiable,
+            SolvingStatusDto.Solvable,
             VariableAssignments: [new SatVariableAssignmentDto(VariableNumber: 1, Assignment: true)]
         ));
         await solver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
@@ -100,7 +100,7 @@ public class SolveSatProblemHandlerTests
         SolveSatProblemResult result = await handler.Handle(command, CancellationToken.None);
 
         result.Should().BeEquivalentTo(new SolveSatProblemResult(
-            SolvingStatusDto.Unsatisfiable,
+            SolvingStatusDto.Unsolvable,
             VariableAssignments: []
         ));
         await solver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());

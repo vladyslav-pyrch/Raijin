@@ -12,8 +12,8 @@ public sealed record SolveSatProblemResult(
         // Map result back to DTOs
         SolvingStatusDto solvingStatus = satResult.Status switch
         {
-            Domain.SatProblems.SolvingStatus.Solvable => SolvingStatusDto.Satisfiable,
-            Domain.SatProblems.SolvingStatus.Unsolvable => SolvingStatusDto.Unsatisfiable,
+            Domain.SatProblems.SolvingStatus.Solvable => SolvingStatusDto.Solvable,
+            Domain.SatProblems.SolvingStatus.Unsolvable => SolvingStatusDto.Unsolvable,
             Domain.SatProblems.SolvingStatus.Indeterminate => SolvingStatusDto.Indeterminate,
             _ => throw new ArgumentOutOfRangeException()
         };

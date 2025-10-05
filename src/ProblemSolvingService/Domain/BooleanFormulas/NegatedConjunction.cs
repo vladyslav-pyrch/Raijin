@@ -16,7 +16,6 @@ public sealed record NegatedConjunction(IBooleanExpression Expression1, IBoolean
         satProblem.AddClause(Literal.Affirmed(xNandY), Literal.Affirmed(x));
         satProblem.AddClause(Literal.Affirmed(xNandY), Literal.Affirmed(y));
         satProblem.AddClause(Literal.Negated(xNandY), Literal.Negated(x), Literal.Negated(y));
-        satProblem.AddClause(Literal.Affirmed(xNandY));
 
         return xNandY;
     }

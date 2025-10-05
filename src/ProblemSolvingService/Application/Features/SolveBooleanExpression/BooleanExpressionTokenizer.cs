@@ -45,8 +45,8 @@ public static class BooleanExpressionTokenizer
     private static readonly string UnknownPattern = @"(?<unknown>\s*.+\s*)";
 
     private static readonly Regex ExpressionRegex = new(string.Join('|', VariablePattern, LeftBracketPattern,
-        RightBracketPattern, NandPattern, AndPattern, NorPattern, OrPattern, NotPattern, EquivalencePattern, XorPattern,
-        ImplicationPattern, ImplicationBackwardPattern, UnknownPattern));
+        RightBracketPattern, NandPattern, AndPattern, NorPattern, OrPattern, NotPattern,ImplicationPattern, XorPattern,
+        EquivalencePattern, ImplicationBackwardPattern, UnknownPattern));
 
     public static IEnumerable<BooleanToken> Tokenize(string booleanExpression)
     {
