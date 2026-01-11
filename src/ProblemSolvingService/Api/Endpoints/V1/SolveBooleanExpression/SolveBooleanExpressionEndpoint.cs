@@ -16,7 +16,7 @@ public static class SolveBooleanExpressionEndpoint
         Result<SolveBooleanExpressionResult> result =
             await sender.Send(request.ToSolveBooleanExpressionCommand(), cancellationToken);
 
-        if (!result.IsFailed)
+        if (result.IsSuccess)
             return TypedResults.Ok(SolveBooleanExpressionResponse.From(result.Value));
 
         Dictionary<string, string[]> errors = [];
