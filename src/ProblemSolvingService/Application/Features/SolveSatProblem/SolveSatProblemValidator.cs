@@ -3,9 +3,9 @@ using Raijin.ProblemSolvingService.Application.Features.Dtos;
 
 namespace Raijin.ProblemSolvingService.Application.Features.SolveSatProblem;
 
-public sealed class SolveSatProblemCommandValidator : AbstractValidator<SolveSatProblemCommand>
+public sealed class SolveSatProblemValidator : AbstractValidator<SolveSatProblemCommand>
 {
-    public SolveSatProblemCommandValidator()
+    public SolveSatProblemValidator()
     {
         RuleFor(command => command.Clauses)
             .NotEmpty()

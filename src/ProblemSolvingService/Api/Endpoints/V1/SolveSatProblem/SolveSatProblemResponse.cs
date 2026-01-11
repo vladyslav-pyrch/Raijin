@@ -3,13 +3,12 @@ using Raijin.ProblemSolvingService.Application.Features.SolveSatProblem;
 
 namespace Raijin.ProblemSolvingService.Api.Endpoints.V1.SolveSatProblem;
 
-public sealed record SolveSatProblemResponse(
-    SolvingStatusResponse SolvingStatus,
-    List<VariableAssignmentResponse> VariableAssignments)
+public sealed record SolveSatProblemResponse(SolvingStatusResponse SolvingStatus,
+    List<SatVariableAssignmentResponse> VariableAssignments)
 {
-    public static SolveSatProblemResponse From(SolveSatProblemCommandResult commandResult) =>
+    public static SolveSatProblemResponse From(SolveSatProblemResult result) =>
         new(
-            commandResult.SolvingStatus.ToSolvingStatusResponse(),
-            commandResult.VariableAssignments.Select(VariableAssignmentResponse.From).ToList()
+            result.SolvingStatus.ToSolvingStatusResponse(),
+            result.VariableAssignments.Select(SatVariableAssignmentResponse.From).ToList()
         );
 }

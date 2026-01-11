@@ -3,17 +3,17 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.SolveSatProblem;
 
-public sealed record SolveSatProblemCommandResult(
+public sealed record SolveSatProblemResult(
     SolvingStatusDto SolvingStatus,
     List<SatVariableAssignmentDto> VariableAssignments)
 {
-    public static SolveSatProblemCommandResult FromSatResult(SatResult satResult)
+    public static SolveSatProblemResult FromSatResult(SatResult satResult)
     {
         // Map result back to DTOs
         SolvingStatusDto solvingStatus = satResult.Status switch
         {
-            Domain.SatProblems.SolvingStatus.Solvable => SolvingStatusDto.Satisfiable,
-            Domain.SatProblems.SolvingStatus.Unsolvable => SolvingStatusDto.Unsatisfiable,
+            Domain.SatProblems.SolvingStatus.Solvable => SolvingStatusDto.Solvable,
+            Domain.SatProblems.SolvingStatus.Unsolvable => SolvingStatusDto.Unsolvable,
             Domain.SatProblems.SolvingStatus.Indeterminate => SolvingStatusDto.Indeterminate,
             _ => throw new ArgumentOutOfRangeException()
         };
@@ -22,6 +22,6 @@ public sealed record SolveSatProblemCommandResult(
             .Select(assignment => new SatVariableAssignmentDto(assignment.SatVariable.Id, assignment.Assignment))
             .ToList();
 
-        return new SolveSatProblemCommandResult(solvingStatus, variableAssignments);
+        return new SolveSatProblemResult(solvingStatus, variableAssignments);
     }
 }

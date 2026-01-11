@@ -5,11 +5,11 @@ using Raijin.ProblemSolvingService.Domain.SatProblems;
 
 namespace Raijin.ProblemSolvingService.Application.Features.SolveSatExpression;
 
-public sealed class SolveSatExpressionCommandHandler(ISatSolver solver) : IRequestHandler<SolveSatExpressionCommand, Result<SolveSatExpressionCommandResult>>
+public sealed class SolveSatExpressionHandler(ISatSolver solver) : IRequestHandler<SolveSatExpressionCommand, Result<SolveSatExpressionResult>>
 {
     private readonly SatExpressionParser _parser = new();
 
-    public async Task<Result<SolveSatExpressionCommandResult>> Handle(SolveSatExpressionCommand request,
+    public async Task<Result<SolveSatExpressionResult>> Handle(SolveSatExpressionCommand request,
         CancellationToken cancellationToken = default)
     {
         Result<List<ClauseDto>> parsingResult = _parser.ParseClauses(request.SatExpression);
@@ -17,7 +17,7 @@ public sealed class SolveSatExpressionCommandHandler(ISatSolver solver) : IReque
         var satProblem = new SatProblem();
 
         if (parsingResult.IsFailed)
-            return parsingResult.ToResult<SolveSatExpressionCommandResult>();
+            return parsingResult.ToResult<SolveSatExpressionResult>();
         foreach (Clause clause in parsingResult.Value.Select(clauseDto => clauseDto.ToClause()))
             satProblem.AddClause(clause);
 
@@ -27,14 +27,8 @@ public sealed class SolveSatExpressionCommandHandler(ISatSolver solver) : IReque
             .Select(va => new NamedSatVariableAssignmentDto(variableNames[va.SatVariable.Id], va.Assignment))
             .ToList();
 
-        SolvingStatusDto solvingStatus = satResult.Status switch
-        {
-            SolvingStatus.Solvable => SolvingStatusDto.Satisfiable,
-            SolvingStatus.Unsolvable => SolvingStatusDto.Unsatisfiable,
-            SolvingStatus.Indeterminate => SolvingStatusDto.Indeterminate,
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        SolvingStatusDto solvingStatus = satResult.Status.ToDto();
 
-        return new SolveSatExpressionCommandResult(solvingStatus, variableAssignments);
+        return new SolveSatExpressionResult(solvingStatus, variableAssignments);
     }
 }

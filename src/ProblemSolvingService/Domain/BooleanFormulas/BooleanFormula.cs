@@ -13,7 +13,9 @@ public sealed class BooleanFormula(IBooleanExpression expression)
         var symbolTable = new BijectiveDictionary<Variable, SatVariable>();
         int varId = satProblem.GetNumberOfVariables() + 1;
 
-        desugaredExpression.TseitinTransform(satProblem, symbolTable, newSatVariable: () => new SatVariable(varId++));
+        SatVariable lastVariable = desugaredExpression.TseitinTransform(satProblem, symbolTable,
+            newSatVariable: () => new SatVariable(varId++));
+        satProblem.AddClause(Literal.Affirmed(lastVariable));
 
         return symbolTable;
     }

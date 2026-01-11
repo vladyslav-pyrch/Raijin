@@ -7,7 +7,7 @@ public sealed record SolveSatExpressionResponse(
     SolvingStatusResponse SolvingStatus,
     List<NamedSatVariableAssignmentResponse> VariableAssignments)
 {
-    public static SolveSatExpressionResponse From(SolveSatExpressionCommandResult result) => new(
+    public static SolveSatExpressionResponse From(SolveSatExpressionResult result) => new(
         result.SolvingStatus.ToSolvingStatusResponse(),
         result.VariableAssignments.Select(NamedSatVariableAssignmentResponse.From).ToList()
     );

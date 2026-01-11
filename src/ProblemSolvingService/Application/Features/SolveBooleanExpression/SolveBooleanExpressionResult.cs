@@ -1,0 +1,5 @@
+using Raijin.ProblemSolvingService.Application.Features.Dtos;
+
+namespace Raijin.ProblemSolvingService.Application.Features.SolveBooleanExpression;
+
+public sealed record SolveBooleanExpressionResult(SolvingStatusDto SolvingStatus, List<VariableAssignmentDto> VariableAssignments);

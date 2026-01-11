@@ -30,8 +30,4 @@
     <ProjectReference Include="..\..\..\src\ProblemSolvingService\Application\Raijin.ProblemSolvingService.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\SolveSatExpression\" />
-  </ItemGroup>
-
 </Project>
