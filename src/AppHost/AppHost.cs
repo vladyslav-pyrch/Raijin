@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-using Aspire.Hosting.ApplicationModel;
 using Projects;
 using Raijin.AppHost;
 using Raijin.Constants;
@@ -26,7 +24,7 @@ IResourceBuilder<ProjectResource> problemSolvingService = builder.AddProject<Rai
     .WithEnvironment(EnvironmentVariables.Cryptominisat.TimeoutSeconds,
         AppHostDefaults.Cryptominisat.TimeoutSeconds);
 
-builder.AddNpmApp("angular-spa", "../Spa", scriptName: OperatingSystem.IsLinux() ? "start" : "win:start")
+builder.AddJavaScriptApp("angular-spa", "../Spa", runScriptName: OperatingSystem.IsLinux() ? "start" : "win:start")
     .WithReference(problemSolvingService)
     .WaitFor(problemSolvingService)
     .WithHttpEndpoint(env: "PORT")

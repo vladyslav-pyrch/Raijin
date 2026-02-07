@@ -9,13 +9,10 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.2" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Constants\Raijin.Constants.csproj" />
-    <ProjectReference Include="..\Infrastructure\Raijin.ProblemSolvingService.Infrastructure.csproj" />
     <ProjectReference Include="..\..\ServiceDefaults\Raijin.ServiceDefaults.csproj" />
   </ItemGroup>
 
