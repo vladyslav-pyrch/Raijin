@@ -1,4 +1,4 @@
-namespace Raijin.ProblemSolvingService.Infrastructure.CryptoMiniSat;
+namespace Raijin.SatSolverService.Api.Endpoints.V1.SatProblems;
 
 public sealed class CryptominisatOptions
 {
@@ -7,6 +7,4 @@ public sealed class CryptominisatOptions
     public string FileExchangeLocalPath { get; set; } = null!;
 
     public string FileExchangeContainerPath { get; set; } = null!;
-
-    public int TimeoutSeconds { get; set; }
 }
