@@ -1,0 +1,6 @@
+@Raijin.IdentityService.Api_HostAddress = http://localhost:5062
+
+GET {{Raijin.IdentityService.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

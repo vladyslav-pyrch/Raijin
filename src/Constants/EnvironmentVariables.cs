@@ -10,10 +10,8 @@ public static class EnvironmentVariables
     {
         public static readonly string ContainerName = "CRYPTOMINISAT_CONTAINER_NAME";
 
-        public static readonly string FileExchangeLocalPath = "CRYPTOMINISAT_FILE_EXCHANGE_LOCAL_PATH";
+        public static readonly string MountLocalPath = "CRYPTOMINISAT_FILE_EXCHANGE_LOCAL_PATH";
 
-        public static readonly  string FileExchangeContainerPath = "CRYPTOMINISAT_FILE_EXCHANGE_CONTAINER_PATH";
-
-        public static readonly  string TimeoutSeconds = "CRYPTOMINISAT_TIMEOUT_SECONDS";
+        public static readonly  string MountContainerPath = "CRYPTOMINISAT_FILE_EXCHANGE_CONTAINER_PATH";
     }
 }
