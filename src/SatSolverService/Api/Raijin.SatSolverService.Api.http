@@ -1,6 +1,0 @@
-@Raijin.SatSolverService.Api_HostAddress = http://localhost:5185
-
-GET {{Raijin.SatSolverService.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

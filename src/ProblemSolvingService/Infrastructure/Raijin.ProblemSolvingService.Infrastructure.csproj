@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Constants\Raijin.Constants.csproj" />
     <ProjectReference Include="..\Application\Raijin.ProblemSolvingService.Application.csproj" />
   </ItemGroup>
 

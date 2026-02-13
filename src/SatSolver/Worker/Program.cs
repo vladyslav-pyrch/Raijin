@@ -1,7 +1,9 @@
+using Raijin.SatSolver.Infrastructure;
 using Raijin.SatSolver.Worker;
 
-var builder = Host.CreateApplicationBuilder(args);
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
+builder.Services.AddInfrastructure();
 
-var host = builder.Build();
+IHost host = builder.Build();
 host.Run();

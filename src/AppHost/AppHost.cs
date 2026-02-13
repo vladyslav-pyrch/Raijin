@@ -1,6 +1,6 @@
 using Aspire.Hosting.JavaScript;
 using Projects;
-using Raijin.Constants;
+using Scalar.Aspire;
 using static Raijin.AppHost.AppHostDefaults;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
@@ -9,30 +9,23 @@ IResourceBuilder<RabbitMQServerResource> rabbitMq = builder.AddRabbitMQ(RabbitMq
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<ContainerResource> cryptominisat = builder.AddDockerfile(Cryptominisat.Name, Cryptominisat.ContextPath)
-    .WithContainerName(Cryptominisat.ContainerName)
-    .WithBindMount(Cryptominisat.MountLocalPath,
-        Cryptominisat.MountContainerPath, true)
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
-
 IResourceBuilder<PostgresServerResource> satSolverDb = builder.AddPostgres(SatSolver.Database.Name)
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<ProjectResource> satSolver = builder.AddProject<Raijin_SatSolver_Worker>(SatSolver.Name)
-    .WaitFor(cryptominisat)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.ContainerName,
-        Cryptominisat.ContainerName)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.MountContainerPath,
-        Cryptominisat.MountContainerPath)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.MountLocalPath,
-        Cryptominisat.MountLocalPath)
-    .WithReference(satSolverDb)
-    .WaitFor(satSolverDb)
-    .WithReference(rabbitMq)
-    .WaitFor(rabbitMq)
+IResourceBuilder<ProjectResource> satSolverDomainTest = builder
+    .AddProject<Raijin_SatSolver_Domain_Tests>(SatSolver.DomainTests.Name)
     .PublishAsDockerFile();
+
+for (var i = 0; i < 3; i++) // 3 replicas; Figure out how to make only one of them consume events from the queue.
+    builder.AddDockerfile($"{SatSolver.Name}-{i}", SatSolver.ContextPath, SatSolver.DockerfilePath)
+        .WaitFor(satSolverDomainTest)
+        .WithReference(satSolverDb)
+        .WaitFor(satSolverDb)
+        .WithReference(rabbitMq)
+        .WaitFor(rabbitMq)
+        .WithLifetime(ContainerLifetime.Session)
+        .PublishAsContainer();
 
 IResourceBuilder<PostgresServerResource> identityServiceDb = builder.AddPostgres(IdentityService.Database.Name)
     .WithLifetime(ContainerLifetime.Persistent)
@@ -87,6 +80,17 @@ IResourceBuilder<ProjectResource> apiGateway = builder.AddProject<Raijin_ApiGate
     .WithReference(queryService)
     .WaitFor(queryService)
     .PublishAsDockerFile();
+
+IResourceBuilder<ScalarResource> scalar = builder.AddScalarApiReference()
+    .WithApiReference(identityService)
+    .WaitFor(identityService)
+    .WithApiReference(combinatoricsService)
+    .WaitFor(combinatoricsService)
+    .WithApiReference(queryService)
+    .WaitFor(queryService)
+    .WithApiReference(apiGateway)
+    .WaitFor(apiGateway)
+    .PublishAsContainer();
 
 IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
     .AddJavaScriptApp(SpaFrontend.Name, SpaFrontend.AppDirectory, SpaFrontend.RunScriptName)
