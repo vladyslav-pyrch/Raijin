@@ -80,6 +80,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SatSolver", "SatSolver", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raijin.SatSolver.Domain.Tests", "tests\SatSolver\Domain\Raijin.SatSolver.Domain.Tests.csproj", "{BB5421FC-5925-412B-97A1-1AEC69297FD9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raijin.SatSolver.Application.Tests", "tests\SatSolver\Application\Raijin.SatSolver.Application.Tests.csproj", "{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -426,6 +428,18 @@ Global
 		{BB5421FC-5925-412B-97A1-1AEC69297FD9}.Release|x64.Build.0 = Release|Any CPU
 		{BB5421FC-5925-412B-97A1-1AEC69297FD9}.Release|x86.ActiveCfg = Release|Any CPU
 		{BB5421FC-5925-412B-97A1-1AEC69297FD9}.Release|x86.Build.0 = Release|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Debug|x64.Build.0 = Debug|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Debug|x86.Build.0 = Debug|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Release|x64.ActiveCfg = Release|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Release|x64.Build.0 = Release|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Release|x86.ActiveCfg = Release|Any CPU
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -466,5 +480,6 @@ Global
 		{3B5222FF-967B-4247-A95D-76CDFEF213C8} = {DA5DE924-0BB9-F642-6340-332DDA637FE7}
 		{EDF9C86A-6EDC-45EB-94A4-7444934EA230} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{BB5421FC-5925-412B-97A1-1AEC69297FD9} = {EDF9C86A-6EDC-45EB-94A4-7444934EA230}
+		{FBAAC858-5AC9-4B0E-AE9D-EF08876D2FBC} = {EDF9C86A-6EDC-45EB-94A4-7444934EA230}
 	EndGlobalSection
 EndGlobal
