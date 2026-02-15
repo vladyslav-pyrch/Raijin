@@ -20,10 +20,21 @@ internal static class AppHostDefaults
             public const string Name = "sat-solver-db";
         }
 
+        public static class DatabaseServer
+        {
+            public const string Name = "sat-solver-db-server";
+        }
+
         public static class DomainTests
         {
             public const string Name = "sat-solver-domain-tests";
         }
+
+        public static class ApplicationTests
+        {
+            public const string Name = "sat-solver-application-tests";
+        }
+
     }
 
     public static class QueryService
@@ -35,6 +46,11 @@ internal static class AppHostDefaults
         public static class Database
         {
             public const string Name = "query-service-db";
+        }
+
+        public static class DatabaseServer
+        {
+            public const string Name = "query-service-db-server";
         }
 
         public static class Redis
@@ -53,6 +69,11 @@ internal static class AppHostDefaults
         {
             public const string Name = "identity-service-db";
         }
+
+        public static class DatabaseServer
+        {
+            public const string Name = "identity-service-db-server";
+        }
     }
 
     public static class CombinatoricsService
@@ -64,6 +85,11 @@ internal static class AppHostDefaults
         public static class Database
         {
             public const string Name = "combinatorics-service-db";
+        }
+
+        public static class DatabaseServer
+        {
+            public const string Name = "combinatorics-service-db-server";
         }
     }
 

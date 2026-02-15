@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Raijin.SatSolver.Application.Abstractions;
 using Raijin.SatSolver.Application.Events;
@@ -15,8 +16,9 @@ public class SolveSatHandlerTests
         var repository = Substitute.For<ISatProblemRepository>();
         var solver = Substitute.For<ISatSolver>();
         var eventBus = Substitute.For<IEventBus>();
+        var logger = Substitute.For<ILogger<SolveSatHandler>>();
 
-        var handler = new SolveSatHandler(repository, solver, eventBus);
+        var handler = new SolveSatHandler(repository, solver, eventBus, logger);
 
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
         var command = new SolveSatCommand(dimacs);
