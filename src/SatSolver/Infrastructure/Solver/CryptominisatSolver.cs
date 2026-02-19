@@ -7,10 +7,10 @@ namespace Raijin.SatSolver.Infrastructure.Solver;
 
 public class CryptominisatSolver : ISatSolver
 {
-    public Task<int[]> SolveAsync(SatProblem problem, CancellationToken cancellationToken)
+    public Task<int[]> Solve(SatProblem problem, CancellationToken cancellationToken)
         => InternalSolveAsync(problem, timeout: null, cancellationToken);
 
-    public Task<int[]> SolveAsync(SatProblem problem, int timeout, CancellationToken cancellationToken)
+    public Task<int[]> Solve(SatProblem problem, int timeout, CancellationToken cancellationToken)
         => InternalSolveAsync(problem, timeout, cancellationToken);
 
     private async Task<int[]> InternalSolveAsync(SatProblem problem, int? timeout, CancellationToken cancellationToken)

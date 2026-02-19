@@ -23,14 +23,14 @@ public class SolveSatHandlerTests
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
         var command = new SolveSatCommand(dimacs);
         int[] solution = [1, -2, 3];
-        solver.SolveAsync(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>()).Returns(solution);
+        solver.Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>()).Returns(solution);
 
         await handler.Handle(command, CancellationToken.None);
 
-        await repository.Received(1).AddAndSaveAsync(Arg.Any<SatProblem>(),
+        await repository.Received(1).AddAndSave(Arg.Any<SatProblem>(),
             Arg.Any<CancellationToken>());
-        await solver.Received(1).SolveAsync(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
-        await repository.Received(1).UpdateAsync(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
+        await solver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
+        await repository.Received(1).UpdateAndSave(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
         await eventBus.Received(1).Publish(Arg.Any<SatProblemSolved>(), Arg.Any<CancellationToken>());
     }
 }

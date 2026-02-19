@@ -4,7 +4,7 @@ namespace Raijin.SatSolver.Application.Abstractions;
 
 public interface IEventBus
 {
-    public Task Publish(IEvent @event, CancellationToken cancellationToken);
+    public Task Publish<TEvent>(TEvent @event, CancellationToken cancellationToken) where TEvent : IEvent;
 
 
 }

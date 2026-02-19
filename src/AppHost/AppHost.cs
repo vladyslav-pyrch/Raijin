@@ -1,32 +1,31 @@
 using Aspire.Hosting.JavaScript;
 using Projects;
 using Scalar.Aspire;
-using static Raijin.AppHost.AppHostDefaults;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-IResourceBuilder<RabbitMQServerResource> rabbitMq = builder.AddRabbitMQ(RabbitMq.Name)
+IResourceBuilder<RabbitMQServerResource> rabbitMq = builder.AddRabbitMQ("rabbit-mq")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
 IResourceBuilder<PostgresServerResource> satSolverDbServer = builder
-    .AddPostgres(SatSolver.DatabaseServer.Name)
+    .AddPostgres("sat-solver-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
 IResourceBuilder<PostgresDatabaseResource> satSolverDb = satSolverDbServer
-    .AddDatabase(SatSolver.Database.Name);
+    .AddDatabase("sat-solver-db");
 
 IResourceBuilder<ProjectResource> satSolverDomainTest = builder
-    .AddProject<Raijin_SatSolver_Domain_Tests>(SatSolver.DomainTests.Name)
+    .AddProject<Raijin_SatSolver_Domain_Tests>("sat-solver-domain-tests")
     .PublishAsDockerFile();
 
 IResourceBuilder<ProjectResource> satSolverApplicationTest = builder
-    .AddProject<Raijin_SatSolver_Application_Tests>(SatSolver.ApplicationTests.Name)
+    .AddProject<Raijin_SatSolver_Application_Tests>("sat-solver-application-tests")
     .PublishAsDockerFile();
 
 IResourceBuilder<ContainerResource> satSolver = builder
-    .AddDockerfile(SatSolver.Name, SatSolver.ContextPath, SatSolver.DockerfilePath)
+    .AddDockerfile("sat-solver", "../SatSolver", "./Worker/Dockerfile")
     .WithChildRelationship(satSolverDomainTest)
     .WithChildRelationship(satSolverApplicationTest)
     .WithChildRelationship(satSolverDbServer)
@@ -34,19 +33,20 @@ IResourceBuilder<ContainerResource> satSolver = builder
     .WaitFor(satSolverDb)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
+    .WithEnvironment("RABBIT_MQ__EXCHANGE", "sat-solver.exchange")
     .WithLifetime(ContainerLifetime.Session)
     .PublishAsContainer();
 
 IResourceBuilder<PostgresServerResource> identityServiceDbServer = builder
-    .AddPostgres(IdentityService.DatabaseServer.Name)
+    .AddPostgres("identity-service-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
 IResourceBuilder<PostgresDatabaseResource> identityServiceDb =
-    identityServiceDbServer.AddDatabase(IdentityService.Database.Name);
+    identityServiceDbServer.AddDatabase("identity-service-db");
 
-IResourceBuilder<ProjectResource> identityService = builder.AddProject<Raijin_IdentityService_Api>(IdentityService.Name)
-    .WithHttpHealthCheck(IdentityService.HealthCheckPath)
+IResourceBuilder<ProjectResource> identityService = builder.AddProject<Raijin_IdentityService_Api>("identity-service")
+    .WithHttpHealthCheck("/health")
     .WithChildRelationship(identityServiceDbServer)
     .WithReference(identityServiceDb)
     .WaitFor(identityServiceDb)
@@ -55,16 +55,16 @@ IResourceBuilder<ProjectResource> identityService = builder.AddProject<Raijin_Id
     .PublishAsDockerFile();
 
 IResourceBuilder<PostgresServerResource> combinatoricsServiceDbServer =
-    builder.AddPostgres(CombinatoricsService.DatabaseServer.Name)
+    builder.AddPostgres("combinatorics-service-db-server")
         .WithLifetime(ContainerLifetime.Persistent)
         .PublishAsContainer();
 
 IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb =
-    combinatoricsServiceDbServer.AddDatabase(CombinatoricsService.Database.Name);
+    combinatoricsServiceDbServer.AddDatabase("combinatorics-service-db");
 
 IResourceBuilder<ProjectResource> combinatoricsService = builder.AddProject<Raijin_CombinatoricsService_Api>(
-        CombinatoricsService.Name)
-    .WithHttpHealthCheck(CombinatoricsService.HealthCheckPath)
+        "combinatorics-service")
+    .WithHttpHealthCheck("/health")
     .WithChildRelationship(combinatoricsServiceDbServer)
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
@@ -72,19 +72,19 @@ IResourceBuilder<ProjectResource> combinatoricsService = builder.AddProject<Raij
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<PostgresServerResource> queryServiceDbServer = builder.AddPostgres(QueryService.DatabaseServer.Name)
+IResourceBuilder<PostgresServerResource> queryServiceDbServer = builder.AddPostgres("query-service-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
 IResourceBuilder<PostgresDatabaseResource> queryServiceDb =
-    queryServiceDbServer.AddDatabase(QueryService.Database.Name);
+    queryServiceDbServer.AddDatabase("query-service-db");
 
-IResourceBuilder<RedisResource> queryServiceRedis = builder.AddRedis(QueryService.Redis.Name)
+IResourceBuilder<RedisResource> queryServiceRedis = builder.AddRedis("query-service-redis-db")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<ProjectResource> queryService = builder.AddProject<Raijin_QueryService_Api>(QueryService.Name)
-    .WithHttpHealthCheck(QueryService.HealthCheckPath)
+IResourceBuilder<ProjectResource> queryService = builder.AddProject<Raijin_QueryService_Api>("query-service")
+    .WithHttpHealthCheck("/health")
     .WithChildRelationship(queryServiceDbServer)
     .WithReference(queryServiceDb)
     .WaitFor(queryServiceDb)
@@ -95,8 +95,8 @@ IResourceBuilder<ProjectResource> queryService = builder.AddProject<Raijin_Query
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<ProjectResource> apiGateway = builder.AddProject<Raijin_ApiGateway>(ApiGateway.Name)
-    .WithHttpHealthCheck(ApiGateway.HealthCheckPath)
+IResourceBuilder<ProjectResource> apiGateway = builder.AddProject<Raijin_ApiGateway>("api-gateway")
+    .WithHttpHealthCheck("/health")
     .WithReference(identityService)
     .WaitFor(identityService)
     .WithReference(combinatoricsService)
@@ -118,7 +118,7 @@ IResourceBuilder<ScalarResource> scalar = builder.AddScalarApiReference()
     .PublishAsContainer();
 
 IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
-    .AddJavaScriptApp(SpaFrontend.Name, SpaFrontend.AppDirectory, SpaFrontend.RunScriptName)
+    .AddJavaScriptApp("spa-frontend", "../Spa", OperatingSystem.IsLinux() ? "start" : "win:start")
     .WithReference(apiGateway)
     .WaitFor(apiGateway)
     .WithHttpEndpoint(env: "PORT")

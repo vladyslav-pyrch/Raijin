@@ -4,7 +4,7 @@ namespace Raijin.SatSolver.Application.Abstractions;
 
 public interface ISatProblemRepository
 {
-    public Task AddAndSaveAsync(SatProblem satProblem, CancellationToken cancellationToken);
+    public Task AddAndSave(SatProblem satProblem, CancellationToken cancellationToken);
 
-    public Task UpdateAsync(SatProblem satProblem, CancellationToken cancellationToken);
+    public Task UpdateAndSave(SatProblem satProblem, CancellationToken cancellationToken);
 }

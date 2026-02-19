@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 using Raijin.SatSolver.Application.Abstractions;
 using Raijin.SatSolver.Infrastructure.Messaging;
 using Raijin.SatSolver.Infrastructure.Persistence;
@@ -17,13 +18,32 @@ public static class InfrastructureModule
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddScoped<ISatSolver, CryptominisatSolver>();
-        services.AddScoped<IEventBus, RabbitMqEventBus>();
         services.AddScoped<ISatProblemRepository, SatProblemRepository>();
         services.AddDbContextPool<SatSolverDbContext>((provider, builder) =>
         {
-            // TODO
-            builder.UseNpgsql(provider.GetRequiredService<IConfiguration>().GetConnectionString("sat-solver-db"));
+            string connectionString = provider.GetRequiredService<IConfiguration>()
+                                          .GetConnectionString("sat-solver-db") ??
+                                      throw new InvalidOperationException(
+                                          "Database connection string is not configured.");
+
+            builder.UseNpgsql(connectionString);
         });
+        services.AddSingleton<IConnectionFactory>(provider =>
+        {
+            string connectionString = provider.GetRequiredService<IConfiguration>()
+                                          .GetConnectionString("rabbit-mq") ??
+                                      throw new InvalidOperationException(
+                                          "RabbitMQ connection string is not configured.");
+
+            return new ConnectionFactory
+            {
+                Uri = new Uri(connectionString)
+            };
+        });
+        services.AddOptions<RabbitMqEventBusOptions>()
+            .BindConfiguration("RABBIT_MQ")
+            .ValidateDataAnnotations();
+        services.AddSingleton<IEventBus, RabbitMqEventBus>();
 
         return services;
     }
