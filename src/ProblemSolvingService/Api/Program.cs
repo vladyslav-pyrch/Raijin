@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Raijin.ProblemSolvingService.Api.Endpoints.V1;
 using Raijin.ProblemSolvingService.Application;
 using Raijin.ProblemSolvingService.Infrastructure;

@@ -1,0 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using Raijin.SatSolver.Infrastructure.Persistence.Models;
+
+namespace Raijin.SatSolver.Infrastructure.Persistence;
+
+public class SatSolverDbContext(DbContextOptions<SatSolverDbContext> options) : DbContext(options)
+{
+    public DbSet<SatProblemModel> SatProblems { get; set; } = null!;
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfigurationsFromAssembly(InfrastructureModule.Assembly);
+    }
+}

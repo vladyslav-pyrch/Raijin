@@ -1,52 +1,127 @@
-using Aspire.Hosting;
-using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.JavaScript;
 using Projects;
-using Raijin.AppHost;
-using Raijin.Constants;
+using Scalar.Aspire;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-IResourceBuilder<ContainerResource> cryptominisat = builder.AddDockerfile(AppHostDefaults.Cryptominisat.Name,
-        AppHostDefaults.Cryptominisat.ContextPath)
-    .WithContainerName(AppHostDefaults.Cryptominisat.ContainerName)
-    .WithBindMount(AppHostDefaults.Cryptominisat.FileExchangeLocalPath,
-        AppHostDefaults.Cryptominisat.FileExchangeContainerPath, isReadOnly: true)
-    .WithLifetime(ContainerLifetime.Persistent);
+IResourceBuilder<RabbitMQServerResource> rabbitMq = builder.AddRabbitMQ("rabbit-mq")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
 
-IResourceBuilder<ProjectResource> problemSolvingService = builder.AddProject<Raijin_ProblemSolvingService_Api>(
-        AppHostDefaults.ProblemSolvingService.Name)
-    .WithHttpHealthCheck(AppHostDefaults.ProblemSolvingService.HealthCheckPath)
-    .WaitFor(cryptominisat)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.ContainerName,
-        AppHostDefaults.Cryptominisat.ContainerName)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.FileExchangeContainerPath,
-        AppHostDefaults.Cryptominisat.FileExchangeContainerPath)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.FileExchangeLocalPath,
-        AppHostDefaults.Cryptominisat.FileExchangeLocalPath)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.TimeoutSeconds,
-        AppHostDefaults.Cryptominisat.TimeoutSeconds);
+IResourceBuilder<PostgresServerResource> satSolverDbServer = builder
+    .AddPostgres("sat-solver-db-server")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
 
-builder.AddNpmApp("angular-spa", "../Spa", scriptName: OperatingSystem.IsLinux() ? "start" : "win:start")
-    .WithReference(problemSolvingService)
-    .WaitFor(problemSolvingService)
-    .WithHttpEndpoint(env: "PORT")
+IResourceBuilder<PostgresDatabaseResource> satSolverDb = satSolverDbServer
+    .AddDatabase("sat-solver-db");
+
+IResourceBuilder<ProjectResource> satSolverDomainTest = builder
+    .AddProject<Raijin_SatSolver_Domain_Tests>("sat-solver-domain-tests")
     .PublishAsDockerFile();
 
-builder.AddExecutable("unit-tests", "dotnet", "../../", "test", "--filter", "Category=Unit")
-    .WaitFor(problemSolvingService)
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Test");
+IResourceBuilder<ProjectResource> satSolverApplicationTest = builder
+    .AddProject<Raijin_SatSolver_Application_Tests>("sat-solver-application-tests")
+    .PublishAsDockerFile();
 
-builder.AddExecutable("integration-tests", "dotnet", "../../", "test", "--filter", "Category=Integration")
-    .WaitFor(problemSolvingService)
-    .WithReference(problemSolvingService)
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Test")
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.ContainerName,
-        AppHostDefaults.Cryptominisat.ContainerName)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.FileExchangeContainerPath,
-        AppHostDefaults.Cryptominisat.FileExchangeContainerPath)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.FileExchangeLocalPath,
-        AppHostDefaults.Cryptominisat.FileExchangeLocalPath)
-    .WithEnvironment(EnvironmentVariables.Cryptominisat.TimeoutSeconds,
-        AppHostDefaults.Cryptominisat.TimeoutSeconds);
+IResourceBuilder<ContainerResource> satSolver = builder
+    .AddDockerfile("sat-solver", "../SatSolver", "./Worker/Dockerfile")
+    .WithChildRelationship(satSolverDomainTest)
+    .WithChildRelationship(satSolverApplicationTest)
+    .WithChildRelationship(satSolverDbServer)
+    .WithReference(satSolverDb)
+    .WaitFor(satSolverDb)
+    .WithReference(rabbitMq)
+    .WaitFor(rabbitMq)
+    .WithEnvironment("RABBIT_MQ__EXCHANGE", "app.events")
+    .WithLifetime(ContainerLifetime.Session)
+    .PublishAsContainer();
+
+IResourceBuilder<PostgresServerResource> identityServiceDbServer = builder
+    .AddPostgres("identity-service-db-server")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
+
+IResourceBuilder<PostgresDatabaseResource> identityServiceDb =
+    identityServiceDbServer.AddDatabase("identity-service-db");
+
+IResourceBuilder<ProjectResource> identityService = builder.AddProject<Raijin_IdentityService_Api>("identity-service")
+    .WithHttpHealthCheck("/health")
+    .WithChildRelationship(identityServiceDbServer)
+    .WithReference(identityServiceDb)
+    .WaitFor(identityServiceDb)
+    .WithReference(rabbitMq)
+    .WaitFor(rabbitMq)
+    .PublishAsDockerFile();
+
+IResourceBuilder<PostgresServerResource> combinatoricsServiceDbServer =
+    builder.AddPostgres("combinatorics-service-db-server")
+        .WithLifetime(ContainerLifetime.Persistent)
+        .PublishAsContainer();
+
+IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb =
+    combinatoricsServiceDbServer.AddDatabase("combinatorics-service-db");
+
+IResourceBuilder<ProjectResource> combinatoricsService = builder.AddProject<Raijin_CombinatoricsService_Api>(
+        "combinatorics-service")
+    .WithHttpHealthCheck("/health")
+    .WithChildRelationship(combinatoricsServiceDbServer)
+    .WithReference(combinatoricsServiceDb)
+    .WaitFor(combinatoricsServiceDb)
+    .WithReference(rabbitMq)
+    .WaitFor(rabbitMq)
+    .PublishAsDockerFile();
+
+IResourceBuilder<PostgresServerResource> queryServiceDbServer = builder.AddPostgres("query-service-db-server")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
+
+IResourceBuilder<PostgresDatabaseResource> queryServiceDb =
+    queryServiceDbServer.AddDatabase("query-service-db");
+
+IResourceBuilder<RedisResource> queryServiceRedis = builder.AddRedis("query-service-redis-db")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
+
+IResourceBuilder<ProjectResource> queryService = builder.AddProject<Raijin_QueryService_Api>("query-service")
+    .WithHttpHealthCheck("/health")
+    .WithChildRelationship(queryServiceDbServer)
+    .WithReference(queryServiceDb)
+    .WaitFor(queryServiceDb)
+    .WithChildRelationship(queryServiceRedis)
+    .WithReference(queryServiceRedis)
+    .WaitFor(queryServiceRedis)
+    .WithReference(rabbitMq)
+    .WaitFor(rabbitMq)
+    .PublishAsDockerFile();
+
+IResourceBuilder<ProjectResource> apiGateway = builder.AddProject<Raijin_ApiGateway>("api-gateway")
+    .WithHttpHealthCheck("/health")
+    .WithReference(identityService)
+    .WaitFor(identityService)
+    .WithReference(combinatoricsService)
+    .WaitFor(combinatoricsService)
+    .WithReference(queryService)
+    .WaitFor(queryService)
+    .PublishAsDockerFile();
+
+IResourceBuilder<ScalarResource> scalar = builder.AddScalarApiReference()
+    .WithApiReference(identityService)
+    .WaitFor(identityService)
+    .WithApiReference(combinatoricsService)
+    .WaitFor(combinatoricsService)
+    .WithApiReference(queryService)
+    .WaitFor(queryService)
+    .WithApiReference(apiGateway)
+    .WaitFor(apiGateway)
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
+
+IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
+    .AddJavaScriptApp("spa-frontend", "../Spa", OperatingSystem.IsLinux() ? "start" : "win:start")
+    .WithReference(apiGateway)
+    .WaitFor(apiGateway)
+    .WithHttpEndpoint(env: "PORT")
+    .PublishAsDockerFile();
 
 builder.Build().Run();

@@ -6,7 +6,6 @@ using Raijin.ProblemSolvingService.Application.Features;
 using Raijin.ProblemSolvingService.Application.Features.Dtos;
 using Raijin.ProblemSolvingService.Application.Features.SolveBooleanExpression;
 using Raijin.ProblemSolvingService.Domain.SatProblems;
-using Xunit.Abstractions;
 
 namespace Raijin.ProblemSolvingService.Application.Tests.Features.SolveBooleanExpression;
 
