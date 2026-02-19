@@ -33,7 +33,7 @@ IResourceBuilder<ContainerResource> satSolver = builder
     .WaitFor(satSolverDb)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
-    .WithEnvironment("RABBIT_MQ__EXCHANGE", "sat-solver.exchange")
+    .WithEnvironment("RABBIT_MQ__EXCHANGE", "app.events")
     .WithLifetime(ContainerLifetime.Session)
     .PublishAsContainer();
 

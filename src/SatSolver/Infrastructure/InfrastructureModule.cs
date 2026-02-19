@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using Raijin.SatSolver.Application.Abstractions;
+using Raijin.SatSolver.Infrastructure.Cqrs;
 using Raijin.SatSolver.Infrastructure.Messaging;
 using Raijin.SatSolver.Infrastructure.Persistence;
 using Raijin.SatSolver.Infrastructure.Persistence.Repositories;
@@ -17,6 +18,7 @@ public static class InfrastructureModule
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
+        services.AddScoped<IMediator, DotNetDiMediator>();
         services.AddScoped<ISatSolver, CryptominisatSolver>();
         services.AddScoped<ISatProblemRepository, SatProblemRepository>();
         services.AddDbContextPool<SatSolverDbContext>((provider, builder) =>
@@ -40,10 +42,22 @@ public static class InfrastructureModule
                 Uri = new Uri(connectionString)
             };
         });
-        services.AddOptions<RabbitMqEventBusOptions>()
+        services.AddOptions<RabbitMqOptions>()
             .BindConfiguration("RABBIT_MQ")
             .ValidateDataAnnotations();
         services.AddSingleton<IEventBus, RabbitMqEventBus>();
+        services.AddInterfaceImplementations<IConsumer>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddInterfaceImplementations<TInterface>(this IServiceCollection services) where TInterface : class
+    {
+        IEnumerable<Type> handlerTypes = Assembly.GetTypes()
+            .Where(t => typeof(TInterface).IsAssignableFrom(t) && !t.IsAbstract);
+
+        foreach (Type handlerType in handlerTypes)
+            services.AddScoped(typeof(TInterface), handlerType);
 
         return services;
     }

@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -8,24 +7,31 @@ using Raijin.SatSolver.Application.Events;
 
 namespace Raijin.SatSolver.Infrastructure.Messaging;
 
-public class RabbitMqEventBus(IConnectionFactory connectionFactory, IOptions<RabbitMqEventBusOptions> options) : IEventBus, IDisposable, IAsyncDisposable
+public class RabbitMqEventBus(IConnectionFactory connectionFactory, IOptions<RabbitMqOptions> options) : IEventBus, IDisposable, IAsyncDisposable
 {
-    private readonly RabbitMqEventBusOptions _options = options.Value;
+    private readonly RabbitMqOptions _options = options.Value;
 
     private IConnection? _connection;
 
     public async Task Publish<TEvent>(TEvent @event, CancellationToken cancellationToken) where TEvent : IEvent
     {
         await using IChannel channel = await CreateChannelAsync(cancellationToken);
-        await channel.ExchangeDeclareAsync(_options.Exchange, ExchangeType.Topic, durable: true, autoDelete: false,
+        await channel.ExchangeDeclareAsync(
+            exchange: _options.Exchange,
+            type: ExchangeType.Direct,
+            durable: true,
+            autoDelete: false,
             cancellationToken: cancellationToken);
 
         byte[] body = SerializeEvent(@event);
-        string routingKey = GetRoutingKey(@event);
+        string routingKey = @event.Metadata.Name;
 
-        await channel.BasicPublishAsync(_options.Exchange, routingKey, mandatory: true, body: body,
+        await channel.BasicPublishAsync(
+            exchange: _options.Exchange,
+            routingKey: routingKey,
+            mandatory: true,
+            body: body,
             cancellationToken: cancellationToken);
-        await channel.CloseAsync(cancellationToken);
     }
 
     private async ValueTask<IChannel> CreateChannelAsync(CancellationToken cancellationToken)
@@ -49,10 +55,6 @@ public class RabbitMqEventBus(IConnectionFactory connectionFactory, IOptions<Rab
         string json = JsonSerializer.Serialize(@event);
         return Encoding.UTF8.GetBytes(json);
     }
-
-    private static string GetRoutingKey<TEvent>(TEvent _) =>
-        typeof(TEvent).GetCustomAttribute<EventMetadataAttribute>()?.Name ??
-        throw new ArgumentException("Event metadata attribute not found");
 
     void IDisposable.Dispose()
     {
