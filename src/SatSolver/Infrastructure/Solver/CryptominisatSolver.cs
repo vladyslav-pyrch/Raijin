@@ -48,8 +48,16 @@ public class CryptominisatSolver : ISatSolver
         process.StartInfo = CreateCryptominisatProcessStartInfo(fileName, timeout);
         process.Start();
 
-        string output = await GetOutputFromProcess(process, cancellationToken);
-        return output;
+        try
+        {
+            string output = await GetOutputFromProcess(process, cancellationToken);
+            return output;
+        }
+        catch (OperationCanceledException)
+        {
+            process.Kill();
+            throw;
+        }
     }
 
     private ProcessStartInfo CreateCryptominisatProcessStartInfo(string filePath, int? timeout) => new()
