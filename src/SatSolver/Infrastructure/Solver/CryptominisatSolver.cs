@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Text;
-using Raijin.SatSolver.Application.Abstractions;
+using Raijin.SatSolver.Application.Solver;
 using Raijin.SatSolver.Domain.SatProblems;
 
 namespace Raijin.SatSolver.Infrastructure.Solver;

@@ -24,6 +24,7 @@
     <ProjectReference Include="..\IdentityService\Api\Raijin.IdentityService.Api.csproj" />
     <ProjectReference Include="..\ProblemSolvingService\Api\Raijin.ProblemSolvingService.Api.csproj" />
     <ProjectReference Include="..\QueryService\Api\Raijin.QueryService.Api.csproj" />
+    <ProjectReference Include="..\SatSolver\Api\Raijin.SatSolver.Api.csproj" />
     <ProjectReference Include="..\SatSolver\Worker\Raijin.SatSolver.Worker.csproj" />
   </ItemGroup>
 </Project>

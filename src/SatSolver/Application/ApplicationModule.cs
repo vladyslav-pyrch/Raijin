@@ -1,7 +1,7 @@
 using System.Reflection;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Raijin.SatSolver.Application.Cqrs;
-using Raijin.SatSolver.Application.Events;
 
 namespace Raijin.SatSolver.Application;
 
@@ -9,17 +9,13 @@ public static class ApplicationModule
 {
     public static readonly Assembly Assembly = typeof(ApplicationModule).Assembly;
 
-    public static IServiceCollection AddApplication(this IServiceCollection services)
-    {
-        services.AddRequestHandlers();
-        services.AddEventHandlers();
+    public static IServiceCollection AddApplication(this IServiceCollection services) => services
+        .AddRequestHandlers()
+        .AddValidatorsFromAssembly(Assembly);
 
-        return services;
-    }
-
-    private static IServiceCollection AddRequestHandlers(this IServiceCollection services) => services.AddGenericInterfaceImplementations(typeof(IRequestHandler<>));
-
-    private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services.AddGenericInterfaceImplementations(typeof(IEventHandler<>));
+    private static IServiceCollection AddRequestHandlers(this IServiceCollection services) => services
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
 
     private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services, Type genericInterfaceType)
     {

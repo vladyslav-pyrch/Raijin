@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Raijin.SatSolver.Application.Abstractions;
 using Raijin.SatSolver.Application.Cqrs;
 
 namespace Raijin.SatSolver.Infrastructure.Cqrs;

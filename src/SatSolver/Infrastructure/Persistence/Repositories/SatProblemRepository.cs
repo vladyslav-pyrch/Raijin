@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Raijin.SatSolver.Application.Abstractions;
+using Raijin.SatSolver.Application.Persistence;
 using Raijin.SatSolver.Domain.SatProblems;
 using Raijin.SatSolver.Infrastructure.Persistence.Models;
 
