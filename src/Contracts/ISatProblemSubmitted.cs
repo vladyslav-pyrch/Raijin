@@ -1,6 +1,6 @@
 namespace Raijin.Application.Contracts;
 
-public interface SatProblemSubmitted
+public interface ISatProblemSubmitted
 {
     public Guid SatProblemId { get;  }
 

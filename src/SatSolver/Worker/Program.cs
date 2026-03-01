@@ -10,4 +10,4 @@ IHost host = builder.Build();
 
 await host.ApplyMigrations();
 
-host.Run();
+await host.RunAsync();

@@ -44,8 +44,11 @@ public static class InfrastructureModule
         .AddSatSolver();
 
     public static IServiceCollection AddInfrastructureWorker(this IServiceCollection services) => services
-        .AddInfrastructureApi()
-        .AddMessagingConsumers();
+        .AddCqrs()
+        .AddDomainEvents()
+        .AddMessagingWithConsumers()
+        .AddPersistence()
+        .AddSatSolver();
 
     private static IServiceCollection AddCqrs(this IServiceCollection services) =>
         services.AddScoped<IMediator, DotNetDiMediator>();
@@ -69,12 +72,22 @@ public static class InfrastructureModule
             });
         });
 
-    private static IServiceCollection AddMessagingConsumers(this IServiceCollection services) => services
+    private static IServiceCollection AddMessagingWithConsumers(this IServiceCollection services) => services
+        .AddScoped<IMessageBus, MassTransitMessageBus>()
         .AddMassTransit(x =>
         {
             x.AddConsumers(Assembly);
+            x.SetKebabCaseEndpointNameFormatter();
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                string connectionString = context.GetRequiredService<IConfiguration>()
+                                              .GetConnectionString("rabbit-mq") ??
+                                          throw new InvalidOperationException(
+                                              "RabbitMQ connection string is not configured.");
 
-            x.UsingRabbitMq((context, cfg) => cfg.ConfigureEndpoints(context));
+                cfg.Host(new Uri(connectionString));
+                cfg.ConfigureEndpoints(context);
+            });
         });
 
     private static IServiceCollection AddPersistence(this IServiceCollection services) => services
@@ -82,8 +95,8 @@ public static class InfrastructureModule
         .AddDbContextPool<SatSolverDbContext>((provider, builder) =>
         {
             string connectionString = provider.GetRequiredService<IConfiguration>()
-                                          .GetConnectionString("sat-solver-db")
-                                      ?? throw new InvalidOperationException(
+                                          .GetConnectionString("sat-solver-db") ??
+                                      throw new InvalidOperationException(
                                           "Database connection string is not configured.");
 
             builder.UseNpgsql(connectionString);

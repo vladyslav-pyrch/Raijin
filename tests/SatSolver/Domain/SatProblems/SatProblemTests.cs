@@ -12,7 +12,7 @@ public class SatProblemTests
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
 
         // When
-        var satProblem = SatProblem.Create(dimacs);
+        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
 
         // Then
         satProblem.Should().NotBeNull();
@@ -23,7 +23,7 @@ public class SatProblemTests
     {
         // Given
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
-        var satProblem = SatProblem.Create(dimacs);
+        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
 
         // When
         Func<int[]> getSolution = () => satProblem.Solution;
@@ -37,7 +37,7 @@ public class SatProblemTests
     {
         // Given
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
-        var satProblem = SatProblem.Create(dimacs);
+        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
         int[] solution = [];
 
         // When
@@ -52,7 +52,7 @@ public class SatProblemTests
     {
         // Given
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
-        var satProblem = SatProblem.Create(dimacs);
+        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
         int[] solution = [1, -2, 3];
 
         // When
@@ -67,7 +67,7 @@ public class SatProblemTests
     {
         // Given
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
-        var satProblem = SatProblem.Create(dimacs);
+        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
         int[] solution = [1, -2];
 
         // When
@@ -82,7 +82,7 @@ public class SatProblemTests
     {
         // Given
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
-        var satProblem = SatProblem.Create(dimacs);
+        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
         int[] solution = [1, -4, 3];
 
         // When
@@ -97,7 +97,7 @@ public class SatProblemTests
     {
         // Given
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
-        var satProblem = SatProblem.Create(dimacs);
+        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
         int[] solution = [1, -2, 3];
         satProblem.SetSolution(solution);
 
@@ -115,7 +115,7 @@ public class SatProblemTests
         var invalidDimacs = "invalid dimacs format";
 
         // When
-        Action createSatProblem = () => SatProblem.Create(invalidDimacs);
+        Action createSatProblem = () => SatProblem.Create(Guid.CreateVersion7(), invalidDimacs);
 
         // Then
         createSatProblem.Should().Throw<FormatException>();
@@ -128,7 +128,7 @@ public class SatProblemTests
         var invalidHeaderDimacs = "p cnf 3\n1 -3 0\n-1 2 3 0";
 
         // When
-        Action createSatProblem = () => SatProblem.Create(invalidHeaderDimacs);
+        Action createSatProblem = () => SatProblem.Create(Guid.CreateVersion7(), invalidHeaderDimacs);
 
         // Then
         createSatProblem.Should().Throw<FormatException>();
@@ -141,7 +141,7 @@ public class SatProblemTests
         var emptyHeaderDimacs = "p cnf 0 0\n";
 
         // When
-        Action createSatProblem = () => SatProblem.Create(emptyHeaderDimacs);
+        Action createSatProblem = () => SatProblem.Create(Guid.CreateVersion7(), emptyHeaderDimacs);
 
         // Then
         createSatProblem.Should().Throw<FormatException>();
@@ -154,7 +154,7 @@ public class SatProblemTests
         var invalidClauseDimacs = "p cnf 3 2\n1 -3\n-1 2 3 0";
 
         // When
-        Action createSatProblem = () => SatProblem.Create(invalidClauseDimacs);
+        Action createSatProblem = () => SatProblem.Create(Guid.CreateVersion7(), invalidClauseDimacs);
 
         // Then
         createSatProblem.Should().Throw<FormatException>();
@@ -167,7 +167,7 @@ public class SatProblemTests
         var emptyClauseDimacs = "p cnf 3 2\n0\n-1 2 3 0";
 
         // When
-        Action createSatProblem = () => SatProblem.Create(emptyClauseDimacs);
+        Action createSatProblem = () => SatProblem.Create(Guid.CreateVersion7(), emptyClauseDimacs);
 
         // Then
         createSatProblem.Should().Throw<FormatException>();
@@ -180,7 +180,7 @@ public class SatProblemTests
         var numberOfClausesMismatchDimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0\n1 2 0";
 
         // When
-        Action createSatProblem = () => SatProblem.Create(numberOfClausesMismatchDimacs);
+        Action createSatProblem = () => SatProblem.Create(Guid.CreateVersion7(), numberOfClausesMismatchDimacs);
 
         // Then
         createSatProblem.Should().Throw<FormatException>();
@@ -193,7 +193,7 @@ public class SatProblemTests
         var numberOfVariablesMismatchDimacs = "p cnf 2 2\n1 -3 0\n-1 2 3 0";
 
         // When
-        Action createSatProblem = () => SatProblem.Create(numberOfVariablesMismatchDimacs);
+        Action createSatProblem = () => SatProblem.Create(Guid.CreateVersion7(), numberOfVariablesMismatchDimacs);
 
         // Then
         createSatProblem.Should().Throw<FormatException>();
