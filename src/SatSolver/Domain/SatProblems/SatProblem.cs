@@ -78,7 +78,7 @@ public partial class SatProblem
         return stringBuilder.ToString();
     }
 
-    public static SatProblem Create(string dimacs)
+    public static SatProblem Create(Guid id, string dimacs)
     {
         string[] lines = dimacs.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
 
@@ -115,7 +115,7 @@ public partial class SatProblem
             throw new FormatException(
                 $"Invalid DIMACS format: Number of variables specified in header ({numberOfVariables}) is less than the maximum variable index used in clauses ({maxVariableIndex}).");
 
-        return new SatProblem(Guid.CreateVersion7(), numberOfVariables, numberOfClauses, clauses)
+        return new SatProblem(id, numberOfVariables, numberOfClauses, clauses)
         {
             Dimacs = dimacs // Store original DIMACS for reference
         };

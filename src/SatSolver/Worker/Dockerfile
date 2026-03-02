@@ -1,4 +1,8 @@
 ﻿FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
+USER root
+RUN apt-get update \
+    && apt-get install -y libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
 USER $APP_UID
 WORKDIR /app
 
@@ -15,12 +19,14 @@ RUN wget -O cryptominisat.zip https://github.com/msoos/cryptominisat/releases/do
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["./Worker/Raijin.SatSolver.Worker.csproj", "./SatSolver/Worker/"]
-COPY ["./Infrastructure/Raijin.SatSolver.Infrastructure.csproj", "./SatSolver/Infrastructure/"]
-COPY ["./Application/Raijin.SatSolver.Application.csproj", "./SatSolver/Application/"]
-COPY ["./Domain/Raijin.SatSolver.Domain.csproj", "./SatSolver/Domain/"]
+COPY ["./SatSolver/Worker/Raijin.SatSolver.Worker.csproj", "./SatSolver/Worker/"]
+COPY ["./SatSolver/Infrastructure/Raijin.SatSolver.Infrastructure.csproj", "./SatSolver/Infrastructure/"]
+COPY ["./SatSolver/Application/Raijin.SatSolver.Application.csproj", "./SatSolver/Application/"]
+COPY ["./SatSolver/Domain/Raijin.SatSolver.Domain.csproj", "./SatSolver/Domain/"]
+COPY ["./Contracts/Raijin.Application.Contracts.csproj", "./Contracts/"]
 RUN dotnet restore "./SatSolver/Worker/Raijin.SatSolver.Worker.csproj"
-COPY [".", "./SatSolver/"]
+COPY ["./SatSolver", "./SatSolver/"]
+COPY ["./Contracts", "./Contracts/"]
 WORKDIR "/src/SatSolver/Worker"
 RUN dotnet build "./Raijin.SatSolver.Worker.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

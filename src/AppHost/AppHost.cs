@@ -4,38 +4,46 @@ using Scalar.Aspire;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-IResourceBuilder<RabbitMQServerResource> rabbitMq = builder.AddRabbitMQ("rabbit-mq")
+IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
+    .AddRabbitMQ("rabbit-mq")
+    .WithManagementPlugin()
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<PostgresServerResource> satSolverDbServer = builder
-    .AddPostgres("sat-solver-db-server")
+IResourceBuilder<PostgresServerResource> satSolverWorkerDbServer = builder
+    .AddPostgres("sat-solver-worker-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<PostgresDatabaseResource> satSolverDb = satSolverDbServer
-    .AddDatabase("sat-solver-db");
+IResourceBuilder<PostgresDatabaseResource> satSolverWorkerDb = satSolverWorkerDbServer
+    .AddDatabase("sat-solver-worker-db");
 
-IResourceBuilder<ProjectResource> satSolverDomainTest = builder
-    .AddProject<Raijin_SatSolver_Domain_Tests>("sat-solver-domain-tests")
-    .PublishAsDockerFile();
-
-IResourceBuilder<ProjectResource> satSolverApplicationTest = builder
-    .AddProject<Raijin_SatSolver_Application_Tests>("sat-solver-application-tests")
-    .PublishAsDockerFile();
-
-IResourceBuilder<ContainerResource> satSolver = builder
-    .AddDockerfile("sat-solver", "../SatSolver", "./Worker/Dockerfile")
-    .WithChildRelationship(satSolverDomainTest)
-    .WithChildRelationship(satSolverApplicationTest)
-    .WithChildRelationship(satSolverDbServer)
-    .WithReference(satSolverDb)
-    .WaitFor(satSolverDb)
+IResourceBuilder<ContainerResource> satSolverWorker = builder
+    .AddDockerfile("sat-solver-worker", "..", "./SatSolver/Worker/Dockerfile")
+    .WithChildRelationship(satSolverWorkerDbServer)
+    .WithReference(satSolverWorkerDb, connectionName: "sat-solver-db")
+    .WaitFor(satSolverWorkerDb)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
-    .WithEnvironment("RABBIT_MQ__EXCHANGE", "app.events")
     .WithLifetime(ContainerLifetime.Session)
     .PublishAsContainer();
+
+IResourceBuilder<PostgresServerResource> satSolverApiDbServer = builder
+    .AddPostgres("sat-solver-api-db-server")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
+
+IResourceBuilder<PostgresDatabaseResource> satSolverApiDb = satSolverApiDbServer
+    .AddDatabase("sat-solver-api-db");
+
+IResourceBuilder<ProjectResource> satSolverApi = builder
+    .AddProject<Raijin_SatSolver_Api>("sat-solver-api")
+    .WithChildRelationship(satSolverApiDbServer)
+    .WithReference(satSolverApiDb, connectionName: "sat-solver-db")
+    .WaitFor(satSolverApiDb)
+    .WithReference(rabbitMq)
+    .WaitFor(rabbitMq)
+    .PublishAsDockerFile();
 
 IResourceBuilder<PostgresServerResource> identityServiceDbServer = builder
     .AddPostgres("identity-service-db-server")
@@ -45,7 +53,8 @@ IResourceBuilder<PostgresServerResource> identityServiceDbServer = builder
 IResourceBuilder<PostgresDatabaseResource> identityServiceDb =
     identityServiceDbServer.AddDatabase("identity-service-db");
 
-IResourceBuilder<ProjectResource> identityService = builder.AddProject<Raijin_IdentityService_Api>("identity-service")
+IResourceBuilder<ProjectResource> identityServiceApi = builder
+    .AddProject<Raijin_IdentityService_Api>("identity-service-api")
     .WithHttpHealthCheck("/health")
     .WithChildRelationship(identityServiceDbServer)
     .WithReference(identityServiceDb)
@@ -54,16 +63,16 @@ IResourceBuilder<ProjectResource> identityService = builder.AddProject<Raijin_Id
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<PostgresServerResource> combinatoricsServiceDbServer =
-    builder.AddPostgres("combinatorics-service-db-server")
-        .WithLifetime(ContainerLifetime.Persistent)
-        .PublishAsContainer();
+IResourceBuilder<PostgresServerResource> combinatoricsServiceDbServer = builder
+    .AddPostgres("combinatorics-service-db-server")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
 
-IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb =
-    combinatoricsServiceDbServer.AddDatabase("combinatorics-service-db");
+IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = combinatoricsServiceDbServer
+    .AddDatabase("combinatorics-service-db");
 
-IResourceBuilder<ProjectResource> combinatoricsService = builder.AddProject<Raijin_CombinatoricsService_Api>(
-        "combinatorics-service")
+IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
+    .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-service-api")
     .WithHttpHealthCheck("/health")
     .WithChildRelationship(combinatoricsServiceDbServer)
     .WithReference(combinatoricsServiceDb)
@@ -72,18 +81,21 @@ IResourceBuilder<ProjectResource> combinatoricsService = builder.AddProject<Raij
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<PostgresServerResource> queryServiceDbServer = builder.AddPostgres("query-service-db-server")
+IResourceBuilder<PostgresServerResource> queryServiceDbServer = builder
+    .AddPostgres("query-service-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
 IResourceBuilder<PostgresDatabaseResource> queryServiceDb =
     queryServiceDbServer.AddDatabase("query-service-db");
 
-IResourceBuilder<RedisResource> queryServiceRedis = builder.AddRedis("query-service-redis-db")
+IResourceBuilder<RedisResource> queryServiceRedis = builder
+    .AddRedis("query-service-redis-db")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<ProjectResource> queryService = builder.AddProject<Raijin_QueryService_Api>("query-service")
+IResourceBuilder<ProjectResource> queryServiceApi = builder
+    .AddProject<Raijin_QueryService_Api>("query-service-api")
     .WithHttpHealthCheck("/health")
     .WithChildRelationship(queryServiceDbServer)
     .WithReference(queryServiceDb)
@@ -95,24 +107,30 @@ IResourceBuilder<ProjectResource> queryService = builder.AddProject<Raijin_Query
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<ProjectResource> apiGateway = builder.AddProject<Raijin_ApiGateway>("api-gateway")
+IResourceBuilder<ProjectResource> apiGateway = builder
+    .AddProject<Raijin_ApiGateway>("api-gateway")
     .WithHttpHealthCheck("/health")
-    .WithReference(identityService)
-    .WaitFor(identityService)
-    .WithReference(combinatoricsService)
-    .WaitFor(combinatoricsService)
-    .WithReference(queryService)
-    .WaitFor(queryService)
+    .WithReference(identityServiceApi)
+    .WaitFor(identityServiceApi)
+    .WithReference(combinatoricsServiceApi)
+    .WaitFor(combinatoricsServiceApi)
+    .WithReference(satSolverApi)
+    .WaitFor(satSolverApi)
+    .WithReference(queryServiceApi)
+    .WaitFor(queryServiceApi)
     .PublishAsDockerFile();
 
-IResourceBuilder<ScalarResource> scalar = builder.AddScalarApiReference()
-    .WithApiReference(identityService)
-    .WaitFor(identityService)
-    .WithApiReference(combinatoricsService)
-    .WaitFor(combinatoricsService)
-    .WithApiReference(queryService)
-    .WaitFor(queryService)
-    .WithApiReference(apiGateway)
+IResourceBuilder<ScalarResource> scalar = builder
+    .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
+    .WithApiReference(identityServiceApi, options => options.AddDocument("v1"))
+    .WaitFor(identityServiceApi)
+    .WithApiReference(combinatoricsServiceApi, options => options.AddDocument("v1"))
+    .WaitFor(combinatoricsServiceApi)
+    .WithApiReference(satSolverApi, options => options.AddDocument("v1"))
+    .WaitFor(satSolverApi)
+    .WithApiReference(queryServiceApi, options => options.AddDocument("v1"))
+    .WaitFor(queryServiceApi)
+    .WithApiReference(apiGateway, options => options.AddDocument("v1"))
     .WaitFor(apiGateway)
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
