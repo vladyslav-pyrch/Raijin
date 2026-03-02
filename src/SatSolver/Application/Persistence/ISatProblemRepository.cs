@@ -4,7 +4,10 @@ namespace Raijin.SatSolver.Application.Persistence;
 
 public interface ISatProblemRepository
 {
-    public Task AddAndSave(SatProblem satProblem, CancellationToken cancellationToken);
+    public Task Add(SatProblem satProblem, CancellationToken cancellationToken);
 
-    public Task UpdateAndSave(SatProblem satProblem, CancellationToken cancellationToken);
+    public Task Update(SatProblem satProblem, CancellationToken cancellationToken);
+    
+    public Task Save(CancellationToken cancellationToken);
+    
 }

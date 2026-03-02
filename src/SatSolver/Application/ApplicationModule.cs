@@ -20,7 +20,7 @@ public static class ApplicationModule
         .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(IEventHandler<>));
+        .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
 
     private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services, Type genericInterfaceType)
     {

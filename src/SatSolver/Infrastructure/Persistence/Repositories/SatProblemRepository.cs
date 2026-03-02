@@ -7,9 +7,9 @@ namespace Raijin.SatSolver.Infrastructure.Persistence.Repositories;
 
 public class SatProblemRepository(SatSolverDbContext dbContext) : ISatProblemRepository
 {
-    public Task AddAndSave(SatProblem satProblem, CancellationToken cancellationToken)
+    public Task Add(SatProblem satProblem, CancellationToken cancellationToken)
     {
-        SatProblemModel satProblemModel =  new SatProblemModel
+        var satProblemModel =  new SatProblemModel
         {
             Id = satProblem.Id,
             Dimacs = satProblem.Dimacs,
@@ -23,11 +23,11 @@ public class SatProblemRepository(SatSolverDbContext dbContext) : ISatProblemRep
         };
 
         dbContext.SatProblems.Add(satProblemModel);
-
-        return dbContext.SaveChangesAsync(cancellationToken);
+        
+        return Task.CompletedTask; 
     }
 
-    public async Task UpdateAndSave(SatProblem satProblem, CancellationToken cancellationToken)
+    public async Task Update(SatProblem satProblem, CancellationToken cancellationToken)
     {
         SatProblemModel satProblemModel = await dbContext.SatProblems
             .FirstAsync(model => model.Id == satProblem.Id, cancellationToken: cancellationToken);
@@ -42,7 +42,7 @@ public class SatProblemRepository(SatSolverDbContext dbContext) : ISatProblemRep
         satProblemModel.Satisfiability = satProblem.Satisfiability.ToString();
 
         dbContext.SatProblems.Update(satProblemModel);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task Save(CancellationToken cancellationToken) => await dbContext.SaveChangesAsync(cancellationToken);
 }

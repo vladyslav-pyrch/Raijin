@@ -6,6 +6,7 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 
 IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
     .AddRabbitMQ("rabbit-mq")
+    .WithManagementPlugin()
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 

@@ -16,10 +16,11 @@ public class SolveSatProblemHandlerTests
     {
         var repository = Substitute.For<ISatProblemRepository>();
         var solver = Substitute.For<ISatSolver>();
+        var validator = new SolveSatProblemValidator();
         var eventBus = Substitute.For<IMessageBus>();
         var logger = Substitute.For<ILogger<SolveSatProblemHandler>>();
 
-        var handler = new SolveSatProblemHandler(repository, solver, eventBus, logger);
+        var handler = new SolveSatProblemHandler(repository, solver, validator, eventBus, logger);
 
         var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
         var command = new SolveSatProblemCommand(Guid.CreateVersion7(), dimacs);
@@ -28,10 +29,10 @@ public class SolveSatProblemHandlerTests
 
         await handler.Handle(command, CancellationToken.None);
 
-        await repository.Received(1).AddAndSave(Arg.Any<SatProblem>(),
+        await repository.Received(1).Add(Arg.Any<SatProblem>(),
             Arg.Any<CancellationToken>());
         await solver.Received(1).Solve(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
-        await repository.Received(1).UpdateAndSave(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
+        await repository.Received(1).Update(Arg.Any<SatProblem>(), Arg.Any<CancellationToken>());
         // await eventBus.Received(1).Publish(Arg.Any<SatProblemSolved>(), Arg.Any<CancellationToken>());
     }
 }

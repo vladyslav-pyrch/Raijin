@@ -2,6 +2,7 @@ using FluentResults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.SatSolver.Application.Cqrs;
+using Raijin.SatSolver.Application.Errors;
 using Raijin.SatSolver.Application.Features.SubmitSatProblem;
 
 namespace Raijin.SatSolver.Api.Endpoints.V1.Sat.SubmitSatProblem;
@@ -15,7 +16,7 @@ public class SubmitSatProblemEndpoint : IEndpoint
             .WithTags("sat");
     }
 
-    private static async Task<Results<Ok<SubmitSatProblemResponse>, ValidationProblem, BadRequest>> Execute(
+    private static async Task<Results<Ok<SubmitSatProblemResponse>, ValidationProblem, InternalServerError>> Execute(
         [FromBody] SubmitSatProblemRequest request,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken
@@ -29,17 +30,10 @@ public class SubmitSatProblemEndpoint : IEndpoint
             {
                 SatProblemId = result.Value.SatProblemId
             });
-
-        if (!result.HasError<DimacsFormatValidationError>())
-            return TypedResults.BadRequest();
-
-        string[] errors = result.Errors
-            .OfType<DimacsFormatValidationError>()
-            .Select(error => error.Message)
-            .ToArray();
-
-        return TypedResults.ValidationProblem(errors:
-            [new KeyValuePair<string, string[]>(nameof(request.Dimacs), errors)]
-        );
+        
+        if (result.HasError<ValidationError>())
+            return TypedResults.ValidationProblem(errors: result.ToValidationErrorDictionary());
+        
+        return TypedResults.InternalServerError();
     }
 }
