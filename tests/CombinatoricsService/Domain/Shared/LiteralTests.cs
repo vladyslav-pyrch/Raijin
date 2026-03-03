@@ -45,4 +45,32 @@ public class LiteralTests
         literal.Number.Should().Be(positiveNumber);
         literal.IsNegated.Should().BeFalse();
     }
+
+    [Fact]
+    public void GivenPositiveNumber_WhenConstructingNegatedLiteral_ThenPropertiesAreSetCorrectly()
+    {
+        // Arrange
+        var positiveNumber = 5;
+
+        // Act
+        var literal = Literal.Negated(positiveNumber);
+
+        // Assert
+        literal.Number.Should().Be(positiveNumber);
+        literal.IsNegated.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GivenPositiveNumber_WhenConstructingAffirmedLiteral_ThenPropertiesAreSetCorrectly()
+    {
+        // Arrange
+        var positiveNumber = 5;
+
+        // Act
+        var literal = Literal.Affirmed(positiveNumber);
+
+        // Assert
+        literal.Number.Should().Be(positiveNumber);
+        literal.IsNegated.Should().BeFalse();
+    }
 }
