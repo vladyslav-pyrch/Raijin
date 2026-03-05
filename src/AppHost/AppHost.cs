@@ -10,17 +10,17 @@ IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<PostgresServerResource> satSolverWorkerDbServer = builder
-    .AddPostgres("sat-solver-worker-db-server")
+IResourceBuilder<PostgresServerResource> applicationDbServer = builder
+    .AddPostgres("application-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
-IResourceBuilder<PostgresDatabaseResource> satSolverWorkerDb = satSolverWorkerDbServer
+IResourceBuilder<PostgresDatabaseResource> satSolverWorkerDb = applicationDbServer
     .AddDatabase("sat-solver-worker-db");
 
 IResourceBuilder<ContainerResource> satSolverWorker = builder
     .AddDockerfile("sat-solver-worker", "..", "./SatSolver/Worker/Dockerfile")
-    .WithChildRelationship(satSolverWorkerDbServer)
+    .WithChildRelationship(satSolverWorkerDb)
     .WithReference(satSolverWorkerDb, connectionName: "sat-solver-db")
     .WaitFor(satSolverWorkerDb)
     .WithReference(rabbitMq)
@@ -28,66 +28,46 @@ IResourceBuilder<ContainerResource> satSolverWorker = builder
     .WithLifetime(ContainerLifetime.Session)
     .PublishAsContainer();
 
-IResourceBuilder<PostgresServerResource> satSolverApiDbServer = builder
-    .AddPostgres("sat-solver-api-db-server")
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
-
-IResourceBuilder<PostgresDatabaseResource> satSolverApiDb = satSolverApiDbServer
+IResourceBuilder<PostgresDatabaseResource> satSolverApiDb = applicationDbServer
     .AddDatabase("sat-solver-api-db");
 
 IResourceBuilder<ProjectResource> satSolverApi = builder
     .AddProject<Raijin_SatSolver_Api>("sat-solver-api")
-    .WithChildRelationship(satSolverApiDbServer)
+    .WithChildRelationship(satSolverApiDb)
     .WithReference(satSolverApiDb, connectionName: "sat-solver-db")
     .WaitFor(satSolverApiDb)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<PostgresServerResource> identityServiceDbServer = builder
-    .AddPostgres("identity-service-db-server")
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
-
-IResourceBuilder<PostgresDatabaseResource> identityServiceDb =
-    identityServiceDbServer.AddDatabase("identity-service-db");
+IResourceBuilder<PostgresDatabaseResource> identityServiceDb = applicationDbServer
+    .AddDatabase("identity-service-db");
 
 IResourceBuilder<ProjectResource> identityServiceApi = builder
     .AddProject<Raijin_IdentityService_Api>("identity-service-api")
     .WithHttpHealthCheck("/health")
-    .WithChildRelationship(identityServiceDbServer)
+    .WithChildRelationship(identityServiceDb)
     .WithReference(identityServiceDb)
     .WaitFor(identityServiceDb)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<PostgresServerResource> combinatoricsServiceDbServer = builder
-    .AddPostgres("combinatorics-service-db-server")
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
-
-IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = combinatoricsServiceDbServer
+IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = applicationDbServer
     .AddDatabase("combinatorics-service-db");
 
 IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
     .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-service-api")
     .WithHttpHealthCheck("/health")
-    .WithChildRelationship(combinatoricsServiceDbServer)
+    .WithChildRelationship(combinatoricsServiceDb)
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<PostgresServerResource> queryServiceDbServer = builder
-    .AddPostgres("query-service-db-server")
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
-
-IResourceBuilder<PostgresDatabaseResource> queryServiceDb =
-    queryServiceDbServer.AddDatabase("query-service-db");
+IResourceBuilder<PostgresDatabaseResource> queryServiceDb = applicationDbServer
+    .AddDatabase("query-service-db");
 
 IResourceBuilder<RedisResource> queryServiceRedis = builder
     .AddRedis("query-service-redis-db")
@@ -97,7 +77,7 @@ IResourceBuilder<RedisResource> queryServiceRedis = builder
 IResourceBuilder<ProjectResource> queryServiceApi = builder
     .AddProject<Raijin_QueryService_Api>("query-service-api")
     .WithHttpHealthCheck("/health")
-    .WithChildRelationship(queryServiceDbServer)
+    .WithChildRelationship(queryServiceDb)
     .WithReference(queryServiceDb)
     .WaitFor(queryServiceDb)
     .WithChildRelationship(queryServiceRedis)

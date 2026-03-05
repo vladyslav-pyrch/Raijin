@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Raijin.CombinatoricsService.Domain.Shared;
 
-public class BijectiveDictionary<TFrom, TTo> : IDictionary<TFrom, TTo> where TFrom : notnull where TTo : notnull
+public class BijectiveDictionary<TFrom, TTo> : IBijectiveDictionary<TFrom, TTo>, IReadOnlyBijectiveDictionary<TFrom, TTo> where TFrom : notnull where TTo : notnull
 {
     private readonly IDictionary<TFrom, TTo> _forward;
 
@@ -24,7 +24,11 @@ public class BijectiveDictionary<TFrom, TTo> : IDictionary<TFrom, TTo> where TFr
         _backward = backward;
     }
 
-    public BijectiveDictionary<TTo, TFrom> Inverse() => new(_backward, _forward);
+    public BijectiveDictionary<TTo, TFrom> Inverse => new(_backward, _forward);
+    
+    IBijectiveDictionary<TTo, TFrom> IBijectiveDictionary<TFrom, TTo>.Inverse => Inverse;
+
+    IReadOnlyBijectiveDictionary<TTo, TFrom> IReadOnlyBijectiveDictionary<TFrom, TTo>.Inverse => Inverse;
 
     public IEnumerator<KeyValuePair<TFrom, TTo>> GetEnumerator() => _forward.GetEnumerator();
 
@@ -94,8 +98,14 @@ public class BijectiveDictionary<TFrom, TTo> : IDictionary<TFrom, TTo> where TFr
         }
     }
 
+
     public ICollection<TFrom> Keys => _forward.Keys;
+    
     public ICollection<TTo> Values => _forward.Values;
+    
+    IEnumerable<TFrom> IReadOnlyDictionary<TFrom, TTo>.Keys => Keys;
+
+    IEnumerable<TTo> IReadOnlyDictionary<TFrom, TTo>.Values => Values;
 
     public static implicit operator BijectiveDictionary<TFrom, TTo>(Dictionary<TFrom, TTo> dictionary) => new(dictionary);
 

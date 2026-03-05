@@ -14,15 +14,15 @@ public class CombinatoricProblem(Guid id)
 
     public IReadOnlyList<Constrain> Constrains => _constrains.Values.ToList();
 
-    public void AddVariable(string variableName, string[] states)
+    public void AddDecisionVariable(string name, string[] states)
     {
-        var variable = new DecisionVariable(variableName, states);
-        _decisionVariables.Add(variableName, variable);
+        var variable = new DecisionVariable(name, states);
+        _decisionVariables.Add(name, variable);
 
-        StateNode[] stateNodes = states.Select(state => new StateNode(variableName, state)).ToArray();
+        StateNode[] stateNodes = states.Select(state => new StateNode(name, state)).ToArray();
 
         AddConstrain(
-            $"Must choose state for {variableName}",
+            $"Must choose state for {name}",
             formula: stateNodes.Aggregate<ExpressionNode>((acc, node) => acc.Or(node))
         );
 
@@ -31,7 +31,7 @@ public class CombinatoricProblem(Guid id)
             StateNode[] otherNodes = stateNodes.Where(node => node != currentNode).ToArray();
 
             AddConstrain(
-                $"If state {currentNode.StateName} for variable {variableName} is chosen, then other states for the same variable cannot be chosen",
+                $"If state {currentNode.DecisionVariableState} for variable {name} is chosen, then other states for the same variable cannot be chosen",
                 formula: currentNode.Imply(
                     otherNodes.Aggregate<ExpressionNode>((acc, node) => acc.Or(node)).Negated()
                 )
@@ -39,22 +39,22 @@ public class CombinatoricProblem(Guid id)
         }
     }
 
-    public void AddConstrain(string constrainName, ExpressionNode formula)
+    public void AddConstrain(string name, ExpressionNode formula)
     {
-        var constrain = new Constrain(constrainName, formula);
+        var constrain = new Constrain(name, formula);
 
         foreach (StateNode stateNode in constrain.GetStateNodes())
         {
             // what exception should I throw here
-            if (!_decisionVariables.TryGetValue(stateNode.VariableName, out DecisionVariable? variable))
-                throw new ArgumentException($"Decision variable {stateNode.VariableName} does not exist");
+            if (!_decisionVariables.TryGetValue(stateNode.DecisionVariableName, out DecisionVariable? variable))
+                throw new ArgumentException($"Decision variable {stateNode.DecisionVariableName} does not exist");
 
-            if (!variable.States.Contains(stateNode.StateName))
+            if (!variable.States.Contains(stateNode.DecisionVariableState))
                 throw new ArgumentException(
-                    $"Decision variable {stateNode.VariableName} does not have state {stateNode.StateName}");
+                    $"Decision variable {stateNode.DecisionVariableName} does not have state {stateNode.DecisionVariableState}");
         }
 
-        _constrains.Add(constrainName, constrain);
+        _constrains.Add(name, constrain);
     }
 
     public ExpressionNode ToFormula() => Constrains

@@ -6,9 +6,9 @@ public sealed record Implication(ExpressionNode Premise, ExpressionNode Conclusi
 {
     public override string ToString() => $"({Premise} -> {Conclusion})";
 
-    public override IEnumerable<LeafNode> GetLeaves() => [..Premise.GetLeaves(), ..Conclusion.GetLeaves()];
+    public override IEnumerable<Variable> GetLeaves() => [..Premise.GetLeaves(), ..Conclusion.GetLeaves()];
     
-    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<LeafNode, int> symbolTable, Func<int> newLiteralId)
+    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {
         int premise = Premise.TseitinTransform(clauses, symbolTable, newLiteralId);
         int conclusion = Conclusion.TseitinTransform(clauses, symbolTable, newLiteralId);

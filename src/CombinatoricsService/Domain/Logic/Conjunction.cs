@@ -9,9 +9,9 @@ public sealed record Conjunction(ExpressionNode LeftNode, ExpressionNode RightNo
         return $"({LeftNode} & {RightNode})";
     }
 
-    public override IEnumerable<LeafNode> GetLeaves() => [..LeftNode.GetLeaves(), ..RightNode.GetLeaves()];
+    public override IEnumerable<Variable> GetLeaves() => [..LeftNode.GetLeaves(), ..RightNode.GetLeaves()];
     
-    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<LeafNode, int> symbolTable, Func<int> newLiteralId)
+    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {
         int left = LeftNode.TseitinTransform(clauses, symbolTable, newLiteralId);
         int right = RightNode.TseitinTransform(clauses, symbolTable, newLiteralId);

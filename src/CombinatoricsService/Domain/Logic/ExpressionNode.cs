@@ -4,19 +4,19 @@ namespace Raijin.CombinatoricsService.Domain.Logic;
 
 public abstract record ExpressionNode
 {
-    public abstract IEnumerable<LeafNode> GetLeaves();
+    public abstract IEnumerable<Variable> GetLeaves();
 
-    public SatProblem TseitinTransform()
+    public TseitinTransformResult TseitinTransform()
     {
         var varId = 1;
-        BijectiveDictionary<LeafNode, int> symbolTable = [];
+        BijectiveDictionary<Variable, int> symbolTable = [];
         List<Clause> clauses = [];
         
         int lastVariable = TseitinTransform(clauses, symbolTable, newLiteralId: () => varId++);
         clauses.Add(new Clause(literals: [new Literal(lastVariable)]));
 
-        return new SatProblem(clauses);
+        return new TseitinTransformResult(new SatProblem(clauses), symbolTable);
     }
     
-    protected internal abstract int TseitinTransform(List<Clause> clauses, BijectiveDictionary<LeafNode, int> symbolTable, Func<int> newLiteralId);
+    protected internal abstract int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId);
 }

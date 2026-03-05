@@ -2,20 +2,19 @@ using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
-public record StateNode : LeafNode
+public record StateNode : Variable
 {
-    public StateNode(string variableName, string stateName)
+    public StateNode(string decisionVariableName, string decisionVariableState) :
+        base($"{decisionVariableName}_is_{decisionVariableState}")
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(variableName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(stateName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(decisionVariableName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(decisionVariableState);
         
-        VariableName = variableName;
-        StateName = stateName;
+        DecisionVariableName = decisionVariableName;
+        DecisionVariableState = decisionVariableState;
     }
     
-    public string VariableName { get; }
+    public string DecisionVariableName { get; }
     
-    public string StateName { get; }
-    
-    public override string ToString() => $"{VariableName}_is_{StateName}";
+    public string DecisionVariableState { get; }
 }
