@@ -4,7 +4,7 @@ public record Clause
 {
     public Clause(IEnumerable<Literal> literals)
     {
-        ArgumentNullException.ThrowIfNull(literals, nameof(literals));
+        ArgumentNullException.ThrowIfNull(literals);
         List<Literal> literalsCopy = literals.ToList();
 
         if (!literalsCopy.Any())
@@ -16,4 +16,6 @@ public record Clause
     }
 
     public IEnumerable<Literal> Literals { get; }
+    
+    public string ToDimacs() => string.Join(" ", Literals.Select(literal => literal.ToDimacs())) + " 0";
 }

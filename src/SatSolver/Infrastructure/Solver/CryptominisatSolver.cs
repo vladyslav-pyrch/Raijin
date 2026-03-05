@@ -33,12 +33,12 @@ public class CryptominisatSolver : ISatSolver
             throw new CryptominisatException($"Unexpected output from cryptominisat: {result}");
 
         string[] lines = result.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        string? solutionLine = lines.FirstOrDefault(line => line.StartsWith("v "));
+        string[] solutionLines = lines.Where(line => line.StartsWith("v ")).ToArray();
 
-        if (solutionLine == null)
+        if (solutionLines .Length == 0)
             throw new CryptominisatException($"No solution line found in cryptominisat output: {result}");
 
-        string[] literals = solutionLine[2..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        IEnumerable<string> literals = solutionLines.SelectMany(solutionLine => solutionLine[2..].Split(' ', StringSplitOptions.RemoveEmptyEntries));
         return literals.SkipLast(1).Select(int.Parse).ToArray();
     }
 
