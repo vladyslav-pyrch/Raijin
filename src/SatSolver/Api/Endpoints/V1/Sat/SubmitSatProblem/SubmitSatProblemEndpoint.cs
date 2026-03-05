@@ -11,7 +11,7 @@ public class SubmitSatProblemEndpoint : IEndpoint
 {
     public void Map(WebApplication app)
     {
-        app.MapPost("/sat", Execute)
+        app.MapPost("/v1/sat", Execute)
             .WithName("SubmitSatProblem")
             .WithTags("sat");
     }
