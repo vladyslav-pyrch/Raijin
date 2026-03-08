@@ -9,9 +9,9 @@ namespace Raijin.SatSolver.Api.Endpoints.V1.Sat.SubmitSatProblem;
 
 public class SubmitSatProblemEndpoint : IEndpoint
 {
-    public void Map(WebApplication app)
+    public void Map(IEndpointRouteBuilder endpointRouteBuilder)
     {
-        app.MapPost("/v1/sat", Execute)
+        endpointRouteBuilder.MapPost("/v1/sat", Execute)
             .WithName("SubmitSatProblem")
             .WithTags("sat");
     }

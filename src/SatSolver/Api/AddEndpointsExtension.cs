@@ -17,16 +17,14 @@ public static class AddEndpointsExtension
         return services;
     }
 
-    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder endpointRouteBuilder)
     {
         // Resolve all IEndpoint implementations and call their Map method
-        using IServiceScope scope = app.ServiceProvider.CreateScope();
-
-        IEnumerable<IEndpoint> endpoints = scope.ServiceProvider.GetServices<IEndpoint>();
+        IEnumerable<IEndpoint> endpoints = endpointRouteBuilder.ServiceProvider.GetServices<IEndpoint>();
 
         foreach (IEndpoint endpoint in endpoints)
-            endpoint.Map((WebApplication)app);
+            endpoint.Map(endpointRouteBuilder);
 
-        return app;
+        return endpointRouteBuilder;
     }
 }

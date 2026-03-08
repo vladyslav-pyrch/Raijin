@@ -8,57 +8,30 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.AddServiceDefaults();
 
-// Security and static services
+// Error handling
 builder.Services.AddProblemDetails();
-// builder.Services.AddHsts();
-// builder.Services.AddHttpsRedirection();
-// builder.Services.AddCookiePolicy();
 
-// Policies services
-builder.Services.AddRateLimiter();
-// builder.Services.AddRequestLocalization();
-builder.Services.AddCors();
-
-// Authentication and session services
+// Security
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
-builder.Services.AddAntiforgery();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession();
 
-// Response services
-builder.Services.AddResponseCompression();
-builder.Services.AddResponseCaching();
-builder.Services.AddEndpoints();
+// OpenAPI (optional but useful for internal tooling)
 builder.Services.AddOpenApi();
 
+// Modules registration
 builder.Services.AddInfrastructureApi();
 builder.Services.AddApplication();
 
 WebApplication app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-// Security and static middlewares
+// Error pipeline
 app.UseExceptionHandler();
-app.UseHsts();
-app.UseHttpsRedirection();
-app.UseCookiePolicy();
 
-// Policies middlewares
-app.UseRateLimiter();
-app.UseRequestLocalization();
-app.UseCors();
-
-// Authentication and session middlewares
+// Zero-trust verification
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseAntiforgery();
-app.UseSession();
 
-// Response middlewares
-app.UseResponseCompression();
-app.UseResponseCaching();
+// Service endpoints
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 
