@@ -11,7 +11,7 @@ public static class ResultExtensions
             .GroupBy(error => error.PropertyName)
             .ToDictionary(
                 group => group.Key,
-                group => group.Select(error => error.Message).ToArray()
+                group => group.Select(error => error.Problem).ToArray()
             );
     }
 

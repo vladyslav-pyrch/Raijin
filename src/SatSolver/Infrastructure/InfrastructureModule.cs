@@ -5,12 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Raijin.SatSolver.Application.Cqrs;
 using Raijin.SatSolver.Application.Messaging;
 using Raijin.SatSolver.Application.Persistence;
 using Raijin.SatSolver.Application.Solver;
 using Raijin.SatSolver.Domain.DomainEvents;
-using Raijin.SatSolver.Infrastructure.Cqrs;
 using Raijin.SatSolver.Infrastructure.DomainEvents;
 using Raijin.SatSolver.Infrastructure.Messaging;
 using Raijin.SatSolver.Infrastructure.Persistence;
@@ -37,26 +35,22 @@ public static class InfrastructureModule
     }
 
     public static IServiceCollection AddInfrastructureApi(this IServiceCollection services) => services
-        .AddCqrs()
         .AddDomainEvents()
         .AddMessagingCore()
         .AddPersistence()
         .AddSatSolver();
 
     public static IServiceCollection AddInfrastructureWorker(this IServiceCollection services) => services
-        .AddCqrs()
         .AddDomainEvents()
         .AddMessagingWithConsumers()
         .AddPersistence()
         .AddSatSolver();
 
-    private static IServiceCollection AddCqrs(this IServiceCollection services) =>
-        services.AddScoped<IMediator, DotNetDiMediator>();
-
     private static IServiceCollection AddDomainEvents(this IServiceCollection services) =>
         services.AddScoped<IDomainEventPublisher, DotNetDiDomainEventPublisher>();
 
     private static IServiceCollection AddMessagingCore(this IServiceCollection services) => services
+        .AddScoped<IMediator, ServiceProviderMediator>()
         .AddScoped<IMessageBus, MassTransitMessageBus>()
         .AddMassTransit(x =>
         {
@@ -73,6 +67,7 @@ public static class InfrastructureModule
         });
 
     private static IServiceCollection AddMessagingWithConsumers(this IServiceCollection services) => services
+        .AddScoped<IMediator, ServiceProviderMediator>()
         .AddScoped<IMessageBus, MassTransitMessageBus>()
         .AddMassTransit(x =>
         {
