@@ -10,4 +10,19 @@
     <ProjectReference Include="..\Domain\Raijin.CombinatoricsService.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Cqrs\" />
+    <Folder Include="Errors\" />
+    <Folder Include="Features\SubmitCombinatoricProblem\" />
+    <Folder Include="Messaging\" />
+    <Folder Include="Persistence\" />
+    <Folder Include="Validation\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentResults" Version="4.0.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+  </ItemGroup>
+
 </Project>

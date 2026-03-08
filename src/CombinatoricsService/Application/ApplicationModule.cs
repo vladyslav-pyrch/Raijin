@@ -1,6 +1,6 @@
 ﻿namespace Raijin.CombinatoricsService.Application;
 
-public class Class1
+public class ApplicationModule
 {
 
 }

@@ -1,6 +1,6 @@
 namespace Raijin.CombinatoricsService.Domain.Shared;
 
-public record Clause
+public sealed record Clause
 {
     public Clause(IEnumerable<Literal> literals)
     {

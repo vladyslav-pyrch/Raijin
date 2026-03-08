@@ -1,6 +1,6 @@
 namespace Raijin.CombinatoricsService.Domain.Shared;
 
-public record Literal
+public sealed record Literal
 {
     public Literal(int number, bool isNegated = false)
     {

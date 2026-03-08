@@ -6,7 +6,7 @@ public sealed record Negation(ExpressionNode Node) : ExpressionNode
 {
     public override string ToString() => $"!{Node}";
 
-    public override IEnumerable<Variable> GetLeaves() => Node.GetLeaves();
+    public override IEnumerable<Variable> GetVariables() => Node.GetVariables();
     
     protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {

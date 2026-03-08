@@ -2,20 +2,26 @@ namespace Raijin.CombinatoricsService.Domain.Logic;
 
 public static class ExpressionNodeExtensions
 {
-    public static Negation Negated(this ExpressionNode expression) => new(expression);
+    public static ExpressionNode Negated(this ExpressionNode expression) => new Negation(expression);
 
-    public static Implication Imply(this ExpressionNode expression1, ExpressionNode expression2) =>
-        new(Premise: expression1, Conclusion: expression2);
+    public static ExpressionNode Imply(this ExpressionNode leftNode, ExpressionNode rightNode) =>
+        new Implication(Premise: leftNode, Conclusion: rightNode);
 
-    public static ExclusiveDisjunction Xor(this ExpressionNode expression1, ExpressionNode expression2) =>
-        new(expression1, expression2);
+    public static ExpressionNode Xor(this ExpressionNode leftNode, ExpressionNode rightNode) =>
+        new ExclusiveDisjunction(leftNode, rightNode);
 
-    public static Disjunction Or(this ExpressionNode expression1, ExpressionNode expression2) =>
-        new(expression1, expression2);
+    public static ExpressionNode Or(this ExpressionNode leftNode, ExpressionNode rightNode) =>
+        new Disjunction(leftNode, rightNode);
 
-    public static Conjunction And(this ExpressionNode expression1, ExpressionNode expression2) =>
-        new(expression1, expression2);
+    public static ExpressionNode And(this ExpressionNode leftNode, ExpressionNode rightNode) =>
+        new Conjunction(leftNode, rightNode);
 
-    public static Equivalence Equal(this ExpressionNode expression1, ExpressionNode expression2) =>
-        new(expression1, expression2);
+    public static ExpressionNode Equal(this ExpressionNode leftNode, ExpressionNode rightNode) =>
+        new Equivalence(leftNode, rightNode);
+    
+    public static ExpressionNode IsTrue(this  ExpressionNode expression) =>
+        new Equivalence(expression, new TrueNode());
+    
+    public static ExpressionNode IsFalse(this ExpressionNode expression) =>
+        new Equivalence(expression, new FalseNode());
 }

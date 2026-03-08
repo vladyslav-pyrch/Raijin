@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
-public partial record DecisionVariable
+public sealed partial record DecisionVariable
 {
     public DecisionVariable(string name, IEnumerable<string> states)
     {
@@ -16,8 +16,8 @@ public partial record DecisionVariable
         
         IReadOnlyList<string> statesCopy = [..states];
 
-        if (statesCopy.Count == 0)
-            throw new ArgumentException("A decision variable must have at least one state.", nameof(states));
+        if (statesCopy.Count <= 1)
+            throw new ArgumentException("A decision variable must have at least two states.", nameof(states));
 
         if (statesCopy.Any(string.IsNullOrWhiteSpace))
             throw new ArgumentException("A state of a decision variable may not be null or whitespace", nameof(states));

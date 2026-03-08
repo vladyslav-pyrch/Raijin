@@ -19,7 +19,7 @@ public partial record Variable : ExpressionNode
     
     public string Name { get; }
     
-    public override IEnumerable<Variable> GetLeaves() => [this];
+    public override IEnumerable<Variable> GetVariables() => [this];
     
     protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {

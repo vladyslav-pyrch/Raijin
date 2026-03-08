@@ -1,6 +1,6 @@
 namespace Raijin.CombinatoricsService.Domain.Shared;
 
-public record SatProblem
+public sealed record SatProblem
 {
     public SatProblem(IEnumerable<Clause> clauses)
     {

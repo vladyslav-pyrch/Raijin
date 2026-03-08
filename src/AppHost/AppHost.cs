@@ -1,4 +1,5 @@
 using Aspire.Hosting.JavaScript;
+using Microsoft.Extensions.Hosting;
 using Projects;
 using Scalar.Aspire;
 
@@ -6,7 +7,6 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 
 IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
     .AddRabbitMQ("rabbit-mq")
-    .WithManagementPlugin()
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
@@ -100,26 +100,34 @@ IResourceBuilder<ProjectResource> apiGateway = builder
     .WaitFor(queryServiceApi)
     .PublishAsDockerFile();
 
-IResourceBuilder<ScalarResource> scalar = builder
-    .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
-    .WithApiReference(identityServiceApi, options => options.AddDocument("v1"))
-    .WaitFor(identityServiceApi)
-    .WithApiReference(combinatoricsServiceApi, options => options.AddDocument("v1"))
-    .WaitFor(combinatoricsServiceApi)
-    .WithApiReference(satSolverApi, options => options.AddDocument("v1"))
-    .WaitFor(satSolverApi)
-    .WithApiReference(queryServiceApi, options => options.AddDocument("v1"))
-    .WaitFor(queryServiceApi)
-    .WithApiReference(apiGateway, options => options.AddDocument("v1"))
-    .WaitFor(apiGateway)
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
-
 IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
     .AddJavaScriptApp("spa-frontend", "../Spa", OperatingSystem.IsLinux() ? "start" : "win:start")
     .WithReference(apiGateway)
     .WaitFor(apiGateway)
     .WithHttpEndpoint(env: "PORT")
     .PublishAsDockerFile();
+
+if (builder.Environment.IsDevelopment())
+{
+    rabbitMq.WithManagementPlugin();
+    applicationDbServer.WithPgWeb();
+    
+    
+    IResourceBuilder<ScalarResource> scalar = builder
+        .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
+        .WithApiReference(identityServiceApi, options => options.AddDocument("v1"))
+        .WaitFor(identityServiceApi)
+        .WithApiReference(combinatoricsServiceApi, options => options.AddDocument("v1"))
+        .WaitFor(combinatoricsServiceApi)
+        .WithApiReference(satSolverApi, options => options.AddDocument("v1"))
+        .WaitFor(satSolverApi)
+        .WithApiReference(queryServiceApi, options => options.AddDocument("v1"))
+        .WaitFor(queryServiceApi)
+        .WithApiReference(apiGateway, options => options.AddDocument("v1"))
+        .WaitFor(apiGateway)
+        .WithLifetime(ContainerLifetime.Persistent)
+        .PublishAsContainer();
+}
+
 
 builder.Build().Run();

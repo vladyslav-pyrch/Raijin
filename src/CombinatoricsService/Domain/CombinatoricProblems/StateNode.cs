@@ -2,7 +2,7 @@ using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
-public record StateNode : Variable
+public sealed record StateNode : Variable
 {
     public StateNode(string decisionVariableName, string decisionVariableState) :
         base($"{decisionVariableName}_is_{decisionVariableState}")
