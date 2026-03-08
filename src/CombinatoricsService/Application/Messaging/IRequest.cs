@@ -1,4 +1,4 @@
-namespace Raijin.SatSolver.Application.Cqrs;
+namespace Raijin.CombinatoricsService.Application.Messaging;
 
 public interface IRequest;
 

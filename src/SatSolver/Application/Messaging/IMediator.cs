@@ -1,4 +1,4 @@
-namespace Raijin.SatSolver.Application.Cqrs;
+namespace Raijin.SatSolver.Application.Messaging;
 
 public interface IMediator
 {

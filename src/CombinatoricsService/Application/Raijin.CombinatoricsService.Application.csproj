@@ -11,10 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Cqrs\" />
     <Folder Include="Errors\" />
     <Folder Include="Features\SubmitCombinatoricProblem\" />
-    <Folder Include="Messaging\" />
     <Folder Include="Persistence\" />
     <Folder Include="Validation\" />
   </ItemGroup>

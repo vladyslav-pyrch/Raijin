@@ -1,6 +1,12 @@
-﻿namespace Raijin.CombinatoricsService.Application;
+﻿using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 
-public class ApplicationModule
+namespace Raijin.CombinatoricsService.Application;
+
+public static class ApplicationModule
 {
+    public static Assembly Assembly => typeof(ApplicationModule).Assembly;
+
+    public static IServiceCollection AddApplication(this IServiceCollection services) => services;
 
 }

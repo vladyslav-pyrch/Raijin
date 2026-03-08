@@ -2,7 +2,6 @@ using FluentResults;
 using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
-using Raijin.SatSolver.Application.Cqrs;
 using Raijin.SatSolver.Application.Messaging;
 using Raijin.SatSolver.Application.Persistence;
 using Raijin.SatSolver.Application.Solver;

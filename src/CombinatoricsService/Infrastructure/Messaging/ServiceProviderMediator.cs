@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
-using Raijin.SatSolver.Application.Cqrs;
+using Raijin.CombinatoricsService.Application.Messaging;
 
-namespace Raijin.SatSolver.Infrastructure.Cqrs;
+namespace Raijin.CombinatoricsService.Infrastructure.Messaging;
 
-public class DotNetDiMediator(IServiceProvider provider) : IMediator
+public class ServiceProviderMediator(IServiceProvider provider) : IMediator
 {
     public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {

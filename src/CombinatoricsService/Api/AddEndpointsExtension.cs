@@ -1,6 +1,6 @@
-using Raijin.SatSolver.Api.Endpoints;
+using Raijin.CombinatoricsService.Api.Endpoints;
 
-namespace Raijin.SatSolver.Api;
+namespace Raijin.CombinatoricsService.Api;
 
 public static class AddEndpointsExtension
 {

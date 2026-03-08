@@ -1,7 +1,6 @@
 using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using Raijin.SatSolver.Application.Cqrs;
 using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Application;

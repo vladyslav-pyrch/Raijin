@@ -1,9 +1,9 @@
 using FluentResults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Raijin.SatSolver.Application.Cqrs;
 using Raijin.SatSolver.Application.Errors;
 using Raijin.SatSolver.Application.Features.SubmitSatProblem;
+using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Api.Endpoints.V1.Sat.SubmitSatProblem;
 
@@ -30,10 +30,10 @@ public class SubmitSatProblemEndpoint : IEndpoint
             {
                 SatProblemId = result.Value.SatProblemId
             });
-        
+
         if (result.HasError<ValidationError>())
             return TypedResults.ValidationProblem(errors: result.ToValidationErrorDictionary());
-        
+
         return TypedResults.InternalServerError();
     }
 }
