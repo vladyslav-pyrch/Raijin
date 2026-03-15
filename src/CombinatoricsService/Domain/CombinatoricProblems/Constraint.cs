@@ -1,14 +1,12 @@
-using Raijin.CombinatoricsService.Domain.Logic;
-
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
-public record Constrain
+public record Constraint
 {
-    public Constrain(ExpressionNode formula)
+    public Constraint(ExpressionNode formula)
     {
         ArgumentNullException.ThrowIfNull(formula);
         
-        if (formula.GetVariables().Any(variable => variable is not StateNode))
+        if (formula.Leaves().Any(variable => variable is not StateNode))
             throw new ArgumentException($"All leaf nodes in the formula must be of type {nameof(StateNode)}");
         
         Formula = formula;
@@ -17,5 +15,5 @@ public record Constrain
     public ExpressionNode Formula { get; }
     
     public IEnumerable<StateNode> GetStateNodes() =>
-        Formula.GetVariables().OfType<StateNode>();
+        Formula.Leaves().OfType<StateNode>();
 }

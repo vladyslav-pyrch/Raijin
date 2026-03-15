@@ -6,13 +6,13 @@ public class CombinatoricProblem(Guid id)
 {
     private readonly Dictionary<string, DecisionVariable> _decisionVariables = [];
 
-    private readonly List<Constrain> _constrains = [];
+    private readonly List<Constraint> _constrains = [];
 
     public Guid Id { get; } = id;
 
     public IReadOnlyList<DecisionVariable> DecisionVariables => _decisionVariables.Values.ToList();
 
-    public IReadOnlyList<Constrain> Constrains => _constrains;
+    public IReadOnlyList<Constraint> Constraints => _constrains;
 
     public void AddDecisionVariable(string name, string[] states)
     {
@@ -35,34 +35,34 @@ public class CombinatoricProblem(Guid id)
 
     public void AddConstrain(ExpressionNode formula)
     {
-        var constrain = new Constrain(formula);
+        var constraint = new Constraint(formula);
 
-        foreach (StateNode stateNode in constrain.GetStateNodes())
+        foreach (StateNode stateNode in constraint.GetStateNodes())
         {
             // what exception should I throw here
             if (!_decisionVariables.TryGetValue(stateNode.DecisionVariableName, out DecisionVariable? variable))
                 throw new ArgumentException(
-                    $"Constrain contains a state node referring to decision variable that does not exist in the problem: {stateNode.DecisionVariableName}",
+                    $"Constraint contains a state node referring to decision variable that does not exist in the problem: {stateNode.DecisionVariableName}",
                     nameof(formula)
                 );
 
             if (!variable.States.Contains(stateNode.DecisionVariableState))
                 throw new ArgumentException(
-                    $"Constrain contains a state node referring to a state that does not exist in the decision variable {variable.Name}: {stateNode.DecisionVariableState}",
+                    $"Constraint contains a state node referring to a state that does not exist in the decision variable {variable.Name}: {stateNode.DecisionVariableState}",
                     nameof(formula)
                 );
         }
 
-        _constrains.Add(constrain);
+        _constrains.Add(constraint);
     }
 
     public ExpressionNode ToFormula()
     {
-        if (Constrains.Count == 0)
-            throw new InvalidOperationException("A combinatoric problem must have at least one constrain to be converted to a formula.");
+        if (Constraints.Count == 0)
+            throw new InvalidOperationException("A combinatoric problem must have at least one constraint to be converted to a formula.");
         
-        return Constrains
-            .Select(constrain => constrain.Formula)
+        return Constraints
+            .Select(constraint => constraint.Formula)
             .Aggregate((acc, formula) => acc.And(formula));
     }
 }

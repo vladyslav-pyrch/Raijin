@@ -1,4 +1,4 @@
-using Raijin.CombinatoricsService.Api;
+using Raijin.CombinatoricsService.Api.Extensions;
 using Raijin.CombinatoricsService.Application;
 using Raijin.CombinatoricsService.Infrastructure;
 
@@ -17,6 +17,7 @@ builder.Services.AddAuthorization();
 
 // OpenAPI (optional but useful for internal tooling)
 builder.Services.AddOpenApi();
+builder.Services.AddEndpoints();
 
 // Modules registration
 builder.Services.AddInfrastructure();

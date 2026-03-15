@@ -12,7 +12,7 @@ public class SubmitSatProblemHandler(
     IValidator<SubmitSatProblemCommand> validator,
     IMessageBus messageBus,
     ILogger<SubmitSatProblemHandler> logger
-) : IRequestHandler<SubmitSatProblemCommand, Result<SubmitSatProblemResult>>
+) : ICommandHandler<SubmitSatProblemCommand, Result<SubmitSatProblemResult>>
 {
     public async Task<Result<SubmitSatProblemResult>> Handle(SubmitSatProblemCommand command,
         CancellationToken cancellationToken)

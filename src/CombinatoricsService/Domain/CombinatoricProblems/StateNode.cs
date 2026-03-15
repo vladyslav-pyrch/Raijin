@@ -17,4 +17,6 @@ public sealed record StateNode : Variable
     public string DecisionVariableName { get; }
     
     public string DecisionVariableState { get; }
+    
+    public override string ToString() => Name;
 }

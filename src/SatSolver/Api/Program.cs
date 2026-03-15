@@ -1,4 +1,4 @@
-using Raijin.SatSolver.Api;
+using Raijin.SatSolver.Api.Extensions;
 using Raijin.SatSolver.Application;
 using Raijin.SatSolver.Infrastructure;
 
@@ -17,6 +17,7 @@ builder.Services.AddAuthorization();
 
 // OpenAPI (optional but useful for internal tooling)
 builder.Services.AddOpenApi();
+builder.Services.AddEndpoints();
 
 // Modules registration
 builder.Services.AddInfrastructureApi();

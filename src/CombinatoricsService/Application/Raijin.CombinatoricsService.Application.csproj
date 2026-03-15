@@ -7,20 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Contracts\Raijin.Application.Contracts.csproj" />
     <ProjectReference Include="..\Domain\Raijin.CombinatoricsService.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Errors\" />
-    <Folder Include="Features\SubmitCombinatoricProblem\" />
-    <Folder Include="Persistence\" />
-    <Folder Include="Validation\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentResults" Version="4.0.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Parsing\" />
   </ItemGroup>
 
 </Project>

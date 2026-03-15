@@ -1,7 +1,7 @@
 using FluentResults;
 using Raijin.SatSolver.Application.Errors;
 
-namespace Raijin.SatSolver.Api;
+namespace Raijin.SatSolver.Api.Extensions;
 
 public static class ResultExtensions
 {

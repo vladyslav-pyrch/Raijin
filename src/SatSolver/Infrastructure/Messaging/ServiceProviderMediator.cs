@@ -5,24 +5,24 @@ namespace Raijin.SatSolver.Infrastructure.Messaging;
 
 public class ServiceProviderMediator(IServiceProvider provider) : IMediator
 {
-    public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+    public Task<TResponse> Send<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken = default)
     {
-        Type requestType = request.GetType();
+        Type requestType = command.GetType();
         Type responseType = typeof(TResponse);
-        Type requestHandlerType = typeof(IRequestHandler<,>).MakeGenericType(requestType, responseType);
+        Type requestHandlerType = typeof(ICommandHandler<,>).MakeGenericType(requestType, responseType);
 
         object handler = provider.GetRequiredService(requestHandlerType);
 
-        return ((dynamic)handler).Handle((dynamic)request, cancellationToken);
+        return ((dynamic)handler).Handle((dynamic)command, cancellationToken);
     }
 
-    public Task Send(IRequest request, CancellationToken cancellationToken)
+    public Task Send(ICommand command, CancellationToken cancellationToken)
     {
-        Type requestType = request.GetType();
-        Type requestHandlerType = typeof(IRequestHandler<>).MakeGenericType(requestType);
+        Type requestType = command.GetType();
+        Type requestHandlerType = typeof(ICommandHandler<>).MakeGenericType(requestType);
 
         object handler = provider.GetRequiredService(requestHandlerType);
 
-        return ((dynamic)handler).Handle((dynamic)request, cancellationToken);
+        return ((dynamic)handler).Handle((dynamic)command, cancellationToken);
     }
 }

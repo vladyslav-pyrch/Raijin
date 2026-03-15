@@ -16,7 +16,7 @@ public class SolveSatProblemHandler(
     SolveSatProblemValidator validator,
     IMessageBus messageBus,
     ILogger<SolveSatProblemHandler> logger
-) : IRequestHandler<SolveSatProblemCommand, Result>
+) : ICommandHandler<SolveSatProblemCommand, Result>
 {
     public async Task<Result> Handle(SolveSatProblemCommand command, CancellationToken cancellationToken)
     {

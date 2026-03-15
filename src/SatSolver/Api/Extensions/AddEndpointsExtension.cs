@@ -1,12 +1,11 @@
 using Raijin.SatSolver.Api.Endpoints;
 
-namespace Raijin.SatSolver.Api;
+namespace Raijin.SatSolver.Api.Extensions;
 
 public static class AddEndpointsExtension
 {
     public static IServiceCollection AddEndpoints(this IServiceCollection services)
     {
-        // Register all IEndpoint implementations in the assembly
         IEnumerable<Type> endpointTypes = typeof(Program).Assembly.GetTypes()
             .Where(type =>
                 typeof(IEndpoint).IsAssignableFrom(type) && type is { IsInterface: false, IsAbstract: false });
@@ -19,7 +18,6 @@ public static class AddEndpointsExtension
 
     public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder endpointRouteBuilder)
     {
-        // Resolve all IEndpoint implementations and call their Map method
         IEnumerable<IEndpoint> endpoints = endpointRouteBuilder.ServiceProvider.GetServices<IEndpoint>();
 
         foreach (IEndpoint endpoint in endpoints)

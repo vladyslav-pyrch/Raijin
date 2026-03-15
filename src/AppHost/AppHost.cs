@@ -11,7 +11,7 @@ IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
     .PublishAsContainer();
 
 IResourceBuilder<PostgresServerResource> applicationDbServer = builder
-    .AddPostgres("application-db-server")
+    .AddPostgres("raijin-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 

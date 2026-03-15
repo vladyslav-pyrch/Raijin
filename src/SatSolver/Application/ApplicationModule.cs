@@ -10,13 +10,13 @@ public static class ApplicationModule
     public static readonly Assembly Assembly = typeof(ApplicationModule).Assembly;
 
     public static IServiceCollection AddApplication(this IServiceCollection services) => services
-        .AddRequestHandlers()
+        .AddCommandHandlers()
         .AddEventHandlers()
         .AddValidatorsFromAssembly(Assembly);
 
-    private static IServiceCollection AddRequestHandlers(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
-        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
+    private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
+        .AddGenericInterfaceImplementations(typeof(ICommandHandler<>))
+        .AddGenericInterfaceImplementations(typeof(ICommandHandler<,>));
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));

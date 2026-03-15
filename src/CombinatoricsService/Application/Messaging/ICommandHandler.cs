@@ -1,11 +1,11 @@
 namespace Raijin.CombinatoricsService.Application.Messaging;
 
-public interface IRequestHandler<in TRequest> where TRequest : IRequest
+public interface ICommandHandler<in TRequest> where TRequest : ICommand
 {
     public Task Handle(TRequest command, CancellationToken cancellationToken);
 }
 
-public interface IRequestHandler<in TRequest, TResponse> where TRequest : IRequest<TResponse>
+public interface ICommandHandler<in TRequest, TResponse> where TRequest : ICommand<TResponse>
 {
     public Task<TResponse> Handle(TRequest command, CancellationToken cancellationToken);
 }
