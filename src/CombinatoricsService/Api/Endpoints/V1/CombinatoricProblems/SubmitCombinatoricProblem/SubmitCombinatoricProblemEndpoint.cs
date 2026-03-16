@@ -24,7 +24,10 @@ public class SubmitCombinatoricProblemEndpoint : IEndpoint
             CancellationToken cancellationToken
         )
     {
-        Result<SubmitCombinatoricProblemResult> result = await mediator.Send(request.ToCommand(), cancellationToken);
+        Result<SubmitCombinatoricProblemResult> result = await mediator.Send(new SubmitCombinatoricProblemCommand(
+            request.DecisionVariables.Select(dv => new DecisionVariableDto(dv.Name, dv.States)).ToArray(),
+            request.Constraints
+        ), cancellationToken);
 
         if (result.IsSuccess)
             return TypedResults.Ok(new SubmitCombinatoricProblemResponse

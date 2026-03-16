@@ -23,8 +23,9 @@ public class SubmitSatProblemEndpoint : IEndpoint
         CancellationToken cancellationToken
     )
     {
-        Result<SubmitSatProblemResult> result =
-            await mediator.Send(request.ToCommand(), cancellationToken);
+        Result<SubmitSatProblemResult> result = await mediator.Send(new SubmitSatProblemCommand(
+            request.Dimacs
+        ), cancellationToken);
 
         if (result.IsSuccess)
             return TypedResults.Ok(new SubmitSatProblemResponse
