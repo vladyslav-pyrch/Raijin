@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Raijin.CombinatoricsService.Api.Endpoints.V1.CombinatoricProblems.SubmitCombinatoricProblem;
 
-public class DecisionVariableRequest
+public class DecisionVariableModel
 {
     [Required]
     public string Name { get; set; }
