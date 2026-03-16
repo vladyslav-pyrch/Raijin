@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
+using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
-public partial record DecisionVariable
+public sealed partial record DecisionVariable
 {
     public DecisionVariable(string name, IEnumerable<string> states)
     {
@@ -16,8 +17,8 @@ public partial record DecisionVariable
         
         IReadOnlyList<string> statesCopy = [..states];
 
-        if (statesCopy.Count == 0)
-            throw new ArgumentException("A decision variable must have at least one state.", nameof(states));
+        if (statesCopy.Count <= 1)
+            throw new ArgumentException("A decision variable must have at least two states.", nameof(states));
 
         if (statesCopy.Any(string.IsNullOrWhiteSpace))
             throw new ArgumentException("A state of a decision variable may not be null or whitespace", nameof(states));
@@ -34,6 +35,8 @@ public partial record DecisionVariable
     public string Name { get; }
 
     public IReadOnlyList<string> States { get; }
+    
+    public Variable[] ToVariables() => States.Select(state => new Variable($"{Name}_is_{state}")).ToArray();
 
     [GeneratedRegex("^[a-zA-Z][a-zA-Z0-9-]*$")]
     private partial Regex ValidNamePattern();

@@ -6,7 +6,7 @@ public sealed record ExclusiveDisjunction(ExpressionNode LeftNode, ExpressionNod
 {
     public override string ToString() => $"({LeftNode} ^ {RightNode})";
 
-    public override IEnumerable<Variable> GetLeaves() => [..LeftNode.GetLeaves(), ..RightNode.GetLeaves()];
+    public override IEnumerable<Variable> GetVariables() => [..LeftNode.GetVariables(), ..RightNode.GetVariables()];
     
     protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {

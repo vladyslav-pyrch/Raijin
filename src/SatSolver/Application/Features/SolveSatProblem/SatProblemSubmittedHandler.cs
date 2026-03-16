@@ -1,6 +1,5 @@
 using FluentResults;
 using Raijin.Application.Contracts;
-using Raijin.SatSolver.Application.Cqrs;
 using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Application.Features.SolveSatProblem;

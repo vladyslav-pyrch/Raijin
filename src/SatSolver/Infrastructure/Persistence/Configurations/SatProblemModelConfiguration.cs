@@ -4,7 +4,7 @@ using Raijin.SatSolver.Infrastructure.Persistence.Models;
 
 namespace Raijin.SatSolver.Infrastructure.Persistence.Configurations;
 
-public class SatProblemModelConfiguration : IEntityTypeConfiguration<SatProblemModel>
+internal class SatProblemModelConfiguration : IEntityTypeConfiguration<SatProblemModel>
 {
     public void Configure(EntityTypeBuilder<SatProblemModel> builder)
     {

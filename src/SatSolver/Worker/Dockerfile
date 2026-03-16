@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER root
 RUN apt-get update \
     && apt-get install -y libgssapi-krb5-2 \
@@ -24,9 +24,11 @@ COPY ["./SatSolver/Infrastructure/Raijin.SatSolver.Infrastructure.csproj", "./Sa
 COPY ["./SatSolver/Application/Raijin.SatSolver.Application.csproj", "./SatSolver/Application/"]
 COPY ["./SatSolver/Domain/Raijin.SatSolver.Domain.csproj", "./SatSolver/Domain/"]
 COPY ["./Contracts/Raijin.Application.Contracts.csproj", "./Contracts/"]
+COPY ["./ServiceDefaults/Raijin.ServiceDefaults.csproj", "./ServiceDefaults/"]
 RUN dotnet restore "./SatSolver/Worker/Raijin.SatSolver.Worker.csproj"
 COPY ["./SatSolver", "./SatSolver/"]
 COPY ["./Contracts", "./Contracts/"]
+COPY ["./ServiceDefaults", "./ServiceDefaults/"]
 WORKDIR "/src/SatSolver/Worker"
 RUN dotnet build "./Raijin.SatSolver.Worker.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

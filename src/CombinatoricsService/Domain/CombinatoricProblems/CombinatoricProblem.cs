@@ -6,58 +6,85 @@ public class CombinatoricProblem(Guid id)
 {
     private readonly Dictionary<string, DecisionVariable> _decisionVariables = [];
 
-    private readonly Dictionary<string, Constrain> _constrains = [];
+    private readonly List<Constraint> _constrains = [];
 
     public Guid Id { get; } = id;
 
     public IReadOnlyList<DecisionVariable> DecisionVariables => _decisionVariables.Values.ToList();
 
-    public IReadOnlyList<Constrain> Constrains => _constrains.Values.ToList();
+    public IReadOnlyList<Constraint> Constraints => _constrains;
 
     public void AddDecisionVariable(string name, string[] states)
     {
-        var variable = new DecisionVariable(name, states);
-        _decisionVariables.Add(name, variable);
+        var decisionVariable = new DecisionVariable(name, states);
+        _decisionVariables.Add(name, decisionVariable);
 
-        StateNode[] stateNodes = states.Select(state => new StateNode(name, state)).ToArray();
-
-        AddConstrain(
-            $"Must choose state for {name}",
-            formula: stateNodes.Aggregate<ExpressionNode>((acc, node) => acc.Or(node))
-        );
-
-        foreach (StateNode currentNode in stateNodes)
-        {
-            StateNode[] otherNodes = stateNodes.Where(node => node != currentNode).ToArray();
-
-            AddConstrain(
-                $"If state {currentNode.DecisionVariableState} for variable {name} is chosen, then other states for the same variable cannot be chosen",
-                formula: currentNode.Imply(
-                    otherNodes.Aggregate<ExpressionNode>((acc, node) => acc.Or(node)).Negated()
-                )
-            );
-        }
+        AddAtLeastOneStateConstraint(decisionVariable);
+        AddAtMostOneStateConstraint(decisionVariable);
     }
 
-    public void AddConstrain(string name, ExpressionNode formula)
+    public void AddConstrain(string formula) => AddConstrain(new Constraint(formula));
+
+    public void AddConstrain(ExpressionNode expression) => AddConstrain(new Constraint(expression));
+
+    public ExpressionNode ToFormula()
     {
-        var constrain = new Constrain(name, formula);
+        if (Constraints.Count == 0)
+            throw new InvalidOperationException(
+                "A combinatoric problem must have at least one constraint to be converted to a formula.");
 
-        foreach (StateNode stateNode in constrain.GetStateNodes())
-        {
-            // what exception should I throw here
-            if (!_decisionVariables.TryGetValue(stateNode.DecisionVariableName, out DecisionVariable? variable))
-                throw new ArgumentException($"Decision variable {stateNode.DecisionVariableName} does not exist");
-
-            if (!variable.States.Contains(stateNode.DecisionVariableState))
-                throw new ArgumentException(
-                    $"Decision variable {stateNode.DecisionVariableName} does not have state {stateNode.DecisionVariableState}");
-        }
-
-        _constrains.Add(name, constrain);
+        return Constraints
+            .Select(constraint => constraint.Expression)
+            .Aggregate((acc, expression) => acc.And(expression));
     }
 
-    public ExpressionNode ToFormula() => Constrains
-        .Select(constrain => constrain.Formula)
-        .Aggregate((acc, formula) => acc.And(formula));
+    private void AddAtLeastOneStateConstraint(DecisionVariable decisionVariable)
+    {
+        Variable[] variables = decisionVariable.ToVariables();
+
+        AddConstrain(expression: variables.Aggregate<ExpressionNode>((acc, node) => acc.Or(node)));
+    }
+
+    private void AddAtMostOneStateConstraint(DecisionVariable decisionVariable)
+    {
+        Variable[] variables = decisionVariable.ToVariables();
+
+        foreach (Variable currentVariable in variables)
+        {
+            Variable[] otherVariables = variables.Where(node => node != currentVariable).ToArray();
+
+            AddConstrain(expression: currentVariable.Imply(
+                otherVariables.Aggregate<ExpressionNode>((acc, variable) => acc.Or(variable)
+                ).Negated()
+            ));
+        }
+    }
+
+    private void AddConstrain(Constraint constraint)
+    {
+        CheckVariables(constraint);
+        _constrains.Add(constraint);
+    }
+
+    private void CheckVariables(Constraint constraint)
+    {
+        foreach (Variable variable in constraint.Expression.GetVariables())
+        {
+            string[] parts = variable.Name.Split("_is_");
+            string decisionVariableName = parts[0];
+            string decisionVariableState = parts[1];
+
+            if (!_decisionVariables.TryGetValue(decisionVariableName, out DecisionVariable? decisionVariable))
+                throw new ArgumentException(
+                    $"The decision variable '{decisionVariableName}' is used in the constraints but is not defined in the decision variables",
+                    nameof(constraint)
+                );
+
+            if (!decisionVariable.States.Contains(decisionVariableState))
+                throw new ArgumentException(
+                    $"The state '{decisionVariableState}' of decision variable '{decisionVariableName}' is used in the constraints but is not defined in the decision variables",
+                    nameof(constraint)
+                );
+        }
+    }
 }

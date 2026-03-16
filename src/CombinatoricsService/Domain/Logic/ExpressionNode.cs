@@ -4,7 +4,7 @@ namespace Raijin.CombinatoricsService.Domain.Logic;
 
 public abstract record ExpressionNode
 {
-    public abstract IEnumerable<Variable> GetLeaves();
+    public abstract IEnumerable<Variable> GetVariables();
 
     public TseitinTransformResult TseitinTransform()
     {
