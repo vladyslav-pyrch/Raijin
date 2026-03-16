@@ -1,7 +1,9 @@
-namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
+namespace Raijin.CombinatoricsService.Domain.Logic;
 
 public enum TokenType
 {
+    True,
+    False,
     Variable,
     LeftBracket,
     RightBracket,

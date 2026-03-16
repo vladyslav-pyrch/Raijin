@@ -1,11 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using FluentResults;
-using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
-using Raijin.CombinatoricsService.Domain.Logic;
 
-namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
+namespace Raijin.CombinatoricsService.Domain.Logic;
 
-public static class ConstrainParser
+// Very bad solution since it serves to parse both constraints and general expressions.
+public static class ExpressionParser
 {
     private static readonly Dictionary<TokenType, int> Precedences = new()
     {
@@ -25,23 +23,18 @@ public static class ConstrainParser
         TokenType.ImplicationBackward
     ];
 
-    public static Result<ExpressionNode> ParseExpression(string expression)
+    public static ExpressionNode Parse(string expression)
     {
         if (string.IsNullOrWhiteSpace(expression))
-            return new Error("The expression is empty");
+            throw new ParsingException("The expression is empty");
 
-        var tokens = new Tokens(ConstrainTokenizer.Tokenize(expression).ToList());
+        var tokens = new Tokens(ExpressionTokenizer.Tokenize(expression).ToList());
 
         if (tokens.AnyIsUnknown(out Token? token))
-            return new Error($"Problem at {token.Index}. Unknown token '{token.Value}'");
+            throw new ParsingException($"Problem at {token.Index}. Unknown token '{token.Value}'");
 
-        Result<PostfixTokens> postfixResult = tokens.ShuntingYard();
-
-        if (postfixResult.IsFailed)
-            return postfixResult.ToResult<ExpressionNode>();
-
-        PostfixTokens postfixTokens = postfixResult.Value;
-        return postfixTokens.ToExpression();
+        PostfixTokens postfix = tokens.ShuntingYard();
+        return postfix.ToExpression();
     }
 
     private static bool IsOperator(Token token) => Precedences.ContainsKey(token.Type);
@@ -56,7 +49,7 @@ public static class ConstrainParser
     {
         private int _position;
 
-        public Result<PostfixTokens> ShuntingYard()
+        public PostfixTokens ShuntingYard()
         {
             List<Token> postfix = [];
             Stack<Token> stack = [];
@@ -70,16 +63,16 @@ public static class ConstrainParser
                 if (token is { Type: TokenType.Not } &&
                     next is null or
                         { Type: not TokenType.Variable and not TokenType.LeftBracket and not TokenType.Not })
-                    return new Error(
+                    throw new ParsingException(
                         $"Problem at {token.Index}. 'not' (~) operator must be followed by a variable, a left parenthesis, or another 'not' operator"
                     );
 
                 if (previous != null && IsOperator(previous) && IsOperator(token) && token.Type != TokenType.Not)
-                    return new Error($"Problem at {token.Index}. Two operators in a row");
+                    throw new ParsingException($"Problem at {token.Index}. Two operators in a row");
 
                 switch (token.Type)
                 {
-                    case TokenType.Variable:
+                    case TokenType.Variable or TokenType.True or TokenType.False:
                     {
                         postfix.Add(token);
                         break;
@@ -95,7 +88,7 @@ public static class ConstrainParser
                             postfix.Add(stack.Pop());
 
                         if (stack.Count == 0 || stack.Peek() is { Type: not TokenType.LeftBracket })
-                            return new Error($"Problem at {token.Index}. Mismatched parentheses");
+                            throw new ParsingException($"Problem at {token.Index}. Mismatched parentheses");
                         stack.Pop();
                         break;
                     }
@@ -119,7 +112,7 @@ public static class ConstrainParser
             while (stack.Count > 0)
             {
                 if (stack.Peek() is { Type: TokenType.LeftBracket or TokenType.RightBracket })
-                    return new Error($"Problem at {stack.Peek().Index}. Mismatched parentheses");
+                    throw new ParsingException($"Problem at {stack.Peek().Index}. Mismatched parentheses");
                 postfix.Add(stack.Pop());
             }
 
@@ -143,32 +136,36 @@ public static class ConstrainParser
 
     private sealed class PostfixTokens(List<Token> tokens)
     {
-        public Result<ExpressionNode> ToExpression()
+        public ExpressionNode ToExpression()
         {
             var stack = new Stack<ExpressionNode>();
             foreach (Token token in tokens)
             {
                 switch (token.Type)
                 {
+                    case TokenType.True:
+                    {
+                        stack.Push(new TrueNode());
+                        break;
+                    }
+                    case TokenType.False:
+                    {
+                        stack.Push(new FalseNode());
+                        break;
+                    }
                     case TokenType.Variable:
                     {
-                        string[] parts = token.Value.Split("_is_");
-                        if (parts.Length != 2)
-                            return new Error(
-                                $"Problem at {token.Index}. Variable token '{token.Value}' is not in the correct format 'VariableName_is_StateName'");
-                        string variableName = parts[0];
-                        string stateName = parts[1];
-                        stack.Push(new StateNode(variableName, stateName));
+                        stack.Push(new Variable(token.Value));
                         break;
                     }
                     case TokenType.Not when stack.Count < 1:
-                        return new Error(
+                        throw new ParsingException(
                             $"Problem at {token.Index}. Not enough operands for 'not' (~) operator");
                     case TokenType.Not:
                         stack.Push(new Negation(stack.Pop()));
                         break;
                     case TokenType.And when stack.Count < 2:
-                        return new Error(
+                        throw new ParsingException(
                             $"Problem at {token.Index}. Not enough operands for 'and' (& or *) operator");
                     case TokenType.And:
                     {
@@ -178,7 +175,7 @@ public static class ConstrainParser
                         break;
                     }
                     case TokenType.Or when stack.Count < 2:
-                        return new Error(
+                        throw new ParsingException(
                             $"Problem at {token.Index}. Not enough operands for 'or' (| or +) operator");
                     case TokenType.Or:
                     {
@@ -188,7 +185,7 @@ public static class ConstrainParser
                         break;
                     }
                     case TokenType.Xor when stack.Count < 2:
-                        return new Error(
+                        throw new ParsingException(
                             $"Problem at {token.Index}. Not enough operands for 'xor' (^) operator");
                     case TokenType.Xor:
                     {
@@ -198,7 +195,7 @@ public static class ConstrainParser
                         break;
                     }
                     case TokenType.Implication when stack.Count < 2:
-                        return new Error(
+                        throw new ParsingException(
                             $"Problem at {token.Index}. Not enough operands for 'implication' (->) operator");
                     case TokenType.Implication:
                     {
@@ -208,7 +205,7 @@ public static class ConstrainParser
                         break;
                     }
                     case TokenType.ImplicationBackward when stack.Count < 2:
-                        return new Error(
+                        throw new ParsingException(
                             $"Problem at {token.Index}. Not enough operands for 'implication_backward' (<-) operator");
                     case TokenType.ImplicationBackward:
                     {
@@ -218,7 +215,7 @@ public static class ConstrainParser
                         break;
                     }
                     case TokenType.Equivalence when stack.Count < 2:
-                        return new Error(
+                        throw new ParsingException(
                             $"Problem at {token.Index}. Not enough operands for 'equivalence' (<-> or =) operator");
                     case TokenType.Equivalence:
                     {
@@ -237,7 +234,7 @@ public static class ConstrainParser
                 throw new InvalidOperationException(
                     "The expression could not be parsed into a single boolean expression; leftover operands after parsing");
 
-            return Result.Ok(stack.Pop());
+            return stack.Pop();
         }
     }
 }

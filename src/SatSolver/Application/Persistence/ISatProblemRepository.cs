@@ -8,6 +8,4 @@ public interface ISatProblemRepository
 
     public Task Update(SatProblem satProblem, CancellationToken cancellationToken);
     
-    public Task Save(CancellationToken cancellationToken);
-    
 }

@@ -1,6 +1,6 @@
 namespace Raijin.SatSolver.Infrastructure.Persistence.Models;
 
-public class SatProblemModel
+internal class SatProblemModel
 {
     public Guid Id { get; set; }
 

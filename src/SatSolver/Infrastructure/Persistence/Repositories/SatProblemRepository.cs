@@ -43,6 +43,4 @@ public class SatProblemRepository(SatSolverDbContext dbContext) : ISatProblemRep
 
         dbContext.SatProblems.Update(satProblemModel);
     }
-
-    public async Task Save(CancellationToken cancellationToken) => await dbContext.SaveChangesAsync(cancellationToken);
 }

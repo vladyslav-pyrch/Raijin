@@ -39,6 +39,4 @@ app.MapEndpoints();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
-await app.ApplyMigrations();
-
 app.Run();

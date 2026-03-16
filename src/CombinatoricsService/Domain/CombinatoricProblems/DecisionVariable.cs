@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
@@ -34,6 +35,8 @@ public sealed partial record DecisionVariable
     public string Name { get; }
 
     public IReadOnlyList<string> States { get; }
+    
+    public Variable[] ToVariables() => States.Select(state => new Variable($"{Name}_is_{state}")).ToArray();
 
     [GeneratedRegex("^[a-zA-Z][a-zA-Z0-9-]*$")]
     private partial Regex ValidNamePattern();

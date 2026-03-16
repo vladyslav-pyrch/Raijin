@@ -2,9 +2,7 @@ using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
 namespace Raijin.CombinatoricsService.Application.Persistence;
 
-public interface ICombinatoricsProblemRepository
+public interface ICombinatoricProblemRepository
 {
     public Task Add(CombinatoricProblem problem, CancellationToken cancellationToken);
-    
-    public Task Save(CancellationToken cancellationToken);
 }

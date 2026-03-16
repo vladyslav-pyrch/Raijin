@@ -3,13 +3,9 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Raijin.SatSolver.Application.Messaging;
 using Raijin.SatSolver.Application.Persistence;
 using Raijin.SatSolver.Application.Solver;
-using Raijin.SatSolver.Domain.DomainEvents;
-using Raijin.SatSolver.Infrastructure.DomainEvents;
 using Raijin.SatSolver.Infrastructure.Messaging;
 using Raijin.SatSolver.Infrastructure.Persistence;
 using Raijin.SatSolver.Infrastructure.Persistence.Repositories;
@@ -21,33 +17,15 @@ public static class InfrastructureModule
 {
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
-    public static async Task ApplyMigrations(this IHost host)
-    {
-        using IServiceScope scope = host.Services.CreateScope();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<SatSolverDbContext>>();
-        var satSolverDbContext = scope.ServiceProvider.GetRequiredService<SatSolverDbContext>();
-
-        logger.LogInformation("Applying database migrations...");
-
-        await satSolverDbContext.Database.MigrateAsync();
-
-        logger.LogInformation("Database migrations applied successfully.");
-    }
-
     public static IServiceCollection AddInfrastructureApi(this IServiceCollection services) => services
-        .AddDomainEvents()
         .AddMessagingCore()
         .AddPersistence()
         .AddSatSolver();
 
     public static IServiceCollection AddInfrastructureWorker(this IServiceCollection services) => services
-        .AddDomainEvents()
         .AddMessagingWithConsumers()
         .AddPersistence()
         .AddSatSolver();
-
-    private static IServiceCollection AddDomainEvents(this IServiceCollection services) =>
-        services.AddScoped<IDomainEventPublisher, DotNetDiDomainEventPublisher>();
 
     private static IServiceCollection AddMessagingCore(this IServiceCollection services) => services
         .AddScoped<IMediator, ServiceProviderMediator>()
@@ -73,6 +51,7 @@ public static class InfrastructureModule
         {
             x.AddConsumers(Assembly);
             x.SetKebabCaseEndpointNameFormatter();
+            x.AddEntityFrameworkOutbox<SatSolverDbContext>();
             x.UsingRabbitMq((context, cfg) =>
             {
                 string connectionString = context.GetRequiredService<IConfiguration>()
@@ -85,7 +64,8 @@ public static class InfrastructureModule
             });
         });
 
-    private static IServiceCollection AddPersistence(this IServiceCollection services) => services
+    public static IServiceCollection AddPersistence(this IServiceCollection services) => services
+        .AddScoped<IUnitOfWork, SatSolverUnitOfWork>()
         .AddScoped<ISatProblemRepository, SatProblemRepository>()
         .AddDbContextPool<SatSolverDbContext>((provider, builder) =>
         {
@@ -94,7 +74,10 @@ public static class InfrastructureModule
                                       throw new InvalidOperationException(
                                           "Database connection string is not configured.");
 
-            builder.UseNpgsql(connectionString);
+            builder.UseNpgsql(connectionString, optionsBuilder =>
+            {
+                optionsBuilder.MigrationsAssembly(Assembly);
+            });
         });
 
     private static IServiceCollection AddSatSolver(this IServiceCollection services) =>

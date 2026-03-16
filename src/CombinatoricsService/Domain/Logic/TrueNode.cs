@@ -6,6 +6,8 @@ public sealed record TrueNode : ExpressionNode
 {
     public override IEnumerable<Variable> GetVariables() => [];
 
+    public override string ToString() => "true";
+
     protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {
         int trueLiteral = newLiteralId();

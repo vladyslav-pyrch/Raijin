@@ -1,19 +1,38 @@
+using System.Text.RegularExpressions;
+using Raijin.CombinatoricsService.Domain.Logic;
+
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
-public record Constraint
+public partial record Constraint
 {
-    public Constraint(ExpressionNode formula)
+    public Constraint(string formula)
     {
-        ArgumentNullException.ThrowIfNull(formula);
-        
-        if (formula.Leaves().Any(variable => variable is not StateNode))
-            throw new ArgumentException($"All leaf nodes in the formula must be of type {nameof(StateNode)}");
+        ArgumentException.ThrowIfNullOrWhiteSpace(formula);
         
         Formula = formula;
+
+        Expression = ExpressionParser.Parse(formula);
+        
+        if (!Expression.GetVariables().All(variable => ValidStateNodePattern().IsMatch(variable.Name)))
+            throw new ArgumentException($"All variables in the constraint must match the pattern {ValidStateNodePattern()}", nameof(formula));
+    }
+
+    public Constraint(ExpressionNode expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        
+        Formula = expression.ToString();
+
+        Expression = expression;
+        
+        if (!expression.GetVariables().All(variable => ValidStateNodePattern().IsMatch(variable.Name)))
+            throw new ArgumentException($"All variables in the constraint must match the pattern {ValidStateNodePattern()}", nameof(expression));
     }
     
-    public ExpressionNode Formula { get; }
+    public string Formula { get; }
     
-    public IEnumerable<StateNode> GetStateNodes() =>
-        Formula.Leaves().OfType<StateNode>();
+    public ExpressionNode Expression { get; }
+    
+    [GeneratedRegex("[a-zA-Z][a-zA-Z0-9-]*_is_[a-zA-Z][a-zA-Z0-9-]*")]
+    private static partial Regex ValidStateNodePattern();
 }

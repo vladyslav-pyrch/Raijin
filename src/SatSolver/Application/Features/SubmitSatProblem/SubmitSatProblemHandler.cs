@@ -4,12 +4,14 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.SatSolver.Application.Messaging;
+using Raijin.SatSolver.Application.Persistence;
 using Raijin.SatSolver.Application.Validation;
 
 namespace Raijin.SatSolver.Application.Features.SubmitSatProblem;
 
 public class SubmitSatProblemHandler(
     IValidator<SubmitSatProblemCommand> validator,
+    IUnitOfWork unitOfWork,
     IMessageBus messageBus,
     ILogger<SubmitSatProblemHandler> logger
 ) : ICommandHandler<SubmitSatProblemCommand, Result<SubmitSatProblemResult>>
@@ -29,6 +31,8 @@ public class SubmitSatProblemHandler(
             SatProblemId = satProblemId,
             Dimacs = command.Dimacs,
         }, cancellationToken);
+
+        await unitOfWork.SaveChanges(cancellationToken);
 
         return new SubmitSatProblemResult(satProblemId);
     }

@@ -11,7 +11,8 @@ using Raijin.SatSolver.Domain.SatProblems;
 namespace Raijin.SatSolver.Application.Features.SolveSatProblem;
 
 public class SolveSatProblemHandler(
-    ISatProblemRepository repository,
+    ISatProblemRepository satProblemRepository,
+    IUnitOfWork unitOfWork,
     ISatSolver solver,
     SolveSatProblemValidator validator,
     IMessageBus messageBus,
@@ -27,20 +28,21 @@ public class SolveSatProblemHandler(
         
         var satProblem = SatProblem.Create(command.SatProblemId, command.Dimacs);
         
-        await repository.Add(satProblem, cancellationToken);
-        await repository.Save(cancellationToken);
+        await satProblemRepository.Add(satProblem, cancellationToken);
+        await unitOfWork.SaveChanges(cancellationToken);
 
         int[] solution = await solver.Solve(satProblem, cancellationToken);
         satProblem.SetSolution(solution);
 
-        await repository.Update(satProblem, cancellationToken);
-        await repository.Save(cancellationToken);
+        await satProblemRepository.Update(satProblem, cancellationToken);
         
         await messageBus.Publish<ISatProblemSolved>(new
         {
             SatProblemId = satProblem.Id,
             Solution = solution
         }, cancellationToken);
+        
+        await unitOfWork.SaveChanges(cancellationToken);
 
         return Result.Ok();
     }

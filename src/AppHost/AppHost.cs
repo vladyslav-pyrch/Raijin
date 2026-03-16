@@ -13,29 +13,32 @@ IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
 IResourceBuilder<PostgresServerResource> applicationDbServer = builder
     .AddPostgres("raijin-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume("raijin-db-data")
     .PublishAsContainer();
 
-IResourceBuilder<PostgresDatabaseResource> satSolverWorkerDb = applicationDbServer
-    .AddDatabase("sat-solver-worker-db");
+IResourceBuilder<PostgresDatabaseResource> satSolverDb = applicationDbServer
+    .AddDatabase("sat-solver-db");
+
+IResourceBuilder<ProjectResource> satSolverMigrationWorker = builder
+    .AddProject<Raijin_SatSolver_MigrationWorker>("sat-solver-migration-worker")
+    .WithReference(satSolverDb, connectionName: "sat-solver-db")
+    .WaitFor(satSolverDb);
 
 IResourceBuilder<ContainerResource> satSolverWorker = builder
     .AddDockerfile("sat-solver-worker", "..", "./SatSolver/Worker/Dockerfile")
-    .WithChildRelationship(satSolverWorkerDb)
-    .WithReference(satSolverWorkerDb, connectionName: "sat-solver-db")
-    .WaitFor(satSolverWorkerDb)
+    .WithReference(satSolverDb, connectionName: "sat-solver-db")
+    .WaitFor(satSolverDb)
+    .WaitFor(satSolverMigrationWorker)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
     .WithLifetime(ContainerLifetime.Session)
     .PublishAsContainer();
 
-IResourceBuilder<PostgresDatabaseResource> satSolverApiDb = applicationDbServer
-    .AddDatabase("sat-solver-api-db");
-
 IResourceBuilder<ProjectResource> satSolverApi = builder
     .AddProject<Raijin_SatSolver_Api>("sat-solver-api")
-    .WithChildRelationship(satSolverApiDb)
-    .WithReference(satSolverApiDb, connectionName: "sat-solver-db")
-    .WaitFor(satSolverApiDb)
+    .WithReference(satSolverDb, connectionName: "sat-solver-db")
+    .WaitFor(satSolverDb)
+    .WaitForCompletion(satSolverMigrationWorker)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
@@ -43,12 +46,17 @@ IResourceBuilder<ProjectResource> satSolverApi = builder
 IResourceBuilder<PostgresDatabaseResource> identityServiceDb = applicationDbServer
     .AddDatabase("identity-service-db");
 
+IResourceBuilder<ProjectResource> identityServiceMigrationWorker = builder
+    .AddProject<Raijin_IdentityService_MigrationWorker>("identity-service-migration-worker")
+    .WithReference(identityServiceDb)
+    .WaitFor(identityServiceDb);
+
 IResourceBuilder<ProjectResource> identityServiceApi = builder
     .AddProject<Raijin_IdentityService_Api>("identity-service-api")
     .WithHttpHealthCheck("/health")
-    .WithChildRelationship(identityServiceDb)
     .WithReference(identityServiceDb)
     .WaitFor(identityServiceDb)
+    .WaitForCompletion(identityServiceMigrationWorker)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
@@ -56,12 +64,17 @@ IResourceBuilder<ProjectResource> identityServiceApi = builder
 IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = applicationDbServer
     .AddDatabase("combinatorics-service-db");
 
+IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
+    .AddProject<Raijin_CombinatoricsService_MigrationWorker>("combinatorics-service-migration-worker")
+    .WithReference(combinatoricsServiceDb)
+    .WaitFor(combinatoricsServiceDb);
+
 IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
     .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-service-api")
     .WithHttpHealthCheck("/health")
-    .WithChildRelationship(combinatoricsServiceDb)
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
+    .WaitForCompletion(combinatoricsServiceMigrationWorker)
     .WithReference(rabbitMq)
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
@@ -74,13 +87,17 @@ IResourceBuilder<RedisResource> queryServiceRedis = builder
     .WithLifetime(ContainerLifetime.Persistent)
     .PublishAsContainer();
 
+IResourceBuilder<ProjectResource> queryServiceMigrationWorker = builder
+    .AddProject<Raijin_QueryService_MigrationWorker>("query-service-migration-worker")
+    .WithReference(queryServiceDb)
+    .WaitFor(queryServiceDb);
+
 IResourceBuilder<ProjectResource> queryServiceApi = builder
     .AddProject<Raijin_QueryService_Api>("query-service-api")
     .WithHttpHealthCheck("/health")
-    .WithChildRelationship(queryServiceDb)
     .WithReference(queryServiceDb)
     .WaitFor(queryServiceDb)
-    .WithChildRelationship(queryServiceRedis)
+    .WaitForCompletion(queryServiceMigrationWorker)
     .WithReference(queryServiceRedis)
     .WaitFor(queryServiceRedis)
     .WithReference(rabbitMq)
@@ -115,15 +132,35 @@ if (builder.Environment.IsDevelopment())
     
     IResourceBuilder<ScalarResource> scalar = builder
         .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
-        .WithApiReference(identityServiceApi, options => options.AddDocument("v1"))
+        .WithApiReference(identityServiceApi, (options, _) =>
+        {
+            options.AddDocument("v1");
+            return Task.CompletedTask;
+        })
         .WaitFor(identityServiceApi)
-        .WithApiReference(combinatoricsServiceApi, options => options.AddDocument("v1"))
+        .WithApiReference(combinatoricsServiceApi,  (options, _) =>
+        {
+            options.AddDocument("v1");
+            return Task.CompletedTask;
+        })
         .WaitFor(combinatoricsServiceApi)
-        .WithApiReference(satSolverApi, options => options.AddDocument("v1"))
+        .WithApiReference(satSolverApi,  (options, _) =>
+        {
+            options.AddDocument("v1");
+            return Task.CompletedTask;
+        })
         .WaitFor(satSolverApi)
-        .WithApiReference(queryServiceApi, options => options.AddDocument("v1"))
+        .WithApiReference(queryServiceApi,  (options, _) =>
+        {
+            options.AddDocument("v1");
+            return Task.CompletedTask;
+        })
         .WaitFor(queryServiceApi)
-        .WithApiReference(apiGateway, options => options.AddDocument("v1"))
+        .WithApiReference(apiGateway,  (options, _) =>
+        {
+            options.AddDocument("v1");
+            return Task.CompletedTask;
+        })
         .WaitFor(apiGateway)
         .WithLifetime(ContainerLifetime.Persistent)
         .PublishAsContainer();
