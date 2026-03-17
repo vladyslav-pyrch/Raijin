@@ -5,7 +5,7 @@ using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Infrastructure.Messaging;
 
-public class SatProblemSubmittedConsumer(
+public sealed class SatProblemSubmittedConsumer(
     IEnumerable<IMessageHandler<ISatProblemSubmitted>> handlers,
     ILogger<SatProblemSubmittedConsumer> logger
 ) : IConsumer<ISatProblemSubmitted>

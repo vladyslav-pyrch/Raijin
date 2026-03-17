@@ -1,3 +1,3 @@
 namespace Raijin.SatSolver.Application.Features.SubmitSatProblem;
 
-public record SubmitSatProblemResult(Guid SatProblemId);
+public sealed record SubmitSatProblemResult(Guid SatProblemId);

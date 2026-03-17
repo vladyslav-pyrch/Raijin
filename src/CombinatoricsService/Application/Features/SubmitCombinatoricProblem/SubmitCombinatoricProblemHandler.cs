@@ -18,30 +18,30 @@ public class SubmitCombinatoricProblemHandler(
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
     ILogger<SubmitCombinatoricProblemHandler> logger
-) : ICommandHandler<SubmitCombinatoricProblemCommand, Result<SubmitCombinatoricProblemResult>>
+) : IRequestHandler<SubmitCombinatoricProblemCommand, Result<SubmitCombinatoricProblemResult>>
 {
     public async Task<Result<SubmitCombinatoricProblemResult>> Handle(
-        SubmitCombinatoricProblemCommand command,
+        SubmitCombinatoricProblemCommand request,
         CancellationToken cancellationToken
     )
     {
-        ValidationResult? validationResult = await validator.ValidateAsync(command, cancellationToken);
+        ValidationResult? validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
             return Result.Fail(validationResult.ToValidationErrors());
 
         var combinatoricProblemId = Guid.NewGuid();
         var combinatoricProblem = new CombinatoricProblem(combinatoricProblemId);
 
-        foreach (DecisionVariableDto variableDto in command.DecisionVariables)
+        foreach (DecisionVariableDto variableDto in request.DecisionVariables)
             combinatoricProblem.AddDecisionVariable(variableDto.Name, variableDto.States);
         
         var result = new Result();
-        for (var i = 0; i < command.Constraints.Length; i++)
+        for (var i = 0; i < request.Constraints.Length; i++)
         {
             Result addingConstraintResult = Result.Try(
-                () => combinatoricProblem.AddConstrain(command.Constraints[i]),
+                () => combinatoricProblem.AddConstrain(request.Constraints[i]),
                 exception => new ValidationError(
-                    propertyName: $"{nameof(command.Constraints)}[{i}]",
+                    propertyName: $"{nameof(request.Constraints)}[{i}]",
                     problem: exception.Message
                 )
             );

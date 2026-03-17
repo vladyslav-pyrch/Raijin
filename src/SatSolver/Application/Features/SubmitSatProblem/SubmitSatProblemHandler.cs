@@ -1,35 +1,31 @@
 using FluentResults;
-using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.SatSolver.Application.Messaging;
 using Raijin.SatSolver.Application.Persistence;
-using Raijin.SatSolver.Application.Validation;
 
 namespace Raijin.SatSolver.Application.Features.SubmitSatProblem;
 
-public class SubmitSatProblemHandler(
-    IValidator<SubmitSatProblemCommand> validator,
+public sealed class SubmitSatProblemHandler(
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
+    IMessageContextAccessor messageContextAccessor,
+    IMessageIdGenerator messageIdGenerator,
     ILogger<SubmitSatProblemHandler> logger
-) : ICommandHandler<SubmitSatProblemCommand, Result<SubmitSatProblemResult>>
+) : IRequestHandler<SubmitSatProblemCommand, SubmitSatProblemResult>
 {
-    public async Task<Result<SubmitSatProblemResult>> Handle(SubmitSatProblemCommand command,
+    public async Task<Result<SubmitSatProblemResult>> Handle(SubmitSatProblemCommand request,
         CancellationToken cancellationToken)
     {
-        ValidationResult validationResult = await validator.ValidateAsync(command, cancellationToken);
-        
-        if (!validationResult.IsValid)
-            return Result.Fail(validationResult.ToValidationErrors());
-
         var satProblemId = Guid.CreateVersion7();
 
         await messageBus.Publish<ISatProblemSubmitted>(message: new
         {
-            SatProblemId = satProblemId,
-            Dimacs = command.Dimacs,
+            MessageId = messageIdGenerator.NextMessageId(),
+            CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
+            CausationId = messageContextAccessor.CurrentContext.CausationId,
+            SatProblemId = satProblemId.ToString(),
+            Dimacs = request.Dimacs,
         }, cancellationToken);
 
         await unitOfWork.SaveChanges(cancellationToken);

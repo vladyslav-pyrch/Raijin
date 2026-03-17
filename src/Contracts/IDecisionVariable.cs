@@ -1,6 +1,6 @@
 namespace Raijin.Application.Contracts;
 
-public interface IDecisionVariable
+public interface IDecisionVariable : IMessage
 {
     public string Name { get; }
     

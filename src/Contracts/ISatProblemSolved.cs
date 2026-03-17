@@ -1,8 +1,8 @@
 namespace Raijin.Application.Contracts;
 
-public interface ISatProblemSolved
+public interface ISatProblemSolved : IMessage
 {
-    public Guid SatProblemId { get; }
+    public string SatProblemId { get; }
     
     public int[] Solution { get; }
 }

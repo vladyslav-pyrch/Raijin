@@ -1,32 +1,26 @@
 using FluentResults;
-using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.SatSolver.Application.Messaging;
 using Raijin.SatSolver.Application.Persistence;
 using Raijin.SatSolver.Application.Solver;
-using Raijin.SatSolver.Application.Validation;
 using Raijin.SatSolver.Domain.SatProblems;
 
 namespace Raijin.SatSolver.Application.Features.SolveSatProblem;
 
-public class SolveSatProblemHandler(
+public sealed class SolveSatProblemHandler(
     ISatProblemRepository satProblemRepository,
     IUnitOfWork unitOfWork,
     ISatSolver solver,
-    SolveSatProblemValidator validator,
     IMessageBus messageBus,
+    IMessageContextAccessor messageContextAccessor,
+    IMessageIdGenerator messageIdGenerator,
     ILogger<SolveSatProblemHandler> logger
-) : ICommandHandler<SolveSatProblemCommand, Result>
+) : IRequestHandler<SolveSatProblemCommand>
 {
-    public async Task<Result> Handle(SolveSatProblemCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(SolveSatProblemCommand request, CancellationToken cancellationToken)
     {
-        ValidationResult validationResult = await validator.ValidateAsync(command, cancellationToken);
-        
-        if (!validationResult.IsValid)
-            return Result.Fail(validationResult.ToValidationErrors());
-        
-        var satProblem = SatProblem.Create(command.SatProblemId, command.Dimacs);
+        var satProblem = SatProblem.Create(request.SatProblemId, request.Dimacs);
         
         await satProblemRepository.Add(satProblem, cancellationToken);
         await unitOfWork.SaveChanges(cancellationToken);
@@ -38,6 +32,9 @@ public class SolveSatProblemHandler(
         
         await messageBus.Publish<ISatProblemSolved>(new
         {
+            MessageId = messageIdGenerator.NextMessageId(),
+            CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
+            CausationId = messageContextAccessor.CurrentContext.CausationId,
             SatProblemId = satProblem.Id,
             Solution = solution
         }, cancellationToken);

@@ -15,8 +15,8 @@ public static class ApplicationModule
         .AddValidatorsFromAssembly(Assembly);
 
     private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(ICommandHandler<>))
-        .AddGenericInterfaceImplementations(typeof(ICommandHandler<,>));
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));

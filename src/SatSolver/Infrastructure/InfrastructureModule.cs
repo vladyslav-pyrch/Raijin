@@ -18,7 +18,7 @@ public static class InfrastructureModule
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
     public static IServiceCollection AddInfrastructureApi(this IServiceCollection services) => services
-        .AddMessagingCore()
+        .AddMessagingWithoutConsumers()
         .AddPersistence()
         .AddSatSolver();
 
@@ -27,9 +27,8 @@ public static class InfrastructureModule
         .AddPersistence()
         .AddSatSolver();
 
-    private static IServiceCollection AddMessagingCore(this IServiceCollection services) => services
-        .AddScoped<IMediator, ServiceProviderMediator>()
-        .AddScoped<IMessageBus, MassTransitMessageBus>()
+    private static IServiceCollection AddMessagingWithoutConsumers(this IServiceCollection services) => services
+        .AddMessagingCore()
         .AddMassTransit(x =>
         {
             x.SetKebabCaseEndpointNameFormatter();
@@ -45,8 +44,7 @@ public static class InfrastructureModule
         });
 
     private static IServiceCollection AddMessagingWithConsumers(this IServiceCollection services) => services
-        .AddScoped<IMediator, ServiceProviderMediator>()
-        .AddScoped<IMessageBus, MassTransitMessageBus>()
+        .AddMessagingCore()
         .AddMassTransit(x =>
         {
             x.AddConsumers(Assembly);
@@ -63,6 +61,12 @@ public static class InfrastructureModule
                 cfg.ConfigureEndpoints(context);
             });
         });
+
+    private static IServiceCollection AddMessagingCore(this IServiceCollection services) => services
+        .AddScoped<IMediator, ServiceProviderMediator>()
+        .AddSingleton<IMessageContextAccessor, AsyncLocalMessageContextAccessor>()
+        .AddTransient<IMessageIdGenerator, GuidMessageIdGenerator>()
+        .AddScoped<IMessageBus, MassTransitMessageBus>();
 
     public static IServiceCollection AddPersistence(this IServiceCollection services) => services
         .AddScoped<IUnitOfWork, SatSolverUnitOfWork>()

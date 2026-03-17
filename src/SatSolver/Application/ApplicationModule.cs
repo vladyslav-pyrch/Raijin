@@ -2,6 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Raijin.SatSolver.Application.Messaging;
+using Raijin.SatSolver.Application.Messaging.Behaviors;
 
 namespace Raijin.SatSolver.Application;
 
@@ -12,14 +13,19 @@ public static class ApplicationModule
     public static IServiceCollection AddApplication(this IServiceCollection services) => services
         .AddCommandHandlers()
         .AddEventHandlers()
+        .AddPipelineBehaviors()
         .AddValidatorsFromAssembly(Assembly);
 
     private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(ICommandHandler<>))
-        .AddGenericInterfaceImplementations(typeof(ICommandHandler<,>));
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
+    
+    private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
+        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ContextBehavior<,>))
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(ContextBehavior<>));
 
     private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services, Type genericInterfaceType)
     {

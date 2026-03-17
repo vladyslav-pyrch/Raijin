@@ -5,24 +5,24 @@ namespace Raijin.CombinatoricsService.Infrastructure.Messaging;
 
 public class ServiceProviderMediator(IServiceProvider provider) : IMediator
 {
-    public Task<TResponse> Send<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken = default)
+    public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
-        Type commandType = command.GetType();
+        Type requestType = request.GetType();
         Type responseType = typeof(TResponse);
-        Type commandHandlerType = typeof(ICommandHandler<,>).MakeGenericType(commandType, responseType);
+        Type requestHandlerType = typeof(IRequestHandler<,>).MakeGenericType(requestType, responseType);
 
-        object handler = provider.GetRequiredService(commandHandlerType);
+        object handler = provider.GetRequiredService(requestHandlerType);
 
-        return ((dynamic)handler).Handle((dynamic)command, cancellationToken);
+        return ((dynamic)handler).Handle((dynamic)request, cancellationToken);
     }
 
-    public Task Send(ICommand command, CancellationToken cancellationToken)
+    public Task Send(IRequest request, CancellationToken cancellationToken)
     {
-        Type commandType = command.GetType();
-        Type commandHandlerType = typeof(ICommandHandler<>).MakeGenericType(commandType);
+        Type requestType = request.GetType();
+        Type requestHandlerType = typeof(IRequestHandler<>).MakeGenericType(requestType);
 
-        object handler = provider.GetRequiredService(commandHandlerType);
+        object handler = provider.GetRequiredService(requestHandlerType);
 
-        return ((dynamic)handler).Handle((dynamic)command, cancellationToken);
+        return ((dynamic)handler).Handle((dynamic)request, cancellationToken);
     }
 }

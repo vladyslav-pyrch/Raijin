@@ -4,11 +4,15 @@ using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Application.Features.SolveSatProblem;
 
-public class SatProblemSubmittedHandler(IMediator mediator) : IMessageHandler<ISatProblemSubmitted>
+public sealed class SatProblemSubmittedHandler(IMediator mediator) : IMessageHandler<ISatProblemSubmitted>
 {
     public async Task Handle(ISatProblemSubmitted message, CancellationToken cancellationToken)
     {
-        var command = new SolveSatProblemCommand(message.SatProblemId, message.Dimacs);
+        var command = new SolveSatProblemCommand(
+            Guid.Parse(message.SatProblemId),
+            message.Dimacs,
+            new MessageContext(message)
+        );
 
         Result result = await mediator.Send(command, cancellationToken);
 
