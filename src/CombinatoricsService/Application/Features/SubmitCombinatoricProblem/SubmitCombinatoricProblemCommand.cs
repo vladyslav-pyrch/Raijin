@@ -1,7 +1,9 @@
-using FluentResults;
 using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
 
-public record SubmitCombinatoricProblemCommand(DecisionVariableDto[] DecisionVariables, string[] Constraints) 
-    : IRequest<Result<SubmitCombinatoricProblemResult>>;
+public sealed record SubmitCombinatoricProblemCommand(
+    DecisionVariableDto[] DecisionVariables,
+    string[] Constraints,
+    MessageContext Context
+) : IRequest<SubmitCombinatoricProblemResult>, IContextualRequest;

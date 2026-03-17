@@ -2,7 +2,7 @@ using FluentValidation;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
 
-public class SubmitCombinatoricProblemValidator : AbstractValidator<SubmitCombinatoricProblemCommand>
+public sealed class SubmitCombinatoricProblemValidator : AbstractValidator<SubmitCombinatoricProblemCommand>
 {
     public SubmitCombinatoricProblemValidator()
     {

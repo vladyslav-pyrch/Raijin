@@ -1,9 +1,9 @@
 using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
-using Raijin.SatSolver.Application.Validation;
+using Raijin.CombinatoricsService.Application.Validation;
 
-namespace Raijin.SatSolver.Application.Messaging.Behaviors;
+namespace Raijin.CombinatoricsService.Application.Messaging.Behaviors;
 
 public class ValidationBehavior<TRequest, TResult>(IValidator<TRequest> validator)
     : IPipelineBehavior<TRequest, TResult> where TRequest : IRequest<TResult>

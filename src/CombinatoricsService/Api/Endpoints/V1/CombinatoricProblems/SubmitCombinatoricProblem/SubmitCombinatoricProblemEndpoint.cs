@@ -21,12 +21,14 @@ public class SubmitCombinatoricProblemEndpoint : IEndpoint
         Execute(
             [FromBody] SubmitCombinatoricProblemRequest request,
             [FromServices] IMediator mediator,
+            [FromServices] IMessageIdGenerator messageIdGenerator,
             CancellationToken cancellationToken
         )
     {
         Result<SubmitCombinatoricProblemResult> result = await mediator.Send(new SubmitCombinatoricProblemCommand(
             request.DecisionVariables.Select(dv => new DecisionVariableDto(dv.Name, dv.States)).ToArray(),
-            request.Constraints
+            request.Constraints,
+            messageIdGenerator.NextMessageContext()
         ), cancellationToken);
 
         if (result.IsSuccess)

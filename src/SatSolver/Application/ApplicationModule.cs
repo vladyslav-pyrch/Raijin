@@ -25,7 +25,9 @@ public static class ApplicationModule
     
     private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(ContextBehavior<,>))
-        .AddScoped(typeof(IPipelineBehavior<>), typeof(ContextBehavior<>));
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(ContextBehavior<>))
+        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
 
     private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services, Type genericInterfaceType)
     {

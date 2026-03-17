@@ -1,34 +1,26 @@
 using FluentResults;
-using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
-using Raijin.CombinatoricsService.Application.Validation;
 using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
 
-public class SubmitCombinatoricProblemHandler(
-    IValidator<SubmitCombinatoricProblemCommand> validator,
+public sealed class SubmitCombinatoricProblemHandler(
     ICombinatoricProblemRepository combinatoricProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
     ILogger<SubmitCombinatoricProblemHandler> logger
-) : IRequestHandler<SubmitCombinatoricProblemCommand, Result<SubmitCombinatoricProblemResult>>
+) : IRequestHandler<SubmitCombinatoricProblemCommand, SubmitCombinatoricProblemResult>
 {
     public async Task<Result<SubmitCombinatoricProblemResult>> Handle(
         SubmitCombinatoricProblemCommand request,
         CancellationToken cancellationToken
     )
     {
-        ValidationResult? validationResult = await validator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-            return Result.Fail(validationResult.ToValidationErrors());
-
         var combinatoricProblemId = Guid.NewGuid();
         var combinatoricProblem = new CombinatoricProblem(combinatoricProblemId);
 

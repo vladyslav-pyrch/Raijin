@@ -22,6 +22,8 @@ public static class InfrastructureModule
 
     private static IServiceCollection AddMessaging(this IServiceCollection services) => services
         .AddScoped<IMediator, ServiceProviderMediator>()
+        .AddSingleton<IMessageContextAccessor, AsyncLocalMessageContextAccessor>()
+        .AddTransient<IMessageIdGenerator, GuidMessageIdGenerator>()
         .AddScoped<IMessageBus, MassTransitMessageBus>()
         .AddMassTransit(x =>
         {

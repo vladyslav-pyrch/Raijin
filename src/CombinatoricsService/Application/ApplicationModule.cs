@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Raijin.CombinatoricsService.Application.Messaging;
+using Raijin.CombinatoricsService.Application.Messaging.Behaviors;
 
 namespace Raijin.CombinatoricsService.Application;
 
@@ -12,6 +13,7 @@ public static class ApplicationModule
     public static IServiceCollection AddApplication(this IServiceCollection services) => services
         .AddCommandHandlers()
         .AddEventHandlers()
+        .AddPipelineBehaviors()
         .AddValidatorsFromAssembly(Assembly);
 
     private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
@@ -20,6 +22,12 @@ public static class ApplicationModule
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
+    
+    private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
+        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ContextBehavior<,>))
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(ContextBehavior<>))
+        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
 
     private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services, Type genericInterfaceType)
     {

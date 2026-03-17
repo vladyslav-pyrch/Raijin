@@ -1,6 +1,6 @@
-using Raijin.SatSolver.Application.Messaging;
+using Raijin.CombinatoricsService.Application.Messaging;
 
-namespace Raijin.SatSolver.Infrastructure.Messaging;
+namespace Raijin.CombinatoricsService.Infrastructure.Messaging;
 
 public sealed class GuidMessageIdGenerator : IMessageIdGenerator
 {

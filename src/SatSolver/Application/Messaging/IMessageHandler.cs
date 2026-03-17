@@ -2,7 +2,7 @@ using Raijin.Application.Contracts;
 
 namespace Raijin.SatSolver.Application.Messaging;
 
-public interface IMessageHandler<in TEvent> where TEvent : class, IMessage
+public interface IMessageHandler<in TMessage> where TMessage : class, IMessage
 {
-    public Task Handle(TEvent @event, CancellationToken cancellationToken);
+    public Task Handle(TMessage message, CancellationToken cancellationToken);
 }
