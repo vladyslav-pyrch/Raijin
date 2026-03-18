@@ -14,7 +14,7 @@ Raijin is a distributed microservices platform for solving combinatorial optimis
 | Runtime | .NET 10, C# 13 |
 | Orchestration | .NET Aspire 9 (`Aspire.AppHost.Sdk`) |
 | API | ASP.NET Core Minimal APIs (no controllers) |
-| Messaging | MassTransit 8 + RabbitMQ, EF Core Outbox |
+| Messaging | MassTransit 8 + RabbitMQ |
 | Persistence | EF Core 10, Npgsql (PostgreSQL) |
 | Validation | FluentValidation 12 |
 | Error handling | FluentResults 4 |
@@ -68,7 +68,7 @@ Cross-cutting shared projects:
 - **Repository + Unit of Work** — Repository interfaces live in `Application/Persistence`. Implementations in `Infrastructure/Persistence`. Always call `IUnitOfWork.SaveChanges()` at the end.
 - **Persistence Models** — Domain aggregates are **never** saved directly. Map domain objects to `{Noun}Model` classes in `Infrastructure/Persistence/Models`.
 - **Integration Events** — Defined as interfaces in `Contracts` project. Published via `IMessageBus.Publish<TContract>(anonymousObject)`.
-- **Transactional Outbox** — MassTransit EF Core outbox ensures messages are only published when the DB transaction commits.
+- **Persist-then-Publish** — Always call `unitOfWork.SaveChanges()` **before** publishing integration events via `IMessageBus`. This ensures the entity is committed to the database before any consumer can attempt to read it.
 - **Each service is fully independent** — owns its own messaging abstractions (`IMediator`, `IRequest`, `IPipelineBehavior`, etc.), its own persistence, its own models. No shared Application/Domain code between services. This is intentional to avoid a distributed monolith.
 
 ## Folder Structure Map
@@ -215,7 +215,7 @@ tests/
 2. Return `Result<T>` or `Result` (FluentResults) from all command handlers.
 3. Validate commands with FluentValidation via the `ValidationBehavior` pipeline.
 4. Publish integration events as `IMessageBus.Publish<IContractInterface>(anonymousObject)`.
-5. Use the transactional outbox — call `unitOfWork.SaveChanges()` **after** all publishes.
+5. Persist first, then publish — call `unitOfWork.SaveChanges()` **before** publishing integration events via `IMessageBus`.
 6. Map domain aggregates to `{Noun}Model` persistence classes — never pass domain entities to EF directly.
 7. Use `IEndpoint` interface for all Minimal API endpoints, registered via assembly scanning.
 8. Use `sealed` on classes and `sealed record` for data carriers.
@@ -272,8 +272,9 @@ public sealed class SubmitCombinatoricProblemHandler(
     public async Task<Result<SubmitCombinatoricProblemResult>> Handle(
         SubmitCombinatoricProblemCommand request, CancellationToken cancellationToken)
     {
-        // ... build domain object, persist, publish events, save
+        // ... build domain object, persist first
         await unitOfWork.SaveChanges(cancellationToken);
+        // ... then publish integration events
         return new SubmitCombinatoricProblemResult(combinatoricProblemId);
     }
 }

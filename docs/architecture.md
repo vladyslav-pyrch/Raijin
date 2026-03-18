@@ -107,10 +107,9 @@ Api → Infrastructure → Application → Domain
                        ├─ Add decision variables + constraints
                        ├─ Tseitin transform → SAT (DIMACS)
                        ├─ Repository.Add(problem) → maps to CombinatoricProblemModel
+                       ├─ UnitOfWork.SaveChanges() ← commits DB first
                        ├─ MessageBus.Publish<ICombinatoricProblemSubmitted>(...)
-                       ├─ MessageBus.Publish<ISatProblemSubmitted>(...)
-                       └─ UnitOfWork.SaveChanges() ← commits DB + outbox in one transaction
-                           └─► MassTransit outbox delivers messages to RabbitMQ
+                       └─ MessageBus.Publish<ISatProblemSubmitted>(...) → delivered to RabbitMQ
 
 2. RabbitMQ → SatSolver.Worker (consumer)
    └─► SatProblemSubmittedHandler (MassTransit consumer)
@@ -124,8 +123,8 @@ Api → Infrastructure → Application → Domain
                        ├─ ISatSolver.Solve(problem) → CryptoMiniSat process
                        ├─ problem.SetSolution(solution)
                        ├─ Repository.Update(problem)
-                       ├─ MessageBus.Publish<ISatProblemSolved>(...)
-                       └─ UnitOfWork.SaveChanges()
+                       ├─ UnitOfWork.SaveChanges()
+                       └─ MessageBus.Publish<ISatProblemSolved>(...)
 ```
 
 ## 4. Messaging Architecture
@@ -144,9 +143,9 @@ Every request carries a `MessageContext(CorrelationId, CausationId)`:
 - **Message-originated**: Constructed from the incoming `IMessage` — `CorrelationId` propagates, `CausationId` = incoming `MessageId`.
 - Stored on `AsyncLocal<MessageContext>` via `ContextBehavior` pipeline.
 
-### Outbox Pattern
+### Persist-then-Publish
 
-All services use MassTransit's EF Core outbox. Messages are written to the outbox table in the same DB transaction as the business data. This guarantees at-least-once delivery semantics.
+Handlers always call `unitOfWork.SaveChanges()` **before** publishing integration events via `IMessageBus`. This ensures the entity is committed to the database before any consumer can attempt to read it, avoiding race conditions where a consumer receives a message referencing an entity that hasn't been persisted yet.
 
 ## 5. Key Design Decisions
 

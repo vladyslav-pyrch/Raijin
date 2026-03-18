@@ -13,7 +13,6 @@ public sealed class SendSatProblemHandler(
     IMessageBus messageBus,
     IMessageIdGenerator messageIdGenerator,
     IMessageContextAccessor messageContextAccessor,
-    IUnitOfWork unitOfWork,
     ILogger<SendSatProblemHandler> logger
 ) : IRequestHandler<SendSatProblemCommand, SendSatProblemResult>
 {
@@ -50,8 +49,6 @@ public sealed class SendSatProblemHandler(
             CombinatoricProblemId = request.CombinatoricProblemId.ToString(),
             Dimacs = dimacs,
         }, cancellationToken);
-
-        await unitOfWork.SaveChanges(cancellationToken);
 
         logger.LogInformation("SAT problem {SatProblemId} sent for combinatoric problem {CombinatoricProblemId}",
             satProblemId, request.CombinatoricProblemId);
