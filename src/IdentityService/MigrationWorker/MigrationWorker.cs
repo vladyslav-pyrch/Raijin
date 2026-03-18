@@ -19,15 +19,21 @@ public class MigrationWorker(
 
         try
         {
+            logger.LogInformation("Starting IdentityService database migration");
+
             using IServiceScope scope = serviceProvider.CreateScope();
             // var dbContext = scope.ServiceProvider.GetRequiredService<DbContext>();
             //
             // await RunMigrationAsync(dbContext, cancellationToken);
+            // logger.LogInformation("IdentityService database migration completed successfully");
+            //
             // await SeedDataAsync(dbContext, cancellationToken);
+            // logger.LogInformation("IdentityService database seeding completed successfully");
         }
         catch (Exception ex)
         {
             activity?.AddException(ex);
+            logger.LogError(ex, "IdentityService database migration failed");
             throw;
         }
 

@@ -9,6 +9,9 @@ public sealed class MassTransitMessageBus(IPublishEndpoint publishEndpoint, ILog
 {
     public async Task Publish<TMessage>(object message, CancellationToken cancellationToken) where TMessage : class, IMessage
     {
+        string messageType = typeof(TMessage).Name;
+        logger.LogInformation("Publishing message {MessageType}", messageType);
         await publishEndpoint.Publish<TMessage>(message, cancellationToken);
+        logger.LogDebug("Message {MessageType} published to outbox", messageType);
     }
 }

@@ -7,5 +7,5 @@ public interface ISatProblemRepository
     public Task Add(SatProblem satProblem, CancellationToken cancellationToken);
 
     public Task Update(SatProblem satProblem, CancellationToken cancellationToken);
-    
+
 }

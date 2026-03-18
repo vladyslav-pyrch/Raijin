@@ -5,7 +5,6 @@ using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
-using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
 
@@ -13,6 +12,8 @@ public sealed class SubmitCombinatoricProblemHandler(
     ICombinatoricProblemRepository combinatoricProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
+    IMessageIdGenerator messageIdGenerator,
+    IMessageContextAccessor messageContextAccessor,
     ILogger<SubmitCombinatoricProblemHandler> logger
 ) : IRequestHandler<SubmitCombinatoricProblemCommand, SubmitCombinatoricProblemResult>
 {
@@ -21,7 +22,10 @@ public sealed class SubmitCombinatoricProblemHandler(
         CancellationToken cancellationToken
     )
     {
-        var combinatoricProblemId = Guid.NewGuid();
+        var combinatoricProblemId = Guid.CreateVersion7();
+        logger.LogInformation("Submitting combinatoric problem {CombinatoricProblemId} with {VariableCount} decision variables and {ConstraintCount} constraints",
+            combinatoricProblemId, request.DecisionVariables.Length, request.Constraints.Length);
+
         var combinatoricProblem = new CombinatoricProblem(combinatoricProblemId);
 
         foreach (DecisionVariableDto variableDto in request.DecisionVariables)
@@ -41,14 +45,20 @@ public sealed class SubmitCombinatoricProblemHandler(
             result.WithErrors(addingConstraintResult.Errors);
         }
         if (result.IsFailed)
+        {
+            logger.LogWarning("Combinatoric problem {CombinatoricProblemId} has invalid constraints: {ErrorCount} error(s)",
+                combinatoricProblemId, result.Errors.Count);
             return result;
-
-        TseitinTransformResult transformResult = combinatoricProblem.ToFormula().TseitinTransform();
+        }
         
         await combinatoricProblemRepository.Add(combinatoricProblem, cancellationToken);
 
         await messageBus.Publish<ICombinatoricProblemSubmitted>(new
         {
+            MessageId = messageIdGenerator.NextMessageId(),
+            CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
+            CausationId = messageContextAccessor.CurrentContext.CausationId,
+            Timestamp = DateTimeOffset.UtcNow,
             CombinatoricProblemId = combinatoricProblemId,
             DecisionVariables = combinatoricProblem.DecisionVariables.Select(variable => new
             {
@@ -58,14 +68,9 @@ public sealed class SubmitCombinatoricProblemHandler(
             Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray()
         }, cancellationToken);
         
-        await messageBus.Publish<ISatProblemSubmitted>(new
-        {
-            SatProblemId = combinatoricProblemId,
-            Dimacs = transformResult.Problem.ToDimacs()
-        }, cancellationToken);
-        
         await unitOfWork.SaveChanges(cancellationToken);
 
+        logger.LogInformation("Combinatoric problem {CombinatoricProblemId} submitted successfully", combinatoricProblemId);
         return new SubmitCombinatoricProblemResult(combinatoricProblemId);
     }
 }

@@ -22,9 +22,13 @@ public class SubmitCombinatoricProblemEndpoint : IEndpoint
             [FromBody] SubmitCombinatoricProblemRequest request,
             [FromServices] IMediator mediator,
             [FromServices] IMessageIdGenerator messageIdGenerator,
+            [FromServices] ILogger<SubmitCombinatoricProblemEndpoint> logger,
             CancellationToken cancellationToken
         )
     {
+        logger.LogInformation("Received SubmitCombinatoricProblem request with {VariableCount} decision variables and {ConstraintCount} constraints",
+            request.DecisionVariables.Length, request.Constraints.Length);
+
         Result<SubmitCombinatoricProblemResult> result = await mediator.Send(new SubmitCombinatoricProblemCommand(
             request.DecisionVariables.Select(dv => new DecisionVariableDto(dv.Name, dv.States)).ToArray(),
             request.Constraints,
@@ -32,14 +36,21 @@ public class SubmitCombinatoricProblemEndpoint : IEndpoint
         ), cancellationToken);
 
         if (result.IsSuccess)
+        {
+            logger.LogInformation("SubmitCombinatoricProblem succeeded, CombinatoricProblemId: {CombinatoricProblemId}", result.Value.CombinatoricsProblemId);
             return TypedResults.Ok(new SubmitCombinatoricProblemResponse
             {
                 CombinatoricsProblemId = result.Value.CombinatoricsProblemId
             });
+        }
 
         if (result.HasError<ValidationError>())
+        {
+            logger.LogWarning("SubmitCombinatoricProblem validation failed: {Errors}", string.Join("; ", result.Errors.Select(e => e.Message)));
             return TypedResults.ValidationProblem(result.ToValidationErrorDictionary());
+        }
 
+        logger.LogError("SubmitCombinatoricProblem failed with unexpected error: {Errors}", string.Join("; ", result.Errors.Select(e => e.Message)));
         return TypedResults.InternalServerError();
     }
 }

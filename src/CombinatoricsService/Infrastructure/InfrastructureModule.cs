@@ -29,7 +29,11 @@ public static class InfrastructureModule
         {
             x.AddConsumers(Assembly);
             x.SetKebabCaseEndpointNameFormatter();
-            x.AddEntityFrameworkOutbox<CombinatoricsServiceDbContext>();
+            x.AddEntityFrameworkOutbox<CombinatoricsServiceDbContext>(o =>
+            {
+                o.UsePostgres();
+                o.UseBusOutbox();
+            });
             x.UsingRabbitMq((context, cfg) =>
             {
                 string connectionString = context.GetRequiredService<IConfiguration>()
@@ -45,13 +49,26 @@ public static class InfrastructureModule
     public static IServiceCollection AddPersistence(this IServiceCollection services) => services
         .AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>()
         .AddScoped<ICombinatoricProblemRepository, CombinatoricProblemRepository>()
-        .AddDbContextPool<CombinatoricsServiceDbContext>((provider, builder) =>
+        .AddScoped<DbContextResolver>()
+        .AddDbContextFactory<CombinatoricsServiceDbContext>((provider, builder) =>
         {
             string connectionString = provider.GetRequiredService<IConfiguration>()
                                           .GetConnectionString("combinatorics-service-db") ??
                                       throw new InvalidOperationException(
                                           "Database connection string is not configured.");
-            
+
+            builder.UseNpgsql(connectionString, optionsBuilder =>
+            {
+                optionsBuilder.MigrationsAssembly(Assembly);
+            });
+        })
+        .AddDbContext<CombinatoricsServiceDbContext>((provider, builder) =>
+        {
+            string connectionString = provider.GetRequiredService<IConfiguration>()
+                                          .GetConnectionString("combinatorics-service-db") ??
+                                      throw new InvalidOperationException(
+                                          "Database connection string is not configured.");
+
             builder.UseNpgsql(connectionString, optionsBuilder =>
             {
                 optionsBuilder.MigrationsAssembly(Assembly);

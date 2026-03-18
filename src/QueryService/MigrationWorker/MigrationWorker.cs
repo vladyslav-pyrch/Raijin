@@ -19,15 +19,21 @@ public class MigrationWorker(
 
         try
         {
+            logger.LogInformation("Starting QueryService database migration");
+
             using IServiceScope scope = serviceProvider.CreateScope();
             // var dbContext = scope.ServiceProvider.GetRequiredService<DbContext>();
             //
             // await RunMigrationAsync(dbContext, cancellationToken);
+            // logger.LogInformation("QueryService database migration completed successfully");
+            //
             // await SeedDataAsync(dbContext, cancellationToken);
+            // logger.LogInformation("QueryService database seeding completed successfully");
         }
         catch (Exception ex)
         {
             activity?.AddException(ex);
+            logger.LogError(ex, "QueryService database migration failed");
             throw;
         }
 

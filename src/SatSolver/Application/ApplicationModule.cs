@@ -26,6 +26,8 @@ public static class ApplicationModule
     private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(ContextBehavior<,>))
         .AddScoped(typeof(IPipelineBehavior<>), typeof(ContextBehavior<>))
+        .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
         .AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
 

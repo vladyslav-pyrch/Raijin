@@ -32,6 +32,11 @@ public static class InfrastructureModule
         .AddMassTransit(x =>
         {
             x.SetKebabCaseEndpointNameFormatter();
+            x.AddEntityFrameworkOutbox<SatSolverDbContext>(o =>
+            {
+                o.UsePostgres();
+                o.UseBusOutbox();
+            });
             x.UsingRabbitMq((context, cfg) =>
             {
                 string connectionString = context.GetRequiredService<IConfiguration>()
@@ -49,7 +54,11 @@ public static class InfrastructureModule
         {
             x.AddConsumers(Assembly);
             x.SetKebabCaseEndpointNameFormatter();
-            x.AddEntityFrameworkOutbox<SatSolverDbContext>();
+            x.AddEntityFrameworkOutbox<SatSolverDbContext>(o =>
+            {
+                o.UsePostgres();
+                o.UseBusOutbox();
+            });
             x.UsingRabbitMq((context, cfg) =>
             {
                 string connectionString = context.GetRequiredService<IConfiguration>()
@@ -71,7 +80,20 @@ public static class InfrastructureModule
     public static IServiceCollection AddPersistence(this IServiceCollection services) => services
         .AddScoped<IUnitOfWork, SatSolverUnitOfWork>()
         .AddScoped<ISatProblemRepository, SatProblemRepository>()
-        .AddDbContextPool<SatSolverDbContext>((provider, builder) =>
+        .AddScoped<DbContextResolver>()
+        .AddDbContextFactory<SatSolverDbContext>((provider, builder) =>
+        {
+            string connectionString = provider.GetRequiredService<IConfiguration>()
+                                          .GetConnectionString("sat-solver-db") ??
+                                      throw new InvalidOperationException(
+                                          "Database connection string is not configured.");
+
+            builder.UseNpgsql(connectionString, optionsBuilder =>
+            {
+                optionsBuilder.MigrationsAssembly(Assembly);
+            });
+        })
+        .AddDbContext<SatSolverDbContext>((provider, builder) =>
         {
             string connectionString = provider.GetRequiredService<IConfiguration>()
                                           .GetConnectionString("sat-solver-db") ??

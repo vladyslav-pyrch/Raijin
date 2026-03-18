@@ -17,6 +17,11 @@ internal class CombinatoricProblemModelConfiguration : IEntityTypeConfiguration<
             navigationBuilder.WithOwner()
                 .HasForeignKey(model => model.CombinatoricProblemId);
 
+            navigationBuilder.HasKey(model => new { model.CombinatoricProblemId, model.Id });
+
+            navigationBuilder.Property(model => model.Id)
+                .ValueGeneratedOnAdd();
+
             navigationBuilder.Property(model => model.Name)
                 .IsRequired();
 

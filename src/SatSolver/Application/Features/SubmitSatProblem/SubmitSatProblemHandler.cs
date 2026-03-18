@@ -18,18 +18,22 @@ public sealed class SubmitSatProblemHandler(
         CancellationToken cancellationToken)
     {
         var satProblemId = Guid.CreateVersion7();
+        logger.LogInformation("Submitting SAT problem {SatProblemId}", satProblemId);
 
         await messageBus.Publish<ISatProblemSubmitted>(message: new
         {
             MessageId = messageIdGenerator.NextMessageId(),
             CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
             CausationId = messageContextAccessor.CurrentContext.CausationId,
+            Timestamp = DateTimeOffset.UtcNow,
             SatProblemId = satProblemId.ToString(),
+            CombinatoricProblemId = (string?)null,
             Dimacs = request.Dimacs,
         }, cancellationToken);
 
         await unitOfWork.SaveChanges(cancellationToken);
 
+        logger.LogInformation("SAT problem {SatProblemId} submitted successfully", satProblemId);
         return new SubmitSatProblemResult(satProblemId);
     }
 }

@@ -37,7 +37,7 @@ public sealed class ServiceProviderMediator(IServiceProvider provider) : IMediat
 
         object handler = provider.GetRequiredService(requestHandlerType);
 
-        Func<Task<Result>> handlerDelegate = ((dynamic)handler).Handle((dynamic)request, cancellationToken);
+        Func<Task<Result>> handlerDelegate = () => ((dynamic)handler).Handle((dynamic)request, cancellationToken);
         
         Type behaviorType = typeof(IPipelineBehavior<>).MakeGenericType(requestType);
         IEnumerable<object> behaviors = provider.GetServices(behaviorType)

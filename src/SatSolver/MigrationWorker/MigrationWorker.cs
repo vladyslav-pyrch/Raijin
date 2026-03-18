@@ -20,15 +20,21 @@ public class MigrationWorker(
 
         try
         {
+            logger.LogInformation("Starting SatSolver database migration");
+
             using IServiceScope scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<SatSolverDbContext>();
 
             await RunMigrationAsync(dbContext, cancellationToken);
+            logger.LogInformation("SatSolver database migration completed successfully");
+
             await SeedDataAsync(dbContext, cancellationToken);
+            logger.LogInformation("SatSolver database seeding completed successfully");
         }
         catch (Exception ex)
         {
             activity?.AddException(ex);
+            logger.LogError(ex, "SatSolver database migration failed");
             throw;
         }
 
