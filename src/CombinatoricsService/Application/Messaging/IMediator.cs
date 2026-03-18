@@ -1,8 +1,10 @@
+using FluentResults;
+
 namespace Raijin.CombinatoricsService.Application.Messaging;
 
 public interface IMediator
 {
-    public Task Send(ICommand command, CancellationToken cancellationToken);
+    public Task<Result> Send(IRequest request, CancellationToken cancellationToken);
 
-    public Task<TResponse> Send<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken);
+    public Task<Result<TResponse>> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken);
 }

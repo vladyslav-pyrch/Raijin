@@ -1,3 +1,3 @@
 namespace Raijin.SatSolver.Application.Messaging;
 
-public class MessageProcessingException(string error) : Exception(error);
+public sealed class MessageProcessingException(string error) : Exception(error);

@@ -1,11 +1,12 @@
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Raijin.SatSolver.Application.Solver;
 using Raijin.SatSolver.Domain.SatProblems;
 
 namespace Raijin.SatSolver.Infrastructure.Solver;
 
-public class CryptominisatSolver : ISatSolver
+public class CryptominisatSolver(ILogger<CryptominisatSolver> logger) : ISatSolver
 {
     public Task<int[]> Solve(SatProblem problem, CancellationToken cancellationToken)
         => InternalSolveAsync(problem, timeout: null, cancellationToken);
@@ -17,11 +18,22 @@ public class CryptominisatSolver : ISatSolver
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        logger.LogDebug("Writing DIMACS problem {SatProblemId} to file", problem.Id);
         string filePath = await WriteProblemInFile(problem.Dimacs);
 
-        string result = await CallCryptominisat(filePath, timeout, cancellationToken);
+        logger.LogInformation("Invoking CryptoMiniSat for problem {SatProblemId}, file: {FilePath}, timeout: {Timeout}",
+            problem.Id, filePath, timeout?.ToString() ?? "none");
 
-        return ParseCryptominisatResult(result);
+        var stopwatch = Stopwatch.StartNew();
+        string result = await CallCryptominisat(filePath, timeout, cancellationToken);
+        stopwatch.Stop();
+
+        logger.LogInformation("CryptoMiniSat finished for problem {SatProblemId} in {ElapsedMs}ms", problem.Id, stopwatch.ElapsedMilliseconds);
+
+        int[] solution = ParseCryptominisatResult(result);
+        logger.LogDebug("Parsed CryptoMiniSat result for problem {SatProblemId}: {LiteralCount} literals", problem.Id, solution.Length);
+
+        return solution;
     }
 
     private int[] ParseCryptominisatResult(string result)

@@ -1,8 +1,8 @@
 namespace Raijin.Application.Contracts;
 
-public interface ICombinatoricProblemSubmitted
+public interface ICombinatoricProblemSubmitted : IMessage
 {
-    public Guid CombinatoricProblemId { get; }
+    public string CombinatoricProblemId { get; }
     
     public IDecisionVariable[] DecisionVariables { get; }
     

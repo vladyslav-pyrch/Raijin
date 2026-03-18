@@ -78,6 +78,14 @@ public partial class SatProblem
         return stringBuilder.ToString();
     }
 
+    public static SatProblem Rehydrate(Guid id, string dimacs, Satisfiability satisfiability, int[] solution)
+    {
+        var satProblem = Create(id, dimacs);
+        satProblem.Satisfiability = satisfiability;
+        satProblem.Solution = solution;
+        return satProblem;
+    }
+
     public static SatProblem Create(Guid id, string dimacs)
     {
         string[] lines = dimacs.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);

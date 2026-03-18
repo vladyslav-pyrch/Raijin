@@ -3,7 +3,7 @@ using Raijin.SatSolver.Application.Validation;
 
 namespace Raijin.SatSolver.Application.Features.SubmitSatProblem;
 
-public class SubmitSatProblemValidator : AbstractValidator<SubmitSatProblemCommand>
+public sealed class SubmitSatProblemValidator : AbstractValidator<SubmitSatProblemCommand>
 {
     public SubmitSatProblemValidator()
     {
