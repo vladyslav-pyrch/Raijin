@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Messaging;
 
-namespace Raijin.CombinatoricsService.Application.Features.SubmitSatProblem;
+namespace Raijin.CombinatoricsService.Application.Features.SendSatProblem;
 
 public sealed class CombinatoricProblemSubmittedHandler(
     IMediator mediator,
@@ -15,7 +15,7 @@ public sealed class CombinatoricProblemSubmittedHandler(
         logger.LogInformation("Handling ICombinatoricProblemSubmitted event for problem {CombinatoricProblemId}",
             message.CombinatoricProblemId);
 
-        Result<SubmitSatProblemResult> result = await mediator.Send(new SubmitSatProblemCommand(
+        Result<SendSatProblemResult> result = await mediator.Send(new SendSatProblemCommand(
             Guid.Parse(message.CombinatoricProblemId),
             new MessageContext(message)
         ), cancellationToken);
@@ -27,7 +27,8 @@ public sealed class CombinatoricProblemSubmittedHandler(
             throw new MessageProcessingException(result.Errors[0].Message);
         }
 
-        logger.LogInformation("Finished handling ICombinatoricProblemSubmitted for problem {CombinatoricProblemId}, created SAT problem {SatProblemId}",
+        logger.LogInformation("Finished handling ICombinatoricProblemSubmitted for problem {CombinatoricProblemId}, sent SAT problem {SatProblemId}",
             message.CombinatoricProblemId, result.Value.SatProblemId);
     }
 }
+

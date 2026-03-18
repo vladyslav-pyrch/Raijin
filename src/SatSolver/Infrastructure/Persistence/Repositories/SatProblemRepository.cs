@@ -6,12 +6,12 @@ using Raijin.SatSolver.Infrastructure.Persistence.Models;
 
 namespace Raijin.SatSolver.Infrastructure.Persistence.Repositories;
 
-public sealed class SatProblemRepository(DbContextResolver dbContextResolver, ILogger<SatProblemRepository> logger) : ISatProblemRepository
+public sealed class SatProblemRepository(SatSolverDbContext dbContext, ILogger<SatProblemRepository> logger) : ISatProblemRepository
 {
     public Task Add(SatProblem satProblem, CancellationToken cancellationToken)
     {
         logger.LogDebug("Adding SAT problem {SatProblemId} to database", satProblem.Id);
-        dbContextResolver.Resolve().SatProblems.Add(new SatProblemModel
+        dbContext.SatProblems.Add(new SatProblemModel
         {
             Id = satProblem.Id,
             Dimacs = satProblem.Dimacs,
@@ -26,13 +26,31 @@ public sealed class SatProblemRepository(DbContextResolver dbContextResolver, IL
         return Task.CompletedTask;
     }
 
+    public async Task<SatProblem?> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Retrieving SAT problem {SatProblemId} from database", id);
+
+        SatProblemModel? model = await dbContext.SatProblems
+            .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
+
+        if (model is null)
+        {
+            logger.LogDebug("SAT problem {SatProblemId} not found in database", id);
+            return null;
+        }
+
+        Satisfiability satisfiability = Enum.Parse<Satisfiability>(model.Satisfiability);
+
+        var satProblem = SatProblem.Rehydrate(model.Id, model.Dimacs, satisfiability, model.Solution);
+
+        return satProblem;
+    }
+
     public async Task Update(SatProblem satProblem, CancellationToken cancellationToken)
     {
         logger.LogDebug("Updating SAT problem {SatProblemId}, Satisfiability: {Satisfiability}", satProblem.Id, satProblem.Satisfiability);
 
-        SatSolverDbContext context = dbContextResolver.Resolve();
-
-        SatProblemModel satProblemModel = await context.SatProblems
+        SatProblemModel satProblemModel = await dbContext.SatProblems
             .FirstAsync(model => model.Id == satProblem.Id, cancellationToken: cancellationToken);
 
         satProblemModel.Dimacs = satProblem.Dimacs;
@@ -44,6 +62,6 @@ public sealed class SatProblemRepository(DbContextResolver dbContextResolver, IL
         };
         satProblemModel.Satisfiability = satProblem.Satisfiability.ToString();
 
-        context.SatProblems.Update(satProblemModel);
+        dbContext.SatProblems.Update(satProblemModel);
     }
 }

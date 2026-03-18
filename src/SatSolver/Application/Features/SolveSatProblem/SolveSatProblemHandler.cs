@@ -22,13 +22,11 @@ public sealed class SolveSatProblemHandler(
     {
         logger.LogInformation("Starting to solve SAT problem {SatProblemId}", request.SatProblemId);
 
-        var satProblem = SatProblem.Create(request.SatProblemId, request.Dimacs);
-
-        await using (ITransaction transaction = await unitOfWork.BeginTransaction(cancellationToken))
+        SatProblem? satProblem = await satProblemRepository.GetById(request.SatProblemId, cancellationToken);
+        if (satProblem is null)
         {
-            await satProblemRepository.Add(satProblem, cancellationToken);
-            await transaction.SaveChanges(cancellationToken);
-            await transaction.Commit(cancellationToken);
+            logger.LogError("SAT problem {SatProblemId} not found", request.SatProblemId);
+            return Result.Fail($"SAT problem {request.SatProblemId} not found.");
         }
 
         logger.LogInformation("Invoking SAT solver for problem {SatProblemId}", request.SatProblemId);

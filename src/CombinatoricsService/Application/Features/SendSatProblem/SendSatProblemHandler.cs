@@ -6,19 +6,19 @@ using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 using Raijin.CombinatoricsService.Domain.Logic;
 
-namespace Raijin.CombinatoricsService.Application.Features.SubmitSatProblem;
+namespace Raijin.CombinatoricsService.Application.Features.SendSatProblem;
 
-public sealed class SubmitSatProblemHandler(
+public sealed class SendSatProblemHandler(
     ICombinatoricProblemRepository combinatoricProblemRepository,
     IMessageBus messageBus,
     IMessageIdGenerator messageIdGenerator,
     IMessageContextAccessor messageContextAccessor,
     IUnitOfWork unitOfWork,
-    ILogger<SubmitSatProblemHandler> logger
-) : IRequestHandler<SubmitSatProblemCommand, SubmitSatProblemResult>
+    ILogger<SendSatProblemHandler> logger
+) : IRequestHandler<SendSatProblemCommand, SendSatProblemResult>
 {
-    public async Task<Result<SubmitSatProblemResult>> Handle(
-        SubmitSatProblemCommand request,
+    public async Task<Result<SendSatProblemResult>> Handle(
+        SendSatProblemCommand request,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Transforming combinatoric problem {CombinatoricProblemId} to SAT", request.CombinatoricProblemId);
@@ -40,7 +40,7 @@ public sealed class SubmitSatProblemHandler(
         logger.LogInformation("Combinatoric problem {CombinatoricProblemId} transformed to SAT problem {SatProblemId}",
             request.CombinatoricProblemId, satProblemId);
 
-        await messageBus.Publish<ISatProblemSubmitted>(new
+        await messageBus.Publish<ISatProblemSent>(new
         {
             MessageId = messageIdGenerator.NextMessageId(),
             CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
@@ -53,10 +53,9 @@ public sealed class SubmitSatProblemHandler(
 
         await unitOfWork.SaveChanges(cancellationToken);
 
-        logger.LogInformation("SAT problem {SatProblemId} submitted for combinatoric problem {CombinatoricProblemId}",
+        logger.LogInformation("SAT problem {SatProblemId} sent for combinatoric problem {CombinatoricProblemId}",
             satProblemId, request.CombinatoricProblemId);
-        return new SubmitSatProblemResult(satProblemId);
+        return new SendSatProblemResult(satProblemId);
     }
 }
-
 

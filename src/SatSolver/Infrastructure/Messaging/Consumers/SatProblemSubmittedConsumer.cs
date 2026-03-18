@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.SatSolver.Application.Messaging;
 
-namespace Raijin.SatSolver.Infrastructure.Messaging;
+namespace Raijin.SatSolver.Infrastructure.Messaging.Consumers;
 
 public sealed class SatProblemSubmittedConsumer(
     IEnumerable<IMessageHandler<ISatProblemSubmitted>> handlers,

@@ -16,7 +16,6 @@ public sealed class SatProblemSubmittedHandler(
 
         var command = new SolveSatProblemCommand(
             Guid.Parse(message.SatProblemId),
-            message.Dimacs,
             new MessageContext(message)
         );
 

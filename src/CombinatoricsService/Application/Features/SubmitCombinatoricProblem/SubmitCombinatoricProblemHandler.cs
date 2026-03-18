@@ -67,7 +67,6 @@ public sealed class SubmitCombinatoricProblemHandler(
             }).ToArray(),
             Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray()
         }, cancellationToken);
-        
         await unitOfWork.SaveChanges(cancellationToken);
 
         logger.LogInformation("Combinatoric problem {CombinatoricProblemId} submitted successfully", combinatoricProblemId);

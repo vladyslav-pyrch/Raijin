@@ -39,12 +39,7 @@ public static class InfrastructureModule
             });
             x.UsingRabbitMq((context, cfg) =>
             {
-                string connectionString = context.GetRequiredService<IConfiguration>()
-                                              .GetConnectionString("rabbit-mq") ??
-                                          throw new InvalidOperationException(
-                                              "RabbitMQ connection string is not configured.");
-
-                cfg.Host(new Uri(connectionString));
+                cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
             });
         });
 
@@ -61,12 +56,7 @@ public static class InfrastructureModule
             });
             x.UsingRabbitMq((context, cfg) =>
             {
-                string connectionString = context.GetRequiredService<IConfiguration>()
-                                              .GetConnectionString("rabbit-mq") ??
-                                          throw new InvalidOperationException(
-                                              "RabbitMQ connection string is not configured.");
-
-                cfg.Host(new Uri(connectionString));
+                cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
                 cfg.ConfigureEndpoints(context);
             });
         });
@@ -80,27 +70,9 @@ public static class InfrastructureModule
     public static IServiceCollection AddPersistence(this IServiceCollection services) => services
         .AddScoped<IUnitOfWork, SatSolverUnitOfWork>()
         .AddScoped<ISatProblemRepository, SatProblemRepository>()
-        .AddScoped<DbContextResolver>()
-        .AddDbContextFactory<SatSolverDbContext>((provider, builder) =>
-        {
-            string connectionString = provider.GetRequiredService<IConfiguration>()
-                                          .GetConnectionString("sat-solver-db") ??
-                                      throw new InvalidOperationException(
-                                          "Database connection string is not configured.");
-
-            builder.UseNpgsql(connectionString, optionsBuilder =>
-            {
-                optionsBuilder.MigrationsAssembly(Assembly);
-            });
-        })
         .AddDbContext<SatSolverDbContext>((provider, builder) =>
         {
-            string connectionString = provider.GetRequiredService<IConfiguration>()
-                                          .GetConnectionString("sat-solver-db") ??
-                                      throw new InvalidOperationException(
-                                          "Database connection string is not configured.");
-
-            builder.UseNpgsql(connectionString, optionsBuilder =>
+            builder.UseNpgsql(GetDatabaseConnectionString(provider), optionsBuilder =>
             {
                 optionsBuilder.MigrationsAssembly(Assembly);
             });
@@ -108,4 +80,12 @@ public static class InfrastructureModule
 
     private static IServiceCollection AddSatSolver(this IServiceCollection services) =>
         services.AddScoped<ISatSolver, CryptominisatSolver>();
+
+    private static string GetRabbitMqConnectionString(IServiceProvider provider) =>
+        provider.GetRequiredService<IConfiguration>().GetConnectionString("rabbit-mq")
+        ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
+
+    private static string GetDatabaseConnectionString(IServiceProvider provider) =>
+        provider.GetRequiredService<IConfiguration>().GetConnectionString("sat-solver-db")
+        ?? throw new InvalidOperationException("Database connection string is not configured.");
 }
