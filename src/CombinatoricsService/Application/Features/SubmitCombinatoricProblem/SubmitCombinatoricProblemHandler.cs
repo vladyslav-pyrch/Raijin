@@ -34,10 +34,11 @@ public sealed class SubmitCombinatoricProblemHandler(
         var result = new Result();
         for (var i = 0; i < request.Constraints.Length; i++)
         {
+            int i1 = i;
             Result addingConstraintResult = Result.Try(
-                () => combinatoricProblem.AddConstrain(request.Constraints[i]),
+                () => combinatoricProblem.AddConstrain(request.Constraints[i1]),
                 exception => new ValidationError(
-                    propertyName: $"{nameof(request.Constraints)}[{i}]",
+                    propertyName: $"{nameof(request.Constraints)}[{i1}]",
                     problem: exception.Message
                 )
             );
