@@ -23,7 +23,9 @@ public sealed class SubmitSatProblemHandler(
         logger.LogInformation("Submitting SAT problem {SatProblemId}", satProblemId);
 
         var satProblem = SatProblem.Create(satProblemId, request.Dimacs);
+        
         await satProblemRepository.Add(satProblem, cancellationToken);
+        await unitOfWork.SaveChanges(cancellationToken);
 
         await messageBus.Publish<ISatProblemSubmitted>(message: new
         {
@@ -35,8 +37,6 @@ public sealed class SubmitSatProblemHandler(
             CombinatoricProblemId = (string?)null,
             Dimacs = request.Dimacs,
         }, cancellationToken);
-
-        await unitOfWork.SaveChanges(cancellationToken);
 
         logger.LogInformation("SAT problem {SatProblemId} submitted successfully", satProblemId);
         return new SubmitSatProblemResult(satProblemId);

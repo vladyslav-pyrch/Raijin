@@ -14,7 +14,7 @@ Use this before submitting a PR or accepting Copilot-generated code.
 - [ ] Commands flow through `IMediator` → pipeline → handler (not called directly)
 - [ ] Handlers return `Result<T>` or `Result` (FluentResults), not raw exceptions for expected failures
 - [ ] Integration events are published via `IMessageBus.Publish<IContract>(...)`, not directly via MassTransit
-- [ ] `UnitOfWork.SaveChanges()` is called **after** all message publishes (outbox pattern)
+- [ ] `UnitOfWork.SaveChanges()` is called **before** publishing integration events (persist-then-publish)
 - [ ] No cross-service references to Application or Domain projects
 - [ ] Each service owns its own `IMediator`, `IRequest`, `IRequestHandler`, `IPipelineBehavior`
 - [ ] No references to or patterns from `ProblemSolvingService` (legacy)
@@ -59,7 +59,6 @@ Use this before submitting a PR or accepting Copilot-generated code.
 - [ ] Repository maps domain ↔ persistence model
 - [ ] EF configurations use `IEntityTypeConfiguration<TModel>` in separate files
 - [ ] Configurations registered via `modelBuilder.ApplyConfigurationsFromAssembly()`
-- [ ] MassTransit outbox entities added in `OnModelCreating` (`AddOutboxMessageEntity`, etc.)
 - [ ] Connection strings retrieved via `IConfiguration.GetConnectionString()` (Aspire service discovery)
 
 ## ✅ Messaging
@@ -69,7 +68,6 @@ Use this before submitting a PR or accepting Copilot-generated code.
 - [ ] Events published as anonymous objects matching the interface shape
 - [ ] `MessageContext` propagated through `ContextBehavior` pipeline
 - [ ] MassTransit uses kebab-case endpoint name formatter
-- [ ] EF Core outbox configured for all services that publish messages
 
 ## ✅ Testing
 

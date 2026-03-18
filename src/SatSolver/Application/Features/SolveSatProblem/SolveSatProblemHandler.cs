@@ -37,6 +37,7 @@ public sealed class SolveSatProblemHandler(
             request.SatProblemId, satProblem.Satisfiability, solution.Length);
 
         await satProblemRepository.Update(satProblem, cancellationToken);
+        await unitOfWork.SaveChanges(cancellationToken);
 
         await messageBus.Publish<ISatProblemSolved>(new
         {
@@ -47,8 +48,6 @@ public sealed class SolveSatProblemHandler(
             SatProblemId = satProblem.Id.ToString(),
             Solution = solution
         }, cancellationToken);
-
-        await unitOfWork.SaveChanges(cancellationToken);
 
         logger.LogInformation("SAT problem {SatProblemId} solve result published successfully", request.SatProblemId);
         return Result.Ok();

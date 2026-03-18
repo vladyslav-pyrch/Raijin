@@ -49,11 +49,6 @@ public static class InfrastructureModule
         {
             x.AddConsumers(Assembly);
             x.SetKebabCaseEndpointNameFormatter();
-            x.AddEntityFrameworkOutbox<SatSolverDbContext>(o =>
-            {
-                o.UsePostgres();
-                o.UseBusOutbox();
-            });
             x.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host(new Uri(GetRabbitMqConnectionString(context)));

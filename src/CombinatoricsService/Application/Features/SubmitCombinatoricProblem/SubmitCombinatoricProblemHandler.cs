@@ -34,10 +34,11 @@ public sealed class SubmitCombinatoricProblemHandler(
         var result = new Result();
         for (var i = 0; i < request.Constraints.Length; i++)
         {
+            int i1 = i;
             Result addingConstraintResult = Result.Try(
-                () => combinatoricProblem.AddConstrain(request.Constraints[i]),
+                () => combinatoricProblem.AddConstrain(request.Constraints[i1]),
                 exception => new ValidationError(
-                    propertyName: $"{nameof(request.Constraints)}[{i}]",
+                    propertyName: $"{nameof(request.Constraints)}[{i1}]",
                     problem: exception.Message
                 )
             );
@@ -52,6 +53,7 @@ public sealed class SubmitCombinatoricProblemHandler(
         }
         
         await combinatoricProblemRepository.Add(combinatoricProblem, cancellationToken);
+        await unitOfWork.SaveChanges(cancellationToken);
 
         await messageBus.Publish<ICombinatoricProblemSubmitted>(new
         {
@@ -67,7 +69,6 @@ public sealed class SubmitCombinatoricProblemHandler(
             }).ToArray(),
             Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray()
         }, cancellationToken);
-        await unitOfWork.SaveChanges(cancellationToken);
 
         logger.LogInformation("Combinatoric problem {CombinatoricProblemId} submitted successfully", combinatoricProblemId);
         return new SubmitCombinatoricProblemResult(combinatoricProblemId);

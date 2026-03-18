@@ -42,13 +42,11 @@ public sealed class CombinatoricProblemRepository(
             return null;
         }
 
-        var combinatoricProblem = new CombinatoricProblem(model.Id);
-
-        foreach (DecisionVariableModel variableModel in model.DecisionVariables)
-            combinatoricProblem.AddDecisionVariable(variableModel.Name, variableModel.States);
-
-        foreach (string constraint in model.Constraints) 
-            combinatoricProblem.AddConstrain(constraint);
+        CombinatoricProblem combinatoricProblem = CombinatoricProblem.Rehydrate(
+            model.Id,
+            model.DecisionVariables.Select(variable => (variable.Name, States: variable.States.ToArray())).ToArray(),
+            model.Constraints.ToArray()
+        );
 
         logger.LogDebug("Retrieved combinatoric problem {CombinatoricProblemId} with {VariableCount} variables and {ConstraintCount} constraints",
             id, model.DecisionVariables.Count, model.Constraints.Length);

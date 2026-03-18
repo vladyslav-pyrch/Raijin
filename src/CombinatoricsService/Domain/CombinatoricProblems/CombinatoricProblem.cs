@@ -18,9 +18,6 @@ public class CombinatoricProblem(Guid id)
     {
         var decisionVariable = new DecisionVariable(name, states);
         _decisionVariables.Add(name, decisionVariable);
-
-        AddAtLeastOneStateConstraint(decisionVariable);
-        AddAtMostOneStateConstraint(decisionVariable);
     }
 
     public void AddConstrain(string formula) => AddConstrain(new Constraint(formula));
@@ -32,32 +29,40 @@ public class CombinatoricProblem(Guid id)
         if (Constraints.Count == 0)
             throw new InvalidOperationException(
                 "A combinatoric problem must have at least one constraint to be converted to a formula.");
+        
+        ExpressionNode decisionVariableConstraints = DecisionVariables
+            .Select(variable => AddAtLeastOneStateConstraint(variable).And(AddAtMostOneStateConstraint(variable)))
+            .Aggregate((acc, constraint) => acc.And(constraint));
 
         return Constraints
             .Select(constraint => constraint.Expression)
-            .Aggregate((acc, expression) => acc.And(expression));
+            .Aggregate((acc, expression) => acc.And(expression))
+            .And(decisionVariableConstraints);
     }
 
-    private void AddAtLeastOneStateConstraint(DecisionVariable decisionVariable)
+    private ExpressionNode AddAtLeastOneStateConstraint(DecisionVariable decisionVariable)
     {
         Variable[] variables = decisionVariable.ToVariables();
 
-        AddConstrain(expression: variables.Aggregate<ExpressionNode>((acc, node) => acc.Or(node)));
+        return variables.Aggregate<ExpressionNode>((acc, node) => acc.Or(node));
     }
 
-    private void AddAtMostOneStateConstraint(DecisionVariable decisionVariable)
+    private ExpressionNode AddAtMostOneStateConstraint(DecisionVariable decisionVariable)
     {
         Variable[] variables = decisionVariable.ToVariables();
 
-        foreach (Variable currentVariable in variables)
-        {
-            Variable[] otherVariables = variables.Where(node => node != currentVariable).ToArray();
-
-            AddConstrain(expression: currentVariable.Imply(
-                otherVariables.Aggregate<ExpressionNode>((acc, variable) => acc.Or(variable)
-                ).Negated()
+        IEnumerable<ExpressionNode> constraints = variables
+            .Select(currentVariable => new
+            {
+                currentVariable,
+                otherVariables = variables.Where(node => node != currentVariable).ToArray()
+            })
+            .Select(t => t.currentVariable.Imply(t.otherVariables
+                .Aggregate<ExpressionNode>((acc, variable) => acc.Or(variable))
+                .Negated()
             ));
-        }
+
+        return constraints.Aggregate((acc, node) => acc.And(node));
     }
 
     private void AddConstrain(Constraint constraint)
@@ -86,5 +91,18 @@ public class CombinatoricProblem(Guid id)
                     nameof(constraint)
                 );
         }
+    }
+    
+    public static CombinatoricProblem Rehydrate(Guid id, IEnumerable<(string Name, string[] States)> decisionVariables, IEnumerable<string> constraints)
+    {
+        var combinatoricProblem = new CombinatoricProblem(id);
+
+        foreach ((string name, string[] states) in decisionVariables)
+            combinatoricProblem._decisionVariables.Add(name, new DecisionVariable(name, states));
+        
+        foreach (string constraint in constraints)
+            combinatoricProblem._constrains.Add(new Constraint(constraint));
+
+        return combinatoricProblem;
     }
 }
