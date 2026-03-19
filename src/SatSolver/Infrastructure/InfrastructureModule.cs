@@ -37,10 +37,7 @@ public static class InfrastructureModule
                 o.UsePostgres();
                 o.UseBusOutbox();
             });
-            x.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
-            });
+            x.UsingRabbitMq((context, cfg) => { cfg.Host(new Uri(GetRabbitMqConnectionString(context))); });
         });
 
     private static IServiceCollection AddMessagingWithConsumers(this IServiceCollection services) => services
@@ -67,14 +64,19 @@ public static class InfrastructureModule
         .AddScoped<ISatProblemRepository, SatProblemRepository>()
         .AddDbContext<SatSolverDbContext>((provider, builder) =>
         {
-            builder.UseNpgsql(GetDatabaseConnectionString(provider), optionsBuilder =>
-            {
-                optionsBuilder.MigrationsAssembly(Assembly);
-            });
+            builder.UseNpgsql(GetDatabaseConnectionString(provider),
+                optionsBuilder => { optionsBuilder.MigrationsAssembly(Assembly); });
         });
 
-    private static IServiceCollection AddSatSolver(this IServiceCollection services) =>
-        services.AddScoped<ISatSolver, CryptominisatSolver>();
+    private static IServiceCollection AddSatSolver(this IServiceCollection services) => services
+        .AddOptions<CryptominisatSolveOptions>()
+        .Configure(options =>
+        {
+            string? binaryPath = Environment.GetEnvironmentVariable("CRYPTOMINISAT_FILE_NAME");
+            if (!string.IsNullOrWhiteSpace(binaryPath))
+                options.FileName = binaryPath;
+        }).Services
+        .AddScoped<ISatSolver, CryptominisatSolver>();
 
     private static string GetRabbitMqConnectionString(IServiceProvider provider) =>
         provider.GetRequiredService<IConfiguration>().GetConnectionString("rabbit-mq")

@@ -1,12 +1,15 @@
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Raijin.SatSolver.Application.Solver;
 using Raijin.SatSolver.Domain.SatProblems;
 
 namespace Raijin.SatSolver.Infrastructure.Solver;
 
-public class CryptominisatSolver(ILogger<CryptominisatSolver> logger) : ISatSolver
+public class CryptominisatSolver(
+    IOptions<CryptominisatSolveOptions> options,
+    ILogger<CryptominisatSolver> logger) : ISatSolver
 {
     public Task<int[]> Solve(SatProblem problem, CancellationToken cancellationToken)
         => InternalSolveAsync(problem, timeout: null, cancellationToken);
@@ -74,11 +77,12 @@ public class CryptominisatSolver(ILogger<CryptominisatSolver> logger) : ISatSolv
 
     private ProcessStartInfo CreateCryptominisatProcessStartInfo(string filePath, int? timeout) => new()
     {
-        FileName = "cryptominisat5",
+        FileName = options.Value.FileName,
         Arguments = timeout.HasValue ? $"--verb 0 --maxtime {timeout.Value} {filePath}" : $"--verb 0 {filePath}",
         RedirectStandardOutput = true,
         RedirectStandardError = true,
-        CreateNoWindow = true
+        CreateNoWindow = true,
+        UseShellExecute = false
     };
 
     private async Task<string> GetOutputFromProcess(Process process, CancellationToken cancellationToken)
