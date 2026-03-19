@@ -229,20 +229,19 @@ tests/
 
 ## What Copilot Should NEVER Do
 
-1. **Never** reference or generate code following `ProblemSolvingService` patterns — it is legacy.
-2. **Never** use MediatR — the project uses a custom `ServiceProviderMediator`.
-3. **Never** use controller-based APIs — only Minimal APIs with `IEndpoint`.
-4. **Never** save domain aggregates/entities directly to EF Core — always map to `{Noun}Model`.
-5. **Never** share Application or Domain projects between microservices.
-6. **Never** create a shared messaging/CQRS library — each service owns its abstractions.
-7. **Never** use `async void`.
-8. **Never** swallow exceptions silently.
-9. **Never** use `.Result`, `.Wait()`, or `GetAwaiter().GetResult()` on tasks.
-10. **Never** add package references to Domain projects (they must remain dependency-free).
-11. **Never** use block-scoped namespaces.
-12. **Never** use NgModules in Angular — use standalone components only.
-13. **Never** put business logic in the Api or Infrastructure layer.
-14. **Never** name integration events with `Event`, `Message`, or `IntegrationEvent` suffix.
+1. **Never** use MediatR — the project uses a custom `ServiceProviderMediator`.
+2. **Never** use controller-based APIs — only Minimal APIs with `IEndpoint`.
+3. **Never** save domain aggregates/entities directly to EF Core — always map to `{Noun}Model`.
+4. **Never** share Application or Domain projects between microservices.
+5. **Never** create a shared messaging/CQRS library — each service owns its abstractions.
+6. **Never** use `async void`.
+7. **Never** swallow exceptions silently.
+8. **Never** use `.Result`, `.Wait()`, or `GetAwaiter().GetResult()` on tasks.
+9. **Never** add package references to Domain projects (they must remain dependency-free).
+10. **Never** use block-scoped namespaces.
+11. **Never** use NgModules in Angular — use standalone components only.
+12. **Never** put business logic in the Api or Infrastructure layer.
+13. **Never** name integration events with `Event`, `Message`, or `IntegrationEvent` suffix.
 
 ## Code Pattern Examples (from the actual codebase)
 

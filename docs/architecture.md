@@ -172,5 +172,4 @@ Handlers always call `unitOfWork.SaveChanges()` **before** publishing integratio
 | **Putting business logic in endpoints** | Endpoints are adapters; all logic goes through the command → handler pipeline |
 | **Creating a shared CQRS/messaging library** | Each service must own its infrastructure abstractions to remain independently deployable |
 | **Using controllers** | Project uses Minimal APIs exclusively |
-| **Referencing ProblemSolvingService** | It is legacy; follow CombinatoricsService/SatSolver patterns instead |
 
