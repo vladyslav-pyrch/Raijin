@@ -24,15 +24,30 @@ IResourceBuilder<ProjectResource> satSolverMigrationWorker = builder
     .WithReference(satSolverDb, connectionName: "sat-solver-db")
     .WaitFor(satSolverDb);
 
-IResourceBuilder<ContainerResource> satSolverWorker = builder
-    .AddDockerfile("sat-solver-worker", "..", "./SatSolver/Worker/Dockerfile")
-    .WithReference(satSolverDb, connectionName: "sat-solver-db")
-    .WaitFor(satSolverDb)
-    .WaitFor(satSolverMigrationWorker)
-    .WithReference(rabbitMq)
-    .WaitFor(rabbitMq)
-    .WithLifetime(ContainerLifetime.Session)
-    .PublishAsContainer();
+switch (builder.Environment.IsDevelopment())
+{
+    case true:
+        builder.AddProject<Raijin_SatSolver_Worker>("sat-solver-worker")
+            .WithReplicas(3)
+            .WithEnvironment("CRYPTOMINISAT_FILE_NAME", "cryptominisat5.exe")
+            .WithReference(satSolverDb, connectionName: "sat-solver-db")
+            .WaitFor(satSolverDb)
+            .WaitFor(satSolverMigrationWorker)
+            .WithReference(rabbitMq)
+            .WaitFor(rabbitMq);
+        break;
+    case false:
+        for (var i = 0; i < 3; i++)
+            builder.AddDockerfile($"sat-solver-worker-{i}", "..", "./SatSolver/Worker/Dockerfile")
+                .WithLifetime(ContainerLifetime.Session)
+                .PublishAsContainer()
+                .WithReference(satSolverDb, connectionName: "sat-solver-db")
+                .WaitFor(satSolverDb)
+                .WaitFor(satSolverMigrationWorker)
+                .WithReference(rabbitMq)
+                .WaitFor(rabbitMq);
+        break;
+}
 
 IResourceBuilder<ProjectResource> satSolverApi = builder
     .AddProject<Raijin_SatSolver_Api>("sat-solver-api")
