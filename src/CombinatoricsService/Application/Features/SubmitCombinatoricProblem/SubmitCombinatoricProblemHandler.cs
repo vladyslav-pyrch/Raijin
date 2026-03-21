@@ -23,54 +23,46 @@ public sealed class SubmitCombinatoricProblemHandler(
     )
     {
         var combinatoricProblemId = Guid.CreateVersion7();
-        logger.LogInformation("Submitting combinatoric problem {CombinatoricProblemId} with {VariableCount} decision variables and {ConstraintCount} constraints",
-            combinatoricProblemId, request.DecisionVariables.Length, request.Constraints.Length);
 
-        var combinatoricProblem = new CombinatoricProblem(combinatoricProblemId);
+        CombinatoricProblem combinatoricProblem = new(combinatoricProblemId);
 
         foreach (DecisionVariableDto variableDto in request.DecisionVariables)
             combinatoricProblem.AddDecisionVariable(variableDto.Name, variableDto.States);
-        
-        var result = new Result();
+
+        Result result = new();
         for (var i = 0; i < request.Constraints.Length; i++)
         {
             int i1 = i;
             Result addingConstraintResult = Result.Try(
                 () => combinatoricProblem.AddConstrain(request.Constraints[i1]),
                 exception => new ValidationError(
-                    propertyName: $"{nameof(request.Constraints)}[{i1}]",
-                    problem: exception.Message
+                    $"{nameof(request.Constraints)}[{i1}]",
+                    exception.Message
                 )
             );
-        
+
             result.WithErrors(addingConstraintResult.Errors);
         }
+
         if (result.IsFailed)
-        {
-            logger.LogWarning("Combinatoric problem {CombinatoricProblemId} has invalid constraints: {ErrorCount} error(s)",
-                combinatoricProblemId, result.Errors.Count);
             return result;
-        }
-        
+
         await combinatoricProblemRepository.Add(combinatoricProblem, cancellationToken);
-        await unitOfWork.SaveChanges(cancellationToken);
+        await unitOfWork.Commit(cancellationToken);
 
         await messageBus.Publish<ICombinatoricProblemSubmitted>(new
         {
             MessageId = messageIdGenerator.NextMessageId(),
-            CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
-            CausationId = messageContextAccessor.CurrentContext.CausationId,
+            messageContextAccessor.CurrentContext.CorrelationId,
+            messageContextAccessor.CurrentContext.CausationId,
             Timestamp = DateTimeOffset.UtcNow,
             CombinatoricProblemId = combinatoricProblemId,
-            DecisionVariables = combinatoricProblem.DecisionVariables.Select(variable => new
-            {
-                Name = variable.Name,
-                States = variable.States
-            }).ToArray(),
+            DecisionVariables =
+                combinatoricProblem.DecisionVariables.Select(variable => new { variable.Name, variable.States })
+                    .ToArray(),
             Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray()
         }, cancellationToken);
 
-        logger.LogInformation("Combinatoric problem {CombinatoricProblemId} submitted successfully", combinatoricProblemId);
         return new SubmitCombinatoricProblemResult(combinatoricProblemId);
     }
 }

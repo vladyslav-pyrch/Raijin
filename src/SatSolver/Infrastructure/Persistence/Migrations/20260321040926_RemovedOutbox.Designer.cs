@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Raijin.SatSolver.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Raijin.SatSolver.Infrastructure.Persistence;
 namespace Raijin.SatSolver.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SatSolverDbContext))]
-    partial class SatSolverDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260321040926_RemovedOutbox")]
+    partial class RemovedOutbox
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

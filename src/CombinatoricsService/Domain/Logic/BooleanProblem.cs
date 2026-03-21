@@ -2,66 +2,94 @@ using Raijin.CombinatoricsService.Domain.Shared;
 
 namespace Raijin.CombinatoricsService.Domain.Logic;
 
-public class BooleanProblem
+public class BooleanProblem(Guid id)
 {
     private readonly Dictionary<string, Variable> _variables = [];
-    
-    public BooleanProblem(Guid id, string formula)
-    {
-        Id = id;
-        Formula = formula;
-        Expression = ExpressionParser.Parse(formula);
-        
-        foreach (Variable variable in Expression.GetVariables())
-            _variables.Add(variable.Name, variable);
-    }
-    
-    public BooleanProblem(Guid id, ExpressionNode expression)
-    {
-        Id = id;
-        Formula = expression.ToString();
-        Expression = expression;
-        
-        foreach (Variable variable in Expression.GetVariables())
-            _variables.TryAdd(variable.Name, variable);
-    } 
-    
-    public Guid Id { get; }
-    
-    public string Formula { get; }
-    
-    public ExpressionNode Expression { get; }
-    
+
+    public Guid Id { get; } = id;
+
+    public string Formula { get; private set; }
+
+    public ExpressionNode Expression { get; private set; }
+
     public IEnumerable<Variable> Variables => _variables.Values;
 
     public Satisfiability Satisfiability { get; private set; } = Satisfiability.Unknown;
 
-    public Assignment? Solution { get; private set; }
-    
-    public SatReduction GetSatReduction() => TseitinTransform(Id);
+    public BooleanProblemSolution? Solution { get; private set; }
 
-    public void SetSolution(IReadOnlyDictionary<string, bool> solution)
+    public static BooleanProblem Rehydrate(Guid id, string formula)
     {
-        ArgumentNullException.ThrowIfNull(solution);
+        ArgumentNullException.ThrowIfNull(formula);
 
-        if (solution.Count == 0)
+        var problem = new BooleanProblem(id)
+        {
+            Formula = formula,
+            Expression = ExpressionParser.Parse(formula)
+        };
+
+        foreach (Variable variable in problem.Expression.GetVariables())
+            problem._variables.TryAdd(variable.Name, variable);
+
+        return problem;
+    }
+
+    public SatReduction ReduceToSat()
+    {
+        return TseitinTransform(Id);
+    }
+
+    public void SetExpression(ExpressionNode expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+
+        SetExpression(expression, expression.ToString());
+    }
+
+    public void SetExpression(string formula)
+    {
+        ArgumentNullException.ThrowIfNull(formula);
+
+        SetExpression(ExpressionParser.Parse(formula), formula);
+    }
+
+    public void ResolveSatSolution(SatSolution satSolution)
+    {
+        ArgumentNullException.ThrowIfNull(satSolution);
+
+        if (satSolution.NumberOfVariables == 0)
         {
             Satisfiability = Satisfiability.Unsatisfiable;
             return;
         }
-        
-        string[] variableNames = Variables.Select(variable => variable.Name ).ToArray();
-        
-        if (solution.Keys.Except(variableNames).Any())
-            throw new ArgumentException("The solution contains variables that are not defined in the problem.", nameof(solution));
-        if (variableNames.Except(solution.Keys).Any())
-            throw new ArgumentException("The solution does not contain all variables defined in the problem.", nameof(solution));
 
-        IEnumerable<VariableAssignment> variableAssignments = solution
-            .Select(kvp => new VariableAssignment(_variables[kvp.Key], kvp.Value));
-        
-        Solution = new Assignment(variableAssignments);
+        SatReduction satReduction = ReduceToSat();
+        if (satSolution.NumberOfVariables != satReduction.NumberOfVariables)
+            throw new ArgumentException(
+                $"The SAT solution contains {satSolution.NumberOfVariables} variable(s) but the reduction expects {satReduction.NumberOfVariables}.",
+                nameof(satSolution));
+
+        IReadOnlyBijectiveDictionary<int, Variable> inverse = satReduction.SymbolTable.Inverse;
+
+        IEnumerable<VariableAssignment> assignments = satSolution.Literals
+            .Select(literal => new { Index = Math.Abs(literal), Value = literal > 0 })
+            .Where(arg => inverse.ContainsKey(arg.Index))
+            .Select(arg => new VariableAssignment(inverse[arg.Index], arg.Value));
+
+        Solution = new BooleanProblemSolution(assignments);
         Satisfiability = Satisfiability.Satisfiable;
+    }
+
+    private void SetExpression(ExpressionNode expression, string formula)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        ArgumentNullException.ThrowIfNull(formula);
+
+        Formula = formula;
+        Expression = expression;
+
+        foreach (Variable variable in Expression.GetVariables())
+            _variables.TryAdd(variable.Name, variable);
     }
 
     private SatReduction TseitinTransform(Guid satReductionId)
@@ -69,8 +97,8 @@ public class BooleanProblem
         var varId = 1;
         BijectiveDictionary<Variable, int> symbolTable = [];
         List<IEnumerable<int>> clauses = [];
-        
-        int lastVariable = Expression.TseitinTransform(clauses, symbolTable, newLiteralId: () => varId++);
+
+        int lastVariable = Expression.TseitinTransform(clauses, symbolTable, () => varId++);
         clauses.Add([lastVariable]);
 
         return new SatReduction(satReductionId, clauses, symbolTable);

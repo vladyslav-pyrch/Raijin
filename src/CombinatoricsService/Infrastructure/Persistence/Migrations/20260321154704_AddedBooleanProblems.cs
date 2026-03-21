@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,17 +8,31 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class AddedBooleanProblems : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "BooleanProblems",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Formula = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BooleanProblems", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CombinatoricProblems",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Constraints = table.Column<string[]>(type: "text[]", nullable: false)
+                    Constraints = table.Column<string[]>(type: "text[]", nullable: false),
+                    Satisfiability = table.Column<string>(type: "text", nullable: false),
+                    Solution = table.Column<Dictionary<string, string>>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -28,9 +43,9 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                 name: "DecisionVariableModel",
                 columns: table => new
                 {
-                    CombinatoricProblemId = table.Column<Guid>(type: "uuid", nullable: false),
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CombinatoricProblemId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     States = table.Column<string[]>(type: "text[]", nullable: false)
                 },
@@ -49,6 +64,9 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "BooleanProblems");
+
             migrationBuilder.DropTable(
                 name: "DecisionVariableModel");
 

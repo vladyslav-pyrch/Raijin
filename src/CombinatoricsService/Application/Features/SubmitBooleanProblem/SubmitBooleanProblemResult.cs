@@ -1,0 +1,3 @@
+﻿namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
+
+public record SubmitBooleanProblemResult(Guid BooleanProblemId);

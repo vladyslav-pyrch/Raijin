@@ -12,6 +12,15 @@ internal class CombinatoricProblemModelConfiguration : IEntityTypeConfiguration<
 
         builder.Property(model => model.Id).ValueGeneratedNever();
 
+        builder.PrimitiveCollection(model => model.Constraints)
+            .IsRequired();
+
+        builder.Property(model => model.Satisfiability)
+            .IsRequired();
+
+        builder.Property(model => model.Solution)
+            .HasColumnType("jsonb");
+
         builder.OwnsMany(model => model.DecisionVariables, navigationBuilder =>
         {
             navigationBuilder.WithOwner()
@@ -28,8 +37,5 @@ internal class CombinatoricProblemModelConfiguration : IEntityTypeConfiguration<
             navigationBuilder.PrimitiveCollection(model => model.States)
                 .IsRequired();
         });
-
-        builder.PrimitiveCollection(model => model.Constraints)
-            .IsRequired();
     }
 }

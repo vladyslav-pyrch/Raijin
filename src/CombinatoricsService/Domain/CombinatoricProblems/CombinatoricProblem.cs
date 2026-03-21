@@ -5,9 +5,8 @@ namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
 public class CombinatoricProblem(Guid id)
 {
-    private readonly Dictionary<string, DecisionVariable> _decisionVariables = [];
-
     private readonly List<Constraint> _constrains = [];
+    private readonly Dictionary<string, DecisionVariable> _decisionVariables = [];
 
     public Guid Id { get; } = id;
 
@@ -22,15 +21,26 @@ public class CombinatoricProblem(Guid id)
     public static CombinatoricProblem Rehydrate(
         Guid id,
         IEnumerable<(string Name, string[] States)> decisionVariables,
-        IEnumerable<string> constraints)
+        IEnumerable<string> constraints,
+        Satisfiability satisfiability,
+        IReadOnlyDictionary<string, string>? solution = null)
     {
         var combinatoricProblem = new CombinatoricProblem(id);
 
         foreach ((string name, string[] states) in decisionVariables)
             combinatoricProblem._decisionVariables.Add(name, new DecisionVariable(name, states));
-        
+
         foreach (string constraint in constraints)
             combinatoricProblem._constrains.Add(new Constraint(constraint));
+
+        combinatoricProblem.Satisfiability = satisfiability;
+
+        if (solution is null)
+            return combinatoricProblem;
+
+        IEnumerable<DecisionVariableAssignment> assignments = solution
+            .Select(kvp => new DecisionVariableAssignment(combinatoricProblem._decisionVariables[kvp.Key], kvp.Value));
+        combinatoricProblem.Solution = new CombinatoricSolution(assignments);
 
         return combinatoricProblem;
     }
@@ -41,35 +51,45 @@ public class CombinatoricProblem(Guid id)
         _decisionVariables.Add(name, decisionVariable);
     }
 
-    public void AddConstrain(string formula) => AddConstrain(new Constraint(formula));
-
-    public void SetSolution(IReadOnlyDictionary<string, string> solution)
+    public void AddConstrain(string formula)
     {
-        ArgumentNullException.ThrowIfNull(solution);
+        AddConstrain(new Constraint(formula));
+    }
 
-        if (solution.Count == 0)
+    public void ResolveSatSolution(SatSolution satSolution)
+    {
+        ArgumentNullException.ThrowIfNull(satSolution);
+
+        BooleanProblem booleanProblem = ReduceToBooleanProblem();
+        booleanProblem.ResolveSatSolution(satSolution);
+
+        if (booleanProblem.Satisfiability == Satisfiability.Unsatisfiable)
         {
             Satisfiability = Satisfiability.Unsatisfiable;
             return;
         }
-        
-        if (solution.Keys.Except(_decisionVariables.Keys).Any())
-            throw new ArgumentException("The solution contains decision variables that are not defined in the problem.", nameof(solution));
-        if (_decisionVariables.Keys.Except(solution.Keys).Any())
-            throw new ArgumentException("The solution does not contain all decision variables defined in the problem.", nameof(solution));
 
-        IEnumerable<DecisionVariableAssignment> decisionVariableAssignments = solution
-            .Select(kvp => new DecisionVariableAssignment(_decisionVariables[kvp.Key], kvp.Value));
-        
-        Solution = new CombinatoricSolution(decisionVariableAssignments);
+        IEnumerable<DecisionVariableAssignment> solution = booleanProblem.Solution!.Assignments
+            .Where(assignment => assignment.Value)
+            .Select(assignment => assignment.Variable)
+            .Select(variable =>
+            {
+                string[] parts = variable.Name.Split("_is_");
+                string decisionVariableName = parts[0];
+                string decisionVariableState = parts[1];
+                return new DecisionVariableAssignment(_decisionVariables[decisionVariableName], decisionVariableState);
+            });
+
+        Solution = new CombinatoricSolution(solution);
         Satisfiability = Satisfiability.Satisfiable;
     }
 
-    public BooleanProblem ToBooleanProblem()
+    public BooleanProblem ReduceToBooleanProblem()
     {
         if (Constraints.Count == 0)
-            throw new InvalidOperationException("A combinatoric problem must have at least one constraint to be reduced to to formula.");
-        
+            throw new InvalidOperationException(
+                "A combinatoric problem must have at least one constraint to be reduced to to formula.");
+
         ExpressionNode decisionVariableConstraints = DecisionVariables
             .Select(variable => BuildAtLeastOneStateConstraint(variable).And(BuildAtMostOneStateConstraint(variable)))
             .Aggregate((acc, constraint) => acc.And(constraint));
@@ -78,9 +98,12 @@ public class CombinatoricProblem(Guid id)
             .Aggregate((acc, expression) => acc.And(expression))
             .And(decisionVariableConstraints);
 
-        return new BooleanProblem(Id, booleanReduction);
+        var booleanProblem = new BooleanProblem(Id);
+        booleanProblem.SetExpression(booleanReduction);
+
+        return booleanProblem;
     }
-    
+
     private void AddConstrain(Constraint constraint)
     {
         CheckVariables(constraint);

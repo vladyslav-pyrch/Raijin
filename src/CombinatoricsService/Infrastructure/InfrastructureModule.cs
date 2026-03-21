@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Messaging;
@@ -15,43 +16,57 @@ public static class InfrastructureModule
 {
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services) => services
-        .AddMessaging()
-        .AddPersistence();
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    {
+        return services
+            .AddMessaging()
+            .AddPersistence();
+    }
 
 
-    private static IServiceCollection AddMessaging(this IServiceCollection services) => services
-        .AddScoped<IMediator, ServiceProviderMediator>()
-        .AddSingleton<IMessageContextAccessor, AsyncLocalMessageContextAccessor>()
-        .AddTransient<IMessageIdGenerator, GuidMessageIdGenerator>()
-        .AddScoped<IMessageBus, MassTransitMessageBus>()
-        .AddMassTransit(x =>
-        {
-            x.AddConsumers(Assembly);
-            x.SetKebabCaseEndpointNameFormatter();
-            x.UsingRabbitMq((context, cfg) =>
+    private static IServiceCollection AddMessaging(this IServiceCollection services)
+    {
+        return services
+            .AddScoped<IMediator, ServiceProviderMediator>()
+            .AddSingleton<IMessageContextAccessor, AsyncLocalMessageContextAccessor>()
+            .AddTransient<IMessageIdGenerator, GuidMessageIdGenerator>()
+            .AddScoped<IMessageBus, MassTransitMessageBus>()
+            .AddMassTransit(x =>
             {
-                cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
-                cfg.ConfigureEndpoints(context);
+                x.AddConsumer<MassTransitMessageConsumer<ICombinatoricProblemSubmitted>>();
+                x.AddConsumer<MassTransitMessageConsumer<IBooleanProblemSubmitted>>();
+                x.AddConsumer<MassTransitMessageConsumer<ISatProblemSolved>>();
+                x.SetKebabCaseEndpointNameFormatter();
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
+                    cfg.ConfigureEndpoints(context);
+                });
             });
-        });
+    }
 
-    public static IServiceCollection AddPersistence(this IServiceCollection services) => services
-        .AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>()
-        .AddScoped<ICombinatoricProblemRepository, CombinatoricProblemRepository>()
-        .AddDbContext<CombinatoricsServiceDbContext>((provider, builder) =>
-        {
-            builder.UseNpgsql(GetDatabaseConnectionString(provider), optionsBuilder =>
+    public static IServiceCollection AddPersistence(this IServiceCollection services)
+    {
+        return services
+            .AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>()
+            .AddScoped<ICombinatoricProblemRepository, CombinatoricProblemRepository>()
+            .AddScoped<IBooleanProblemRepository, BooleanProblemRepository>()
+            .AddDbContext<CombinatoricsServiceDbContext>((provider, builder) =>
             {
-                optionsBuilder.MigrationsAssembly(Assembly);
+                builder.UseNpgsql(GetDatabaseConnectionString(provider),
+                    optionsBuilder => { optionsBuilder.MigrationsAssembly(Assembly); });
             });
-        });
+    }
 
-    private static string GetRabbitMqConnectionString(IServiceProvider provider) =>
-        provider.GetRequiredService<IConfiguration>().GetConnectionString("rabbit-mq")
-        ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
+    private static string GetRabbitMqConnectionString(IServiceProvider provider)
+    {
+        return provider.GetRequiredService<IConfiguration>().GetConnectionString("rabbit-mq")
+               ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
+    }
 
-    private static string GetDatabaseConnectionString(IServiceProvider provider) =>
-        provider.GetRequiredService<IConfiguration>().GetConnectionString("combinatorics-service-db")
-        ?? throw new InvalidOperationException("Database connection string is not configured.");
+    private static string GetDatabaseConnectionString(IServiceProvider provider)
+    {
+        return provider.GetRequiredService<IConfiguration>().GetConnectionString("combinatorics-service-db")
+               ?? throw new InvalidOperationException("Database connection string is not configured.");
+    }
 }
