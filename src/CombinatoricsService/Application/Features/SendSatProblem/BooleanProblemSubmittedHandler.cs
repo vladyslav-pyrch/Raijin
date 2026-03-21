@@ -30,8 +30,7 @@ public sealed class BooleanProblemSubmittedHandler(
 
         Result<SendSatProblemResult> result = await mediator.Send(new SendSatProblemCommand(
             satReduction.Id,
-            satReduction.Dimacs,
-            new MessageContext(message)
+            satReduction.Dimacs
         ), cancellationToken);
 
         if (result.IsFailed)

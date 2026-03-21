@@ -1,4 +1,5 @@
 using Raijin.SatSolver.Api.Extensions;
+using Raijin.SatSolver.Api.Middleware;
 using Raijin.SatSolver.Application;
 using Raijin.SatSolver.Infrastructure;
 
@@ -19,6 +20,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpoints();
 
+// Correlation context middleware
+builder.Services.AddTransient<CorrelationContextMiddleware>();
+
 // Modules registration
 builder.Services.AddInfrastructureApi();
 builder.Services.AddApplication();
@@ -27,6 +31,9 @@ WebApplication app = builder.Build();
 
 // Error pipeline
 app.UseExceptionHandler();
+
+// Correlation context
+app.UseMiddleware<CorrelationContextMiddleware>();
 
 // Zero-trust verification
 app.UseAuthentication();

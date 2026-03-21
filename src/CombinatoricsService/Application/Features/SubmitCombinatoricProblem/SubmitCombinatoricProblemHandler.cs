@@ -12,8 +12,7 @@ public sealed class SubmitCombinatoricProblemHandler(
     ICombinatoricProblemRepository combinatoricProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
-    IMessageIdGenerator messageIdGenerator,
-    IMessageContextAccessor messageContextAccessor,
+    ICorrelationContextAccessor correlationContextAccessor,
     ILogger<SubmitCombinatoricProblemHandler> logger
 ) : IRequestHandler<SubmitCombinatoricProblemCommand, SubmitCombinatoricProblemResult>
 {
@@ -52,15 +51,12 @@ public sealed class SubmitCombinatoricProblemHandler(
 
         await messageBus.Publish<ICombinatoricProblemSubmitted>(new
         {
-            MessageId = messageIdGenerator.NextMessageId(),
-            messageContextAccessor.CurrentContext.CorrelationId,
-            messageContextAccessor.CurrentContext.CausationId,
-            Timestamp = DateTimeOffset.UtcNow,
             CombinatoricProblemId = combinatoricProblemId,
             DecisionVariables =
                 combinatoricProblem.DecisionVariables.Select(variable => new { variable.Name, variable.States })
                     .ToArray(),
-            Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray()
+            Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray(),
+            correlationContextAccessor.CorrelationContext.CorrelationId
         }, cancellationToken);
 
         return new SubmitCombinatoricProblemResult(combinatoricProblemId);

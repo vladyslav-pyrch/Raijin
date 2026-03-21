@@ -2,8 +2,7 @@
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 
-public record SubmitBooleanProblemCommand(
+public sealed record SubmitBooleanProblemCommand(
     string BooleanFormula,
-    MessageContext Context,
     Guid? BooleanProblemId = null)
-    : IRequest<SubmitBooleanProblemResult>, IContextualRequest;
+    : IRequest<SubmitBooleanProblemResult>;

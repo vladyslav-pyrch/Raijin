@@ -1,13 +1,14 @@
 using System.Text.Json;
+using MassTransit.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
-using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using OpenTelemetryBuilderOtlpExporterExtensions = OpenTelemetry.OpenTelemetryBuilderOtlpExporterExtensions;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -87,6 +88,7 @@ public static class Extensions
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)
                             && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
                     )
+                    .AddSource(DiagnosticHeaders.DefaultListenerName)
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
@@ -102,7 +104,8 @@ public static class Extensions
     {
         bool useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
-        if (useOtlpExporter) builder.Services.AddOpenTelemetry().UseOtlpExporter();
+        if (useOtlpExporter)
+            OpenTelemetryBuilderOtlpExporterExtensions.UseOtlpExporter(builder.Services.AddOpenTelemetry());
 
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
         //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))

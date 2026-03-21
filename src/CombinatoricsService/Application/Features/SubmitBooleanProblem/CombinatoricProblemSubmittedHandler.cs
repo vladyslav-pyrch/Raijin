@@ -31,7 +31,6 @@ public class CombinatoricProblemSubmittedHandler(
 
         Result<SubmitBooleanProblemResult> result = await mediator.Send(new SubmitBooleanProblemCommand(
             booleanProblem.Formula,
-            new MessageContext(message),
             booleanProblem.Id
         ), cancellationToken);
 

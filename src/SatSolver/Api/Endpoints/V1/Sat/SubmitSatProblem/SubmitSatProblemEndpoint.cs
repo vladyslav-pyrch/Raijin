@@ -20,7 +20,6 @@ public class SubmitSatProblemEndpoint : IEndpoint
     private static async Task<Results<Ok<SubmitSatProblemResponse>, ValidationProblem, InternalServerError>> Execute(
         [FromBody] SubmitSatProblemRequest request,
         [FromServices] IMediator mediator,
-        [FromServices] IMessageIdGenerator messageIdGenerator,
         [FromServices] ILogger<SubmitSatProblemEndpoint> logger,
         CancellationToken cancellationToken
     )
@@ -28,8 +27,7 @@ public class SubmitSatProblemEndpoint : IEndpoint
         logger.LogInformation("Received SubmitSatProblem request");
 
         Result<SubmitSatProblemResult> result = await mediator.Send(new SubmitSatProblemCommand(
-            request.Dimacs,
-            messageIdGenerator.NextMessageContext()
+            request.Dimacs
         ), cancellationToken);
 
         if (result.IsSuccess)

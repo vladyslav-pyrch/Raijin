@@ -11,10 +11,11 @@ public sealed class MassTransitMessageConsumer<TMessage>(
 ) : IConsumer<TMessage>
     where TMessage : class, IMessage
 {
+    private string MessageType => typeof(TMessage).Name;
+
     public async Task Consume(ConsumeContext<TMessage> context)
     {
-        var messageContext = new Application.Messaging.MessageContext(context.Message);
-        logger.LogInformation("Consuming {TMessage}: {@Message}", MessageType, context.Message);
+        logger.LogInformation("Consuming {TMessage}", MessageType);
 
         List<IMessageHandler<TMessage>> handlerList = handlers.ToList();
 
@@ -27,13 +28,10 @@ public sealed class MassTransitMessageConsumer<TMessage>(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Error occurred while handling {TMessage} with the context {@Context}",
-                MessageType, messageContext);
+            logger.LogError(exception, "Error occurred while handling {TMessage}", MessageType);
             throw;
         }
 
-        logger.LogInformation("Finished consuming {TMessage} with the context {@Context}", MessageType, messageContext);
+        logger.LogInformation("Finished consuming {TMessage}", MessageType);
     }
-
-    private string MessageType => typeof(TMessage).Name;
 }

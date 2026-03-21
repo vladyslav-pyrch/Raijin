@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 namespace Raijin.CombinatoricsService.Application.Messaging.Behaviors;
 
 public sealed class LoggingBehavior<TRequest, TResponse>(
-    IMessageContextAccessor messageContextAccessor,
     ILogger<LoggingBehavior<TRequest, TResponse>> logger
 ) : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
@@ -14,13 +13,6 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
         Func<Task<Result<TResponse>>> next)
     {
         string requestName = typeof(TRequest).Name;
-        MessageContext context = messageContextAccessor.CurrentContext;
-
-        using IDisposable beginScope = logger.BeginScope(new Dictionary<string, object?>
-        {
-            ["CorrelationId"] = context.CorrelationId,
-            ["CausationId"] = context.CausationId
-        });
 
         logger.LogInformation("Handling {RequestName}", requestName);
         var stopwatch = Stopwatch.StartNew();
@@ -41,20 +33,12 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
 }
 
 public sealed class LoggingBehavior<TRequest>(
-    IMessageContextAccessor messageContextAccessor,
     ILogger<LoggingBehavior<TRequest>> logger
 ) : IPipelineBehavior<TRequest> where TRequest : IRequest
 {
     public async Task<Result> Handle(TRequest request, CancellationToken cancellationToken, Func<Task<Result>> next)
     {
         string requestName = typeof(TRequest).Name;
-        MessageContext context = messageContextAccessor.CurrentContext;
-
-        using IDisposable beginScope = logger.BeginScope(new Dictionary<string, object?>
-        {
-            ["CorrelationId"] = context.CorrelationId,
-            ["CausationId"] = context.CausationId
-        });
 
         logger.LogInformation("Handling {RequestName}", requestName);
         var stopwatch = Stopwatch.StartNew();

@@ -4,6 +4,5 @@ namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricPro
 
 public sealed record SubmitCombinatoricProblemCommand(
     DecisionVariableDto[] DecisionVariables,
-    string[] Constraints,
-    MessageContext Context
-) : IRequest<SubmitCombinatoricProblemResult>, IContextualRequest;
+    string[] Constraints
+) : IRequest<SubmitCombinatoricProblemResult>;

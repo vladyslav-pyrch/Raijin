@@ -8,12 +8,11 @@ using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 
-public class SubmitBooleanProblemHandler(
+public sealed class SubmitBooleanProblemHandler(
     IBooleanProblemRepository booleanProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
-    IMessageIdGenerator messageIdGenerator,
-    IMessageContextAccessor messageContextAccessor,
+    ICorrelationContextAccessor correlationContextAccessor,
     ILogger<SubmitBooleanProblemHandler> logger
 ) : IRequestHandler<SubmitBooleanProblemCommand, SubmitBooleanProblemResult>
 {
@@ -36,11 +35,9 @@ public class SubmitBooleanProblemHandler(
 
         await messageBus.Publish<IBooleanProblemSubmitted>(new
         {
-            MessageId = messageIdGenerator.NextMessageId(),
-            messageContextAccessor.CurrentContext.CorrelationId,
-            messageContextAccessor.CurrentContext.CausationId,
             BooleanProblemId = booleanProblem.Id,
-            BooleanFormula = booleanProblem.Formula
+            BooleanFormula = booleanProblem.Formula,
+            correlationContextAccessor.CorrelationContext.CorrelationId
         }, cancellationToken);
 
         return new SubmitBooleanProblemResult(booleanProblemId);

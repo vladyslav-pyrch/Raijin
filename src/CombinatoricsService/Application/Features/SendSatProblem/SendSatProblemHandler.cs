@@ -7,8 +7,7 @@ namespace Raijin.CombinatoricsService.Application.Features.SendSatProblem;
 
 public sealed class SendSatProblemHandler(
     IMessageBus messageBus,
-    IMessageIdGenerator messageIdGenerator,
-    IMessageContextAccessor messageContextAccessor,
+    ICorrelationContextAccessor correlationContextAccessor,
     ILogger<SendSatProblemHandler> logger
 ) : IRequestHandler<SendSatProblemCommand, SendSatProblemResult>
 {
@@ -18,12 +17,9 @@ public sealed class SendSatProblemHandler(
     {
         await messageBus.Publish<ISatProblemSent>(new
         {
-            MessageId = messageIdGenerator.NextMessageId(),
-            messageContextAccessor.CurrentContext.CorrelationId,
-            messageContextAccessor.CurrentContext.CausationId,
-            Timestamp = DateTimeOffset.UtcNow,
             SatProblemId = request.SatProblemId.ToString(),
-            request.Dimacs
+            request.Dimacs,
+            correlationContextAccessor.CorrelationContext.CorrelationId
         }, cancellationToken);
         return new SendSatProblemResult(request.SatProblemId);
     }

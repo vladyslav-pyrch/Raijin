@@ -13,8 +13,7 @@ public sealed class SolveSatProblemHandler(
     IUnitOfWork unitOfWork,
     ISatSolver solver,
     IMessageBus messageBus,
-    IMessageContextAccessor messageContextAccessor,
-    IMessageIdGenerator messageIdGenerator,
+    ICorrelationContextAccessor correlationContextAccessor,
     ILogger<SolveSatProblemHandler> logger
 ) : IRequestHandler<SolveSatProblemCommand>
 {
@@ -33,7 +32,8 @@ public sealed class SolveSatProblemHandler(
         int[] solution = await solver.Solve(satProblem, cancellationToken);
         satProblem.SetSolution(solution);
 
-        logger.LogInformation("SAT problem {SatProblemId} solved with satisfiability {Satisfiability}, solution length {SolutionLength}",
+        logger.LogInformation(
+            "SAT problem {SatProblemId} solved with satisfiability {Satisfiability}, solution length {SolutionLength}",
             request.SatProblemId, satProblem.Satisfiability, solution.Length);
 
         await satProblemRepository.Update(satProblem, cancellationToken);
@@ -41,12 +41,9 @@ public sealed class SolveSatProblemHandler(
 
         await messageBus.Publish<ISatProblemSolved>(new
         {
-            MessageId = messageIdGenerator.NextMessageId(),
-            CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
-            CausationId = messageContextAccessor.CurrentContext.CausationId,
-            Timestamp = DateTime.UtcNow,
             SatProblemId = satProblem.Id.ToString(),
-            Solution = solution
+            Solution = solution,
+            correlationContextAccessor.CorrelationContext.CorrelationId
         }, cancellationToken);
 
         logger.LogInformation("SAT problem {SatProblemId} solve result published successfully", request.SatProblemId);

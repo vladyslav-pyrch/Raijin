@@ -28,9 +28,9 @@ public static class InfrastructureModule
     {
         return services
             .AddScoped<IMediator, ServiceProviderMediator>()
-            .AddSingleton<IMessageContextAccessor, AsyncLocalMessageContextAccessor>()
-            .AddTransient<IMessageIdGenerator, GuidMessageIdGenerator>()
             .AddScoped<IMessageBus, MassTransitMessageBus>()
+            .AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>()
+            .AddScoped(typeof(CorrelationContextConsumeFilter<>))
             .AddMassTransit(x =>
             {
                 x.AddConsumer<MassTransitMessageConsumer<ICombinatoricProblemSubmitted>>();
@@ -41,7 +41,9 @@ public static class InfrastructureModule
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
+                    cfg.UseConsumeFilter(typeof(CorrelationContextConsumeFilter<>), context);
                     cfg.ConfigureEndpoints(context);
+                    cfg.UseInstrumentation();
                 });
             });
     }

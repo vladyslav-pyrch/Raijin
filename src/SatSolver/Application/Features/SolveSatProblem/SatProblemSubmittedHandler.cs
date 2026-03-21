@@ -14,10 +14,7 @@ public sealed class SatProblemSubmittedHandler(
     {
         logger.LogInformation("Handling ISatProblemSubmitted event for SAT problem {SatProblemId}", message.SatProblemId);
 
-        var command = new SolveSatProblemCommand(
-            Guid.Parse(message.SatProblemId),
-            new MessageContext(message)
-        );
+        var command = new SolveSatProblemCommand(Guid.Parse(message.SatProblemId));
 
         Result result = await mediator.Send(command, cancellationToken);
 

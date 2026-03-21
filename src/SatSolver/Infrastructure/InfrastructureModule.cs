@@ -41,7 +41,11 @@ public static class InfrastructureModule
             .AddMassTransit(x =>
             {
                 x.SetKebabCaseEndpointNameFormatter();
-                x.UsingRabbitMq((context, cfg) => { cfg.Host(new Uri(GetRabbitMqConnectionString(context))); });
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
+                    cfg.UseInstrumentation();
+                });
             });
     }
 
@@ -49,6 +53,7 @@ public static class InfrastructureModule
     {
         return services
             .AddMessagingCore()
+            .AddScoped(typeof(CorrelationContextConsumeFilter<>))
             .AddMassTransit(x =>
             {
                 x.AddConsumer<MassTransitMessageConsumer<ISatProblemSubmitted>>();
@@ -57,7 +62,9 @@ public static class InfrastructureModule
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
+                    cfg.UseConsumeFilter(typeof(CorrelationContextConsumeFilter<>), context);
                     cfg.ConfigureEndpoints(context);
+                    cfg.UseInstrumentation();
                 });
             });
     }
@@ -66,9 +73,8 @@ public static class InfrastructureModule
     {
         return services
             .AddScoped<IMediator, ServiceProviderMediator>()
-            .AddSingleton<IMessageContextAccessor, AsyncLocalMessageContextAccessor>()
-            .AddTransient<IMessageIdGenerator, GuidMessageIdGenerator>()
-            .AddScoped<IMessageBus, MassTransitMessageBus>();
+            .AddScoped<IMessageBus, MassTransitMessageBus>()
+            .AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>();
     }
 
     public static IServiceCollection AddPersistence(this IServiceCollection services)
