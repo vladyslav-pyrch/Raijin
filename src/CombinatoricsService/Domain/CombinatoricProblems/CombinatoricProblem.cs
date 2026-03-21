@@ -16,7 +16,7 @@ public class CombinatoricProblem(Guid id)
 
     public Satisfiability Satisfiability { get; private set; } = Satisfiability.Unknown;
 
-    public CombinatoricSolution? Solution { get; private set; }
+    public CombinatoricProblemSolution? Solution { get; private set; }
 
     public static CombinatoricProblem Rehydrate(
         Guid id,
@@ -40,7 +40,7 @@ public class CombinatoricProblem(Guid id)
 
         IEnumerable<DecisionVariableAssignment> assignments = solution
             .Select(kvp => new DecisionVariableAssignment(combinatoricProblem._decisionVariables[kvp.Key], kvp.Value));
-        combinatoricProblem.Solution = new CombinatoricSolution(assignments);
+        combinatoricProblem.Solution = new CombinatoricProblemSolution(assignments);
 
         return combinatoricProblem;
     }
@@ -80,7 +80,7 @@ public class CombinatoricProblem(Guid id)
                 return new DecisionVariableAssignment(_decisionVariables[decisionVariableName], decisionVariableState);
             });
 
-        Solution = new CombinatoricSolution(solution);
+        Solution = new CombinatoricProblemSolution(solution);
         Satisfiability = Satisfiability.Satisfiable;
     }
 

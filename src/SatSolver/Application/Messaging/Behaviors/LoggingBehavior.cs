@@ -9,31 +9,34 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
     ILogger<LoggingBehavior<TRequest, TResponse>> logger
 ) : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
-    public async Task<Result<TResponse>> Handle(TRequest request, CancellationToken cancellationToken, Func<Task<Result<TResponse>>> next)
+    public async Task<Result<TResponse>> Handle(TRequest request,
+        CancellationToken cancellationToken,
+        Func<Task<Result<TResponse>>> next)
     {
         string requestName = typeof(TRequest).Name;
-        MessageContext? context = messageContextAccessor.CurrentContext;
+        MessageContext context = messageContextAccessor.CurrentContext;
 
-        using (logger.BeginScope(new Dictionary<string, object?>
-               {
-                   ["CorrelationId"] = context?.CorrelationId,
-                   ["CausationId"] = context?.CausationId
-               }))
+        using IDisposable beginScope = logger.BeginScope(new Dictionary<string, object?>
         {
-            logger.LogInformation("Handling {RequestName}", requestName);
-            var stopwatch = Stopwatch.StartNew();
+            ["CorrelationId"] = context.CorrelationId,
+            ["CausationId"] = context.CausationId
+        });
 
-            Result<TResponse> result = await next();
+        logger.LogInformation("Handling {RequestName}", requestName);
+        var stopwatch = Stopwatch.StartNew();
 
-            stopwatch.Stop();
+        Result<TResponse> result = await next();
 
-            if (result.IsSuccess)
-                logger.LogInformation("Handled {RequestName} successfully in {ElapsedMs}ms", requestName, stopwatch.ElapsedMilliseconds);
-            else
-                logger.LogWarning("Handled {RequestName} with errors in {ElapsedMs}ms: {Errors}", requestName, stopwatch.ElapsedMilliseconds, string.Join("; ", result.Errors.Select(e => e.Message)));
+        stopwatch.Stop();
 
-            return result;
-        }
+        if (result.IsSuccess)
+            logger.LogInformation("Handled {RequestName} successfully in {ElapsedMs}ms", requestName,
+                stopwatch.ElapsedMilliseconds);
+        else
+            logger.LogWarning("Handled {RequestName} with errors in {ElapsedMs}ms: {Errors}", requestName,
+                stopwatch.ElapsedMilliseconds, string.Join("; ", result.Errors.Select(e => e.Message)));
+
+        return result;
     }
 }
 
@@ -45,28 +48,28 @@ public sealed class LoggingBehavior<TRequest>(
     public async Task<Result> Handle(TRequest request, CancellationToken cancellationToken, Func<Task<Result>> next)
     {
         string requestName = typeof(TRequest).Name;
-        MessageContext? context = messageContextAccessor.CurrentContext;
+        MessageContext context = messageContextAccessor.CurrentContext;
 
-        using (logger.BeginScope(new Dictionary<string, object?>
-               {
-                   ["CorrelationId"] = context?.CorrelationId,
-                   ["CausationId"] = context?.CausationId
-               }))
+        using IDisposable beginScope = logger.BeginScope(new Dictionary<string, object?>
         {
-            logger.LogInformation("Handling {RequestName}", requestName);
-            var stopwatch = Stopwatch.StartNew();
+            ["CorrelationId"] = context.CorrelationId,
+            ["CausationId"] = context.CausationId
+        });
 
-            Result result = await next();
+        logger.LogInformation("Handling {RequestName}", requestName);
+        var stopwatch = Stopwatch.StartNew();
 
-            stopwatch.Stop();
+        Result result = await next();
 
-            if (result.IsSuccess)
-                logger.LogInformation("Handled {RequestName} successfully in {ElapsedMs}ms", requestName, stopwatch.ElapsedMilliseconds);
-            else
-                logger.LogWarning("Handled {RequestName} with errors in {ElapsedMs}ms: {Errors}", requestName, stopwatch.ElapsedMilliseconds, string.Join("; ", result.Errors.Select(e => e.Message)));
+        stopwatch.Stop();
 
-            return result;
-        }
+        if (result.IsSuccess)
+            logger.LogInformation("Handled {RequestName} successfully in {ElapsedMs}ms", requestName,
+                stopwatch.ElapsedMilliseconds);
+        else
+            logger.LogWarning("Handled {RequestName} with errors in {ElapsedMs}ms: {Errors}", requestName,
+                stopwatch.ElapsedMilliseconds, string.Join("; ", result.Errors.Select(e => e.Message)));
+
+        return result;
     }
 }
-

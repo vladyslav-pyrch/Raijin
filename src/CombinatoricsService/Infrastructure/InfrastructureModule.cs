@@ -36,6 +36,7 @@ public static class InfrastructureModule
                 x.AddConsumer<MassTransitMessageConsumer<ICombinatoricProblemSubmitted>>();
                 x.AddConsumer<MassTransitMessageConsumer<IBooleanProblemSubmitted>>();
                 x.AddConsumer<MassTransitMessageConsumer<ISatProblemSolved>>();
+                x.AddConsumer<MassTransitMessageConsumer<IBooleanProblemSolved>>();
                 x.SetKebabCaseEndpointNameFormatter();
                 x.UsingRabbitMq((context, cfg) =>
                 {

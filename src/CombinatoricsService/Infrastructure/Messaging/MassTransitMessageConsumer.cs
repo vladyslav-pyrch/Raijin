@@ -1,8 +1,8 @@
 ﻿using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Messaging;
+using MessageContext = Raijin.CombinatoricsService.Application.Messaging.MessageContext;
 
 namespace Raijin.CombinatoricsService.Infrastructure.Messaging;
 
@@ -12,9 +12,11 @@ public sealed class MassTransitMessageConsumer<TMessage>(
 ) : IConsumer<TMessage>
     where TMessage : class, IMessage
 {
+    private string MessageType => typeof(TMessage).Name;
+
     public async Task Consume(ConsumeContext<TMessage> context)
     {
-        var messageContext = new Application.Messaging.MessageContext(context.Message);
+        var messageContext = new MessageContext(context.Message);
         logger.LogInformation("Consuming {TMessage}: {@Message}", MessageType, context.Message);
 
         List<IMessageHandler<TMessage>> handlerList = handlers.ToList();
@@ -35,6 +37,4 @@ public sealed class MassTransitMessageConsumer<TMessage>(
 
         logger.LogInformation("Finished consuming {TMessage} with the context {@Context}", MessageType, messageContext);
     }
-
-    private string MessageType => typeof(TMessage).Name;
 }

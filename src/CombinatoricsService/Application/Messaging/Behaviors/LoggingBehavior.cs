@@ -9,7 +9,8 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
     ILogger<LoggingBehavior<TRequest, TResponse>> logger
 ) : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
-    public async Task<Result<TResponse>> Handle(TRequest request, CancellationToken cancellationToken,
+    public async Task<Result<TResponse>> Handle(TRequest request,
+        CancellationToken cancellationToken,
         Func<Task<Result<TResponse>>> next)
     {
         string requestName = typeof(TRequest).Name;

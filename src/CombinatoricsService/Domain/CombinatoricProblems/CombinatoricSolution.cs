@@ -1,3 +1,0 @@
-namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
-
-public sealed record CombinatoricSolution(IEnumerable<DecisionVariableAssignment> Assignments);
