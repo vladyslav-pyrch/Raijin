@@ -8,10 +8,10 @@ public sealed record TrueNode : ExpressionNode
 
     public override string ToString() => "true";
 
-    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
+    protected internal override int TseitinTransform(List<IEnumerable<int>> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {
         int trueLiteral = newLiteralId();
-        clauses.Add(new Clause(literals: [trueLiteral]));
+        clauses.Add([trueLiteral]);
         return trueLiteral;
     }
 }

@@ -19,7 +19,7 @@ public sealed class SubmitSatProblemHandler(
     public async Task<Result<SubmitSatProblemResult>> Handle(SubmitSatProblemCommand request,
         CancellationToken cancellationToken)
     {
-        var satProblemId = Guid.CreateVersion7();
+        Guid satProblemId = request.SatProblemId ?? Guid.CreateVersion7();
         logger.LogInformation("Submitting SAT problem {SatProblemId}", satProblemId);
 
         var satProblem = SatProblem.Create(satProblemId, request.Dimacs);

@@ -12,12 +12,12 @@ public sealed class SatProblemSentHandler(
 {
     public async Task Handle(ISatProblemSent message, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Handling ISatProblemSent event for SAT problem {SatProblemId}, CombinatoricProblemId: {CombinatoricProblemId}",
-            message.SatProblemId, message.CombinatoricProblemId);
+        logger.LogInformation("Handling ISatProblemSent event for SAT problem {SatProblemId}", message.SatProblemId);
 
         var command = new SubmitSatProblemCommand(
             message.Dimacs,
-            new MessageContext(message)
+            new MessageContext(message),
+            Guid.Parse(message.SatProblemId)
         );
 
         Result<SubmitSatProblemResult> result = await mediator.Send(command, cancellationToken);

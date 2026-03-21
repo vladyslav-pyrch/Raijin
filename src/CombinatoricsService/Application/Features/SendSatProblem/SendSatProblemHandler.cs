@@ -31,13 +31,11 @@ public sealed class SendSatProblemHandler(
             logger.LogWarning("CombinatoricProblem {CombinatoricProblemId} was not found", request.CombinatoricProblemId);
             return Result.Fail($"CombinatoricProblem '{request.CombinatoricProblemId}' was not found.");
         }
+        
+        SatReduction satReduction = combinatoricProblem.ToBooleanProblem().GetSatReduction();
 
-        TseitinTransformResult tseitinResult = combinatoricProblem.ToFormula().TseitinTransform();
-        string dimacs = tseitinResult.Problem.ToDimacs();
-        var satProblemId = Guid.CreateVersion7();
-
-        logger.LogInformation("Combinatoric problem {CombinatoricProblemId} transformed to SAT problem {SatProblemId}",
-            request.CombinatoricProblemId, satProblemId);
+        logger.LogInformation("Combinatoric problem {CombinatoricProblemId} transformed to SAT problem",
+            request.CombinatoricProblemId);
 
         await messageBus.Publish<ISatProblemSent>(new
         {
@@ -45,14 +43,12 @@ public sealed class SendSatProblemHandler(
             CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
             CausationId = messageContextAccessor.CurrentContext.CausationId,
             Timestamp = DateTimeOffset.UtcNow,
-            SatProblemId = satProblemId.ToString(),
-            CombinatoricProblemId = request.CombinatoricProblemId.ToString(),
-            Dimacs = dimacs,
+            SatProblemId = satReduction.Id.ToString(),
+            Dimacs = satReduction.Dimacs,
         }, cancellationToken);
 
-        logger.LogInformation("SAT problem {SatProblemId} sent for combinatoric problem {CombinatoricProblemId}",
-            satProblemId, request.CombinatoricProblemId);
-        return new SendSatProblemResult(satProblemId);
+        logger.LogInformation("SAT problem {SatProblemId} sent", satReduction.Id);
+        return new SendSatProblemResult(satReduction.Id);
     }
 }
 

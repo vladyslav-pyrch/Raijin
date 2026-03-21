@@ -8,16 +8,16 @@ public sealed record Equivalence(ExpressionNode LeftNode, ExpressionNode RightNo
 
     public override IEnumerable<Variable> GetVariables() => [..LeftNode.GetVariables(), ..RightNode.GetVariables()];
     
-    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
+    protected internal override int TseitinTransform(List<IEnumerable<int>> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {
         int left = LeftNode.TseitinTransform(clauses, symbolTable, newLiteralId);
         int right = RightNode.TseitinTransform(clauses, symbolTable, newLiteralId);
         int leftIffRight = newLiteralId();
         
-        clauses.Add(new Clause(literals: [leftIffRight, -left, -right]));
-        clauses.Add(new Clause(literals: [leftIffRight, left, right]));
-        clauses.Add(new Clause(literals: [-leftIffRight, -left, right]));
-        clauses.Add(new Clause(literals: [-leftIffRight, left, -right]));
+        clauses.Add([leftIffRight, -left, -right]);
+        clauses.Add([leftIffRight, left, right]);
+        clauses.Add([-leftIffRight, -left, right]);
+        clauses.Add([-leftIffRight, left, -right]);
         
         return leftIffRight;
     }

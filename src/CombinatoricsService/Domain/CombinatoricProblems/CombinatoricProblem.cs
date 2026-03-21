@@ -1,4 +1,5 @@
 using Raijin.CombinatoricsService.Domain.Logic;
+using Raijin.CombinatoricsService.Domain.Shared;
 
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
@@ -14,6 +15,26 @@ public class CombinatoricProblem(Guid id)
 
     public IReadOnlyList<Constraint> Constraints => _constrains;
 
+    public Satisfiability Satisfiability { get; private set; } = Satisfiability.Unknown;
+
+    public CombinatoricSolution? Solution { get; private set; }
+
+    public static CombinatoricProblem Rehydrate(
+        Guid id,
+        IEnumerable<(string Name, string[] States)> decisionVariables,
+        IEnumerable<string> constraints)
+    {
+        var combinatoricProblem = new CombinatoricProblem(id);
+
+        foreach ((string name, string[] states) in decisionVariables)
+            combinatoricProblem._decisionVariables.Add(name, new DecisionVariable(name, states));
+        
+        foreach (string constraint in constraints)
+            combinatoricProblem._constrains.Add(new Constraint(constraint));
+
+        return combinatoricProblem;
+    }
+
     public void AddDecisionVariable(string name, string[] states)
     {
         var decisionVariable = new DecisionVariable(name, states);
@@ -22,49 +43,44 @@ public class CombinatoricProblem(Guid id)
 
     public void AddConstrain(string formula) => AddConstrain(new Constraint(formula));
 
-    public void AddConstrain(ExpressionNode expression) => AddConstrain(new Constraint(expression));
+    public void SetSolution(IReadOnlyDictionary<string, string> solution)
+    {
+        ArgumentNullException.ThrowIfNull(solution);
 
-    public ExpressionNode ToFormula()
+        if (solution.Count == 0)
+        {
+            Satisfiability = Satisfiability.Unsatisfiable;
+            return;
+        }
+        
+        if (solution.Keys.Except(_decisionVariables.Keys).Any())
+            throw new ArgumentException("The solution contains decision variables that are not defined in the problem.", nameof(solution));
+        if (_decisionVariables.Keys.Except(solution.Keys).Any())
+            throw new ArgumentException("The solution does not contain all decision variables defined in the problem.", nameof(solution));
+
+        IEnumerable<DecisionVariableAssignment> decisionVariableAssignments = solution
+            .Select(kvp => new DecisionVariableAssignment(_decisionVariables[kvp.Key], kvp.Value));
+        
+        Solution = new CombinatoricSolution(decisionVariableAssignments);
+        Satisfiability = Satisfiability.Satisfiable;
+    }
+
+    public BooleanProblem ToBooleanProblem()
     {
         if (Constraints.Count == 0)
-            throw new InvalidOperationException(
-                "A combinatoric problem must have at least one constraint to be converted to a formula.");
+            throw new InvalidOperationException("A combinatoric problem must have at least one constraint to be reduced to to formula.");
         
         ExpressionNode decisionVariableConstraints = DecisionVariables
-            .Select(variable => AddAtLeastOneStateConstraint(variable).And(AddAtMostOneStateConstraint(variable)))
+            .Select(variable => BuildAtLeastOneStateConstraint(variable).And(BuildAtMostOneStateConstraint(variable)))
             .Aggregate((acc, constraint) => acc.And(constraint));
 
-        return Constraints
-            .Select(constraint => constraint.Expression)
+        ExpressionNode booleanReduction = Constraints.Select(constraint => constraint.Expression)
             .Aggregate((acc, expression) => acc.And(expression))
             .And(decisionVariableConstraints);
+
+        return new BooleanProblem(Id, booleanReduction);
     }
-
-    private ExpressionNode AddAtLeastOneStateConstraint(DecisionVariable decisionVariable)
-    {
-        Variable[] variables = decisionVariable.ToVariables();
-
-        return variables.Aggregate<ExpressionNode>((acc, node) => acc.Or(node));
-    }
-
-    private ExpressionNode AddAtMostOneStateConstraint(DecisionVariable decisionVariable)
-    {
-        Variable[] variables = decisionVariable.ToVariables();
-
-        IEnumerable<ExpressionNode> constraints = variables
-            .Select(currentVariable => new
-            {
-                currentVariable,
-                otherVariables = variables.Where(node => node != currentVariable).ToArray()
-            })
-            .Select(t => t.currentVariable.Imply(t.otherVariables
-                .Aggregate<ExpressionNode>((acc, variable) => acc.Or(variable))
-                .Negated()
-            ));
-
-        return constraints.Aggregate((acc, node) => acc.And(node));
-    }
-
+    
     private void AddConstrain(Constraint constraint)
     {
         CheckVariables(constraint);
@@ -92,17 +108,29 @@ public class CombinatoricProblem(Guid id)
                 );
         }
     }
-    
-    public static CombinatoricProblem Rehydrate(Guid id, IEnumerable<(string Name, string[] States)> decisionVariables, IEnumerable<string> constraints)
+
+    private static ExpressionNode BuildAtLeastOneStateConstraint(DecisionVariable decisionVariable)
     {
-        var combinatoricProblem = new CombinatoricProblem(id);
+        Variable[] variables = decisionVariable.ToVariables();
 
-        foreach ((string name, string[] states) in decisionVariables)
-            combinatoricProblem._decisionVariables.Add(name, new DecisionVariable(name, states));
-        
-        foreach (string constraint in constraints)
-            combinatoricProblem._constrains.Add(new Constraint(constraint));
+        return variables.Aggregate<ExpressionNode>((acc, node) => acc.Or(node));
+    }
 
-        return combinatoricProblem;
+    private static ExpressionNode BuildAtMostOneStateConstraint(DecisionVariable decisionVariable)
+    {
+        Variable[] variables = decisionVariable.ToVariables();
+
+        IEnumerable<ExpressionNode> constraints = variables
+            .Select(currentVariable => new
+            {
+                currentVariable,
+                otherVariables = variables.Where(node => node != currentVariable).ToArray()
+            })
+            .Select(t => t.currentVariable.Imply(t.otherVariables
+                .Aggregate<ExpressionNode>((acc, variable) => acc.Or(variable))
+                .Negated()
+            ));
+
+        return constraints.Aggregate((acc, node) => acc.And(node));
     }
 }
