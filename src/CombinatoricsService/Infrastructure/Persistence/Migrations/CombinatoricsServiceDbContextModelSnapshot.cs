@@ -32,6 +32,10 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Satisfiability")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.ToTable("BooleanProblems");
@@ -56,6 +60,37 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CombinatoricProblems");
+                });
+
+            modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.BooleanProblemModel", b =>
+                {
+                    b.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.VariableAssignmentModel", "Solution", b1 =>
+                        {
+                            b1.Property<Guid>("BooleanProblemId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<bool>("Value")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("VariableName")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("BooleanProblemId", "Id");
+
+                            b1.ToTable("VariableAssignmentModel");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BooleanProblemId");
+                        });
+
+                    b.Navigation("Solution");
                 });
 
             modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.CombinatoricProblemModel", b =>

@@ -7,6 +7,7 @@ using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Messaging;
+using Raijin.CombinatoricsService.Infrastructure.Messaging.Filters;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Persistence.Repositories;
 
@@ -31,17 +32,30 @@ public static class InfrastructureModule
             .AddScoped<IMessageBus, MassTransitMessageBus>()
             .AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>()
             .AddScoped(typeof(CorrelationContextConsumeFilter<>))
+            .AddScoped(typeof(CorrelationContextPublishFilter<>))
+            .AddScoped(typeof(LoggingConsumeFilter<>))
+            .AddScoped(typeof(LoggingPublishFilter<>))
+            .AddScoped(typeof(CausationConsumeFilter<>))
+            .AddScoped(typeof(CausationPublishFilter<>))
             .AddMassTransit(x =>
             {
-                x.AddConsumer<MassTransitMessageConsumer<ICombinatoricProblemSubmitted>>();
-                x.AddConsumer<MassTransitMessageConsumer<IBooleanProblemSubmitted>>();
-                x.AddConsumer<MassTransitMessageConsumer<ISatProblemSolved>>();
-                x.AddConsumer<MassTransitMessageConsumer<IBooleanProblemSolved>>();
+                x.AddConsumer<MessageConsumer<ICombinatoricProblemSubmitted>>();
+                x.AddConsumer<MessageConsumer<IBooleanProblemSubmitted>>();
+                x.AddConsumer<MessageConsumer<ISatProblemSolved>>();
+                x.AddConsumer<MessageConsumer<IBooleanProblemSolved>>();
                 x.SetKebabCaseEndpointNameFormatter();
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
+
                     cfg.UseConsumeFilter(typeof(CorrelationContextConsumeFilter<>), context);
+                    cfg.UseConsumeFilter(typeof(CausationConsumeFilter<>), context);
+                    cfg.UseConsumeFilter(typeof(LoggingConsumeFilter<>), context);
+
+                    cfg.UsePublishFilter(typeof(CorrelationContextPublishFilter<>), context);
+                    cfg.UsePublishFilter(typeof(CausationPublishFilter<>), context);
+                    cfg.UsePublishFilter(typeof(LoggingPublishFilter<>), context);
+
                     cfg.ConfigureEndpoints(context);
                     cfg.UseInstrumentation();
                 });
@@ -57,7 +71,7 @@ public static class InfrastructureModule
             .AddDbContext<CombinatoricsServiceDbContext>((provider, builder) =>
             {
                 builder.UseNpgsql(GetDatabaseConnectionString(provider),
-                    optionsBuilder => { optionsBuilder.MigrationsAssembly(Assembly); });
+                    optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly));
             });
     }
 

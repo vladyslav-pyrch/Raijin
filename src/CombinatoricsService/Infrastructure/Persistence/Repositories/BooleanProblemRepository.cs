@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Logic;
 using Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
@@ -15,24 +16,40 @@ public class BooleanProblemRepository(
         dbContext.BooleanProblems.Add(new BooleanProblemModel
         {
             Id = problem.Id,
-            Formula = problem.Formula
+            Formula = problem.Formula,
+            Satisfiability = problem.Satisfiability.ToString(),
+            Solution = problem.Solution?.Assignments.Select(assignment => new VariableAssignmentModel
+            {
+                VariableName = assignment.Variable.Name,
+                Value = assignment.Value
+            }).ToList() ?? []
         });
 
         return Task.CompletedTask;
     }
 
-    public Task<BooleanProblem?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<BooleanProblem?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        BooleanProblemModel? model = dbContext.BooleanProblems
-            .FirstOrDefault(problem => problem.Id == id);
-        if (model is null)
-        {
-            logger.LogDebug("Boolean problem {BooleanProblemId} not found in database", id);
-            return Task.FromResult<BooleanProblem?>(null);
-        }
+        BooleanProblemModel? model = await dbContext.BooleanProblems
+            .FirstOrDefaultAsync(problem => problem.Id == id, cancellationToken);
+        return model is null ? null : BooleanProblem.Rehydrate(model.Id, model.Formula);
+    }
 
-        BooleanProblem booleanProblem = BooleanProblem.Rehydrate(model.Id, model.Formula);
-        logger.LogDebug("Retrieved boolean problem {BooleanProblemId} from database", id);
-        return Task.FromResult<BooleanProblem?>(booleanProblem);
+    public async Task Update(BooleanProblem problem, CancellationToken cancellationToken)
+    {
+        BooleanProblemModel? model = await dbContext.BooleanProblems
+            .FirstOrDefaultAsync(model => model.Id == problem.Id, cancellationToken);
+
+        if (model is null)
+            return;
+
+        model.Formula = problem.Formula;
+        model.Satisfiability = problem.Satisfiability.ToString();
+        model.Solution = problem.Solution?.Assignments.Select(assignment => new VariableAssignmentModel
+        {
+            VariableName = assignment.Variable.Name,
+            Value = assignment.Value
+        }).ToList() ?? [];
+        dbContext.BooleanProblems.Update(model);
     }
 }

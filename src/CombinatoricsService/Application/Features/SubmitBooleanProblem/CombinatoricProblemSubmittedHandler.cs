@@ -17,7 +17,7 @@ public class CombinatoricProblemSubmittedHandler(
     public async Task Handle(ICombinatoricProblemSubmitted message, CancellationToken cancellationToken)
     {
         CombinatoricProblem? combinatoricProblem =
-            await combinatoricProblemRepository.GetById(Guid.Parse(message.CombinatoricProblemId), cancellationToken);
+            await combinatoricProblemRepository.GetById(message.CombinatoricProblemId, cancellationToken);
 
         if (combinatoricProblem is null)
         {
@@ -35,6 +35,6 @@ public class CombinatoricProblemSubmittedHandler(
         ), cancellationToken);
 
         if (result.IsFailed)
-            throw new MessageProcessingException(result.Errors[0].Message);
+            throw new MessageProcessingException(result.Errors.First().Message);
     }
 }

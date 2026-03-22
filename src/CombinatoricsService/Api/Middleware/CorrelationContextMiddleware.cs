@@ -1,3 +1,4 @@
+using MassTransit;
 using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Api.Middleware;
@@ -9,19 +10,20 @@ internal sealed class CorrelationContextMiddleware(
 {
     public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
     {
-        var correlationId = Guid.CreateVersion7();
+        Guid initiatorId = NewId.NextGuid();
         string? userId = null;
 
         if (httpContext.User.Identity is { IsAuthenticated: true })
             userId = httpContext.User.Identity.Name;
 
-        accessor.CorrelationContext = new CorrelationContext(correlationId, correlationId, userId);
+        accessor.CorrelationContext = new CorrelationContext(initiatorId, initiatorId, userId);
 
-        using IDisposable? scope = logger.BeginScope(new Dictionary<string, object?>
-        {
-            ["CorrelationId"] = accessor.CorrelationContext.CorrelationId,
-            ["CausationId"] = accessor.CorrelationContext.CausationId
-        });
+        using IDisposable? scope = logger.BeginScope(
+            "InitiatorId: {InitiatorId}, CorrelationId: {CorrelationId}, UserId: {UserId}",
+            accessor.CorrelationContext.InitiatorId,
+            accessor.CorrelationContext.CorrelationId,
+            accessor.CorrelationContext.UserId
+        );
 
         await next(httpContext);
     }

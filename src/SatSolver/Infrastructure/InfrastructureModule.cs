@@ -8,6 +8,7 @@ using Raijin.SatSolver.Application.Messaging;
 using Raijin.SatSolver.Application.Persistence;
 using Raijin.SatSolver.Application.Solver;
 using Raijin.SatSolver.Infrastructure.Messaging;
+using Raijin.SatSolver.Infrastructure.Messaging.Filters;
 using Raijin.SatSolver.Infrastructure.Persistence;
 using Raijin.SatSolver.Infrastructure.Persistence.Repositories;
 using Raijin.SatSolver.Infrastructure.Solver;
@@ -44,6 +45,11 @@ public static class InfrastructureModule
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
+
+                    cfg.UsePublishFilter(typeof(CorrelationContextPublishFilter<>), context);
+                    cfg.UsePublishFilter(typeof(CausationPublishFilter<>), context);
+                    cfg.UsePublishFilter(typeof(LoggingPublishFilter<>), context);
+
                     cfg.UseInstrumentation();
                 });
             });
@@ -53,16 +59,22 @@ public static class InfrastructureModule
     {
         return services
             .AddMessagingCore()
-            .AddScoped(typeof(CorrelationContextConsumeFilter<>))
             .AddMassTransit(x =>
             {
-                x.AddConsumer<MassTransitMessageConsumer<ISatProblemSubmitted>>();
-                x.AddConsumer<MassTransitMessageConsumer<ISatProblemSent>>();
+                x.AddConsumer<MessageConsumer<ISatProblemSubmitted>>();
+                x.AddConsumer<MessageConsumer<ISatProblemSent>>();
                 x.SetKebabCaseEndpointNameFormatter();
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
                     cfg.UseConsumeFilter(typeof(CorrelationContextConsumeFilter<>), context);
+                    cfg.UseConsumeFilter(typeof(CausationConsumeFilter<>), context);
+                    cfg.UseConsumeFilter(typeof(LoggingConsumeFilter<>), context);
+
+                    cfg.UsePublishFilter(typeof(CorrelationContextPublishFilter<>), context);
+                    cfg.UsePublishFilter(typeof(CausationPublishFilter<>), context);
+                    cfg.UsePublishFilter(typeof(LoggingPublishFilter<>), context);
+
                     cfg.ConfigureEndpoints(context);
                     cfg.UseInstrumentation();
                 });
@@ -74,7 +86,13 @@ public static class InfrastructureModule
         return services
             .AddScoped<IMediator, ServiceProviderMediator>()
             .AddScoped<IMessageBus, MassTransitMessageBus>()
-            .AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>();
+            .AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>()
+            .AddScoped(typeof(CorrelationContextConsumeFilter<>))
+            .AddScoped(typeof(CorrelationContextPublishFilter<>))
+            .AddScoped(typeof(LoggingConsumeFilter<>))
+            .AddScoped(typeof(LoggingPublishFilter<>))
+            .AddScoped(typeof(CausationConsumeFilter<>))
+            .AddScoped(typeof(CausationPublishFilter<>));
     }
 
     public static IServiceCollection AddPersistence(this IServiceCollection services)

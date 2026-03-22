@@ -12,7 +12,6 @@ public sealed class SubmitCombinatoricProblemHandler(
     ICombinatoricProblemRepository combinatoricProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
-    ICorrelationContextAccessor correlationContextAccessor,
     ILogger<SubmitCombinatoricProblemHandler> logger
 ) : IRequestHandler<SubmitCombinatoricProblemCommand, SubmitCombinatoricProblemResult>
 {
@@ -55,8 +54,7 @@ public sealed class SubmitCombinatoricProblemHandler(
             DecisionVariables =
                 combinatoricProblem.DecisionVariables.Select(variable => new { variable.Name, variable.States })
                     .ToArray(),
-            Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray(),
-            correlationContextAccessor.CorrelationContext.CorrelationId
+            Constraints = combinatoricProblem.Constraints.Select(constraint => constraint.Formula).ToArray()
         }, cancellationToken);
 
         return new SubmitCombinatoricProblemResult(combinatoricProblemId);

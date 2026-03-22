@@ -11,7 +11,6 @@ public sealed class SubmitSatProblemHandler(
     ISatProblemRepository satProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
-    ICorrelationContextAccessor correlationContextAccessor,
     ILogger<SubmitSatProblemHandler> logger
 ) : IRequestHandler<SubmitSatProblemCommand, SubmitSatProblemResult>
 {
@@ -19,7 +18,6 @@ public sealed class SubmitSatProblemHandler(
         CancellationToken cancellationToken)
     {
         Guid satProblemId = request.SatProblemId ?? Guid.CreateVersion7();
-        logger.LogInformation("Submitting SAT problem {SatProblemId}", satProblemId);
 
         var satProblem = SatProblem.Create(satProblemId, request.Dimacs);
 
@@ -28,13 +26,10 @@ public sealed class SubmitSatProblemHandler(
 
         await messageBus.Publish<ISatProblemSubmitted>(new
         {
-            SatProblemId = satProblemId.ToString(),
-            CombinatoricProblemId = (string?)null,
-            request.Dimacs,
-            correlationContextAccessor.CorrelationContext.CorrelationId
+            SatProblemId = satProblemId,
+            request.Dimacs
         }, cancellationToken);
 
-        logger.LogInformation("SAT problem {SatProblemId} submitted successfully", satProblemId);
         return new SubmitSatProblemResult(satProblemId);
     }
 }

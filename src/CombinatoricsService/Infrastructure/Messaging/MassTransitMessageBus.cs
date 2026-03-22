@@ -11,12 +11,6 @@ public sealed class MassTransitMessageBus(IPublishEndpoint publishEndpoint, ILog
     public async Task Publish<TMessage>(object message, CancellationToken cancellationToken)
         where TMessage : class, IMessage
     {
-        string messageType = typeof(TMessage).Name;
-        logger.LogInformation("Publishing message {TMessage}: {@Message}", messageType, message);
-
-        if (message.GetType().GetProperty("CorrelationId") is null)
-            throw new InvalidOperationException("All messages should have \"CorrelationId\" set");
-
         await publishEndpoint.Publish<TMessage>(message, cancellationToken);
     }
 }

@@ -2,7 +2,7 @@
 
 public interface IBooleanProblemSubmitted : IMessage
 {
-    public string BooleanProblemId { get; }
+    public Guid BooleanProblemId { get; }
 
     public string BooleanFormula { get; }
 }

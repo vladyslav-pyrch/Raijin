@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AddedBooleanProblems : Migration
+    public partial class AddedSolutionToBooleanProblems : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,8 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Formula = table.Column<string>(type: "text", nullable: false)
+                    Formula = table.Column<string>(type: "text", nullable: false),
+                    Satisfiability = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -37,6 +38,27 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CombinatoricProblems", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VariableAssignmentModel",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BooleanProblemId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VariableName = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VariableAssignmentModel", x => new { x.BooleanProblemId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_VariableAssignmentModel_BooleanProblems_BooleanProblemId",
+                        column: x => x.BooleanProblemId,
+                        principalTable: "BooleanProblems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -65,13 +87,16 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "BooleanProblems");
-
-            migrationBuilder.DropTable(
                 name: "DecisionVariableModel");
 
             migrationBuilder.DropTable(
+                name: "VariableAssignmentModel");
+
+            migrationBuilder.DropTable(
                 name: "CombinatoricProblems");
+
+            migrationBuilder.DropTable(
+                name: "BooleanProblems");
         }
     }
 }

@@ -16,14 +16,14 @@ public sealed class BooleanProblemSubmittedHandler(
     public async Task Handle(IBooleanProblemSubmitted message, CancellationToken cancellationToken)
     {
         BooleanProblem? booleanProblem =
-            await booleanProblemRepository.GetById(Guid.Parse(message.BooleanProblemId), cancellationToken);
+            await booleanProblemRepository.GetById(message.BooleanProblemId, cancellationToken);
 
         if (booleanProblem is null)
         {
             logger.LogError("Boolean problem with id {BooleanProblemId} not found",
                 message.BooleanProblemId);
             throw new MessageProcessingException(
-                $"Combinatoric problem with id {message.BooleanProblemId} not found");
+                $"Boolean problem with id {message.BooleanProblemId} not found");
         }
 
         SatReduction satReduction = booleanProblem.ReduceToSat();
@@ -34,6 +34,6 @@ public sealed class BooleanProblemSubmittedHandler(
         ), cancellationToken);
 
         if (result.IsFailed)
-            throw new MessageProcessingException(result.Errors[0].Message);
+            throw new MessageProcessingException(result.Errors.First().Message);
     }
 }

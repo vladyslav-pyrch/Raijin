@@ -12,7 +12,6 @@ public sealed class SubmitBooleanProblemHandler(
     IBooleanProblemRepository booleanProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
-    ICorrelationContextAccessor correlationContextAccessor,
     ILogger<SubmitBooleanProblemHandler> logger
 ) : IRequestHandler<SubmitBooleanProblemCommand, SubmitBooleanProblemResult>
 {
@@ -36,8 +35,7 @@ public sealed class SubmitBooleanProblemHandler(
         await messageBus.Publish<IBooleanProblemSubmitted>(new
         {
             BooleanProblemId = booleanProblem.Id,
-            BooleanFormula = booleanProblem.Formula,
-            correlationContextAccessor.CorrelationContext.CorrelationId
+            BooleanFormula = booleanProblem.Formula
         }, cancellationToken);
 
         return new SubmitBooleanProblemResult(booleanProblemId);

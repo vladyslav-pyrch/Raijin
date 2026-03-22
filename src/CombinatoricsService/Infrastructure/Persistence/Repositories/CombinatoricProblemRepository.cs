@@ -14,8 +14,6 @@ public sealed class CombinatoricProblemRepository(
 {
     public Task Add(CombinatoricProblem problem, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Adding combinatoric problem {CombinatoricProblemId} to database", problem.Id);
-        
         dbContext.CombinatoricProblems.Add(new CombinatoricProblemModel
         {
             Id = problem.Id,
@@ -35,36 +33,25 @@ public sealed class CombinatoricProblemRepository(
 
     public async Task<CombinatoricProblem?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Retrieving combinatoric problem {CombinatoricProblemId} from database", id);
-
         CombinatoricProblemModel? model = await dbContext.CombinatoricProblems
-            .FirstOrDefaultAsync(problem => problem.Id == id, cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(problem => problem.Id == id, cancellationToken);
 
         if (model is null)
-        {
-            logger.LogDebug("Combinatoric problem {CombinatoricProblemId} not found in database", id);
             return null;
-        }
 
-        CombinatoricProblem combinatoricProblem = CombinatoricProblem.Rehydrate(
+        return CombinatoricProblem.Rehydrate(
             model.Id,
             model.DecisionVariables.Select(variable => (variable.Name, States: variable.States.ToArray())).ToArray(),
             model.Constraints.ToArray(),
             Enum.Parse<Satisfiability>(model.Satisfiability),
             model.Solution
         );
-
-        logger.LogDebug("Retrieved combinatoric problem {CombinatoricProblemId} with {VariableCount} variables and {ConstraintCount} constraints",
-            id, model.DecisionVariables.Count, model.Constraints.Length);
-        return combinatoricProblem;
     }
 
     public async Task Update(CombinatoricProblem problem, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Updating combinatoric problem {CombinatoricProblemId} in database", problem.Id);
-
         CombinatoricProblemModel? model = await dbContext.CombinatoricProblems
-            .FirstOrDefaultAsync(m => m.Id == problem.Id, cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(m => m.Id == problem.Id, cancellationToken);
 
         if (model is null)
             throw new InvalidOperationException($"CombinatoricProblem '{problem.Id}' was not found in the database.");

@@ -12,6 +12,9 @@ builder.AddServiceDefaults();
 // Error handling
 builder.Services.AddProblemDetails();
 
+// Logging
+builder.Services.AddHttpLogging();
+
 // Security
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
@@ -34,6 +37,9 @@ app.UseExceptionHandler();
 
 // Correlation context
 app.UseMiddleware<CorrelationContextMiddleware>();
+
+// Logging
+app.UseHttpLogging();
 
 // Zero-trust verification
 app.UseAuthentication();

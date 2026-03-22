@@ -13,8 +13,8 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence;
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CombinatoricsServiceDbContext))]
-    [Migration("20260321154704_AddedBooleanProblems")]
-    partial class AddedBooleanProblems
+    [Migration("20260321233022_AddedSolutionToBooleanProblems")]
+    partial class AddedSolutionToBooleanProblems
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,6 +32,10 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Formula")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Satisfiability")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -59,6 +63,37 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CombinatoricProblems");
+                });
+
+            modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.BooleanProblemModel", b =>
+                {
+                    b.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.VariableAssignmentModel", "Solution", b1 =>
+                        {
+                            b1.Property<Guid>("BooleanProblemId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<bool>("Value")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("VariableName")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("BooleanProblemId", "Id");
+
+                            b1.ToTable("VariableAssignmentModel");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BooleanProblemId");
+                        });
+
+                    b.Navigation("Solution");
                 });
 
             modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.CombinatoricProblemModel", b =>

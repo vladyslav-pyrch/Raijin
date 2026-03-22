@@ -12,19 +12,11 @@ public sealed class SatProblemSubmittedHandler(
 {
     public async Task Handle(ISatProblemSubmitted message, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Handling ISatProblemSubmitted event for SAT problem {SatProblemId}", message.SatProblemId);
-
-        var command = new SolveSatProblemCommand(Guid.Parse(message.SatProblemId));
+        var command = new SolveSatProblemCommand(message.SatProblemId);
 
         Result result = await mediator.Send(command, cancellationToken);
 
         if (result.IsFailed)
-        {
-            logger.LogError("Processing ISatProblemSubmitted failed for SAT problem {SatProblemId}: {Error}",
-                message.SatProblemId, result.Errors[0].Message);
             throw new MessageProcessingException(result.Errors[0].Message);
-        }
-
-        logger.LogInformation("Finished handling ISatProblemSubmitted event for SAT problem {SatProblemId}", message.SatProblemId);
     }
 }

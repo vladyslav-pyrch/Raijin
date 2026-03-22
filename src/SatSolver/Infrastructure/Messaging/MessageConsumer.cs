@@ -5,9 +5,9 @@ using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Infrastructure.Messaging;
 
-public sealed class MassTransitMessageConsumer<TMessage>(
+public sealed class MessageConsumer<TMessage>(
     IEnumerable<IMessageHandler<TMessage>> handlers,
-    ILogger<MassTransitMessageConsumer<TMessage>> logger
+    ILogger<MessageConsumer<TMessage>> logger
 ) : IConsumer<TMessage>
     where TMessage : class, IMessage
 {
@@ -15,23 +15,12 @@ public sealed class MassTransitMessageConsumer<TMessage>(
 
     public async Task Consume(ConsumeContext<TMessage> context)
     {
-        logger.LogInformation("Consuming {TMessage}", MessageType);
-
         List<IMessageHandler<TMessage>> handlerList = handlers.ToList();
 
-        logger.LogDebug("Dispatching {TMessage} to {HandlerCount} handler(s)", MessageType, handlerList.Count);
+        logger.LogDebug("Dispatching {MessageType} to {HandlerCount} handler(s)", MessageType, handlerList.Count);
 
         IEnumerable<Task> tasks = handlerList.Select(h => h.Handle(context.Message, context.CancellationToken));
-        try
-        {
-            await Task.WhenAll(tasks);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Error occurred while handling {TMessage}", MessageType);
-            throw;
-        }
 
-        logger.LogInformation("Finished consuming {TMessage}", MessageType);
+        await Task.WhenAll(tasks);
     }
 }
