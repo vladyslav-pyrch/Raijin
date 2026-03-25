@@ -1,7 +1,6 @@
 using FluentResults;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
@@ -21,29 +20,12 @@ public sealed class SubmitCombinatoricProblemHandler(
     )
     {
         var combinatoricProblemId = Guid.CreateVersion7();
+        IEnumerable<(string, string[])> decisionVariables =
+            request.DecisionVariables.Select(variable => (variable.Name, variable.States));
 
         CombinatoricProblem combinatoricProblem = new(combinatoricProblemId);
-
-        foreach (DecisionVariableDto variableDto in request.DecisionVariables)
-            combinatoricProblem.AddDecisionVariable(variableDto.Name, variableDto.States);
-
-        Result result = new();
-        for (var i = 0; i < request.Constraints.Length; i++)
-        {
-            int i1 = i;
-            Result addingConstraintResult = Result.Try(
-                () => combinatoricProblem.AddConstrain(request.Constraints[i1]),
-                exception => new ValidationError(
-                    $"{nameof(request.Constraints)}[{i1}]",
-                    exception.Message
-                )
-            );
-
-            result.WithErrors(addingConstraintResult.Errors);
-        }
-
-        if (result.IsFailed)
-            return result;
+        combinatoricProblem.AddDecisionVariables(decisionVariables);
+        combinatoricProblem.AddConstrains(request.Constraints);
 
         await combinatoricProblemRepository.Add(combinatoricProblem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);

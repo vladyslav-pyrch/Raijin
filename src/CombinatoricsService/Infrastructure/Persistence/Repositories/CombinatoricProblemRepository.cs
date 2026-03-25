@@ -24,7 +24,7 @@ public sealed class CombinatoricProblemRepository(
             }).ToList(),
             Constraints = problem.Constraints.Select(constraint => constraint.Formula).ToArray(),
             Satisfiability = problem.Satisfiability.ToString(),
-            Solution = problem.Solution?.Assignments
+            Solution = problem.Solution.Assignments
                 .ToDictionary(a => a.DecisionVariable.Name, a => a.SelectedState)
         });
 
@@ -63,7 +63,9 @@ public sealed class CombinatoricProblemRepository(
         }).ToList();
         model.Constraints = problem.Constraints.Select(constraint => constraint.Formula).ToArray();
         model.Satisfiability = problem.Satisfiability.ToString();
-        model.Solution = problem.Solution?.Assignments
-            .ToDictionary(a => a.DecisionVariable.Name, a => a.SelectedState);
+        model.Solution = problem.Solution.Assignments.ToDictionary(
+            a => a.DecisionVariable.Name,
+            a => a.SelectedState
+        );
     }
 }

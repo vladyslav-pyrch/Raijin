@@ -2,4 +2,4 @@
 
 namespace Raijin.CombinatoricsService.Application.Features.ResolveBooleanProblem;
 
-public record ResolveBooleanProblemCommand(Guid BooleanProblemId, int[] SatSolution) : IRequest;
+public sealed record ResolveBooleanProblemCommand(Guid BooleanProblemId, SatSolutionDto SatSolution) : IRequest;

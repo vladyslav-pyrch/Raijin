@@ -6,7 +6,7 @@ using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Application.Features.ResolveBooleanProblem;
 
-public class SatProblemSolvedHandler(
+public sealed class SatProblemSolvedHandler(
     IMediator mediator,
     ILogger<SatProblemSolvedHandler> logger
 ) : IMessageHandler<ISatProblemSolved>
@@ -15,7 +15,7 @@ public class SatProblemSolvedHandler(
     {
         Result result = await mediator.Send(new ResolveBooleanProblemCommand(
             message.SatProblemId,
-            message.Solution
+            new SatSolutionDto(message.Solution)
         ), cancellationToken);
 
         switch (result.IsFailed)

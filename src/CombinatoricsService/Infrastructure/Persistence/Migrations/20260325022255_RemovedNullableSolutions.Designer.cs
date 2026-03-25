@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence;
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CombinatoricsServiceDbContext))]
-    partial class CombinatoricsServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325022255_RemovedNullableSolutions")]
+    partial class RemovedNullableSolutions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,10 +38,6 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                     b.Property<string>("Satisfiability")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<Dictionary<string, bool>>("Solution")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
 
@@ -65,6 +64,37 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CombinatoricProblems");
+                });
+
+            modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.BooleanProblemModel", b =>
+                {
+                    b.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.VariableAssignmentModel", "Solution", b1 =>
+                        {
+                            b1.Property<Guid>("BooleanProblemId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<bool>("Value")
+                                .HasColumnType("boolean");
+
+                            b1.Property<string>("VariableName")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("BooleanProblemId", "Id");
+
+                            b1.ToTable("VariableAssignmentModel");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BooleanProblemId");
+                        });
+
+                    b.Navigation("Solution");
                 });
 
             modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.CombinatoricProblemModel", b =>

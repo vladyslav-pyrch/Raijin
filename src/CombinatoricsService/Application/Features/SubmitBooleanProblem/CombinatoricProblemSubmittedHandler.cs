@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
+using Raijin.CombinatoricsService.Domain.BooleanProblems;
 using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
-using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 

@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -40,7 +41,6 @@ public static class InfrastructureModule
             .AddMassTransit(x =>
             {
                 x.AddConsumer<MessageConsumer<ICombinatoricProblemSubmitted>>();
-                x.AddConsumer<MessageConsumer<IBooleanProblemSubmitted>>();
                 x.AddConsumer<MessageConsumer<ISatProblemSolved>>();
                 x.AddConsumer<MessageConsumer<IBooleanProblemSolved>>();
                 x.SetKebabCaseEndpointNameFormatter();
@@ -70,8 +70,11 @@ public static class InfrastructureModule
             .AddScoped<IBooleanProblemRepository, BooleanProblemRepository>()
             .AddDbContext<CombinatoricsServiceDbContext>((provider, builder) =>
             {
-                builder.UseNpgsql(GetDatabaseConnectionString(provider),
-                    optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly));
+                NpgsqlDataSource dataSource = new NpgsqlDataSourceBuilder(GetDatabaseConnectionString(provider))
+                    .EnableDynamicJson()
+                    .Build();
+
+                builder.UseNpgsql(dataSource, optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly));
             });
     }
 

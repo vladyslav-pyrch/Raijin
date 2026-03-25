@@ -19,6 +19,7 @@ internal class CombinatoricProblemModelConfiguration : IEntityTypeConfiguration<
             .IsRequired();
 
         builder.Property(model => model.Solution)
+            .IsRequired()
             .HasColumnType("jsonb");
 
         builder.OwnsMany(model => model.DecisionVariables, navigationBuilder =>

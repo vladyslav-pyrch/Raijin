@@ -1,10 +1,9 @@
 ﻿using FluentResults;
 using Microsoft.Extensions.Logging;
 using Raijin.Application.Contracts;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
-using Raijin.CombinatoricsService.Domain.Logic;
+using Raijin.CombinatoricsService.Domain.BooleanProblems;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 
@@ -19,15 +18,9 @@ public sealed class SubmitBooleanProblemHandler(
         CancellationToken cancellationToken)
     {
         Guid booleanProblemId = request.BooleanProblemId ?? Guid.CreateVersion7();
-        BooleanProblem booleanProblem = new(booleanProblemId);
 
-        Result result = Result.Try(
-            () => booleanProblem.SetExpression(request.BooleanFormula),
-            exception => new ValidationError(nameof(request.BooleanFormula), exception.Message)
-        );
-
-        if (result.IsFailed)
-            return result;
+        var booleanProblem = new BooleanProblem(booleanProblemId, request.BooleanFormula);
+        string dimacs = booleanProblem.ReduceToSat().Dimacs;
 
         await booleanProblemRepository.Add(booleanProblem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
@@ -36,6 +29,11 @@ public sealed class SubmitBooleanProblemHandler(
         {
             BooleanProblemId = booleanProblem.Id,
             BooleanFormula = booleanProblem.Formula
+        }, cancellationToken);
+        await messageBus.Publish<ISatProblemSent>(new
+        {
+            SatProblemId = booleanProblem.Id,
+            Dimacs = dimacs
         }, cancellationToken);
 
         return new SubmitBooleanProblemResult(booleanProblemId);

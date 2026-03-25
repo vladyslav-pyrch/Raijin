@@ -4,12 +4,11 @@ using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
-using Raijin.CombinatoricsService.Domain.Logic;
-using Raijin.CombinatoricsService.Domain.Shared;
+using Raijin.CombinatoricsService.Domain.BooleanProblems;
 
 namespace Raijin.CombinatoricsService.Application.Features.ResolveBooleanProblem;
 
-public class ResolveBooleanProblemHandler(
+public sealed class ResolveBooleanProblemHandler(
     IBooleanProblemRepository booleanProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
@@ -21,16 +20,10 @@ public class ResolveBooleanProblemHandler(
         BooleanProblem? booleanProblem =
             await booleanProblemRepository.GetById(request.BooleanProblemId, cancellationToken);
 
-        if (booleanProblem == null)
-            return Result.Fail(new NotFoundError(nameof(BooleanProblem), request.BooleanProblemId));
+        if (booleanProblem is null)
+            return new NotFoundError(nameof(BooleanProblem), request.BooleanProblemId);
 
-        Result result = Result.Try(
-            () => booleanProblem.ResolveSatSolution(new SatSolution(request.SatSolution)),
-            exception => new ValidationError(nameof(request.SatSolution), exception.Message)
-        );
-
-        if (result.IsFailed)
-            return result;
+        booleanProblem.ResolveSatSolution(request.SatSolution.Literals);
 
         await booleanProblemRepository.Update(booleanProblem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
@@ -44,6 +37,6 @@ public class ResolveBooleanProblemHandler(
             )
         }, cancellationToken);
 
-        return result;
+        return Result.Ok();
     }
 }

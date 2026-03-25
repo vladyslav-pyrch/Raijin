@@ -1,4 +1,4 @@
-﻿using Raijin.CombinatoricsService.Domain.Logic;
+﻿using Raijin.CombinatoricsService.Domain.BooleanProblems;
 
 namespace Raijin.CombinatoricsService.Application.Persistence;
 

@@ -4,9 +4,9 @@ internal class BooleanProblemModel
 {
     public Guid Id { get; set; }
 
-    public string Formula { get; set; }
+    public string Formula { get; set; } = null!;
 
-    public string Satisfiability { get; set; }
+    public string Satisfiability { get; set; } = null!;
 
-    public List<VariableAssignmentModel>? Solution { get; set; }
+    public Dictionary<string, bool> Solution { get; set; } = null!;
 }
