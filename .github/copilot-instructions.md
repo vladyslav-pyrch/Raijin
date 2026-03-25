@@ -64,7 +64,7 @@ Cross-cutting shared projects:
 ### Key Patterns
 
 - **CQRS** — Commands go through `IMediator` → `IPipelineBehavior` pipeline → `IRequestHandler`. Handlers return `Result<T>` (FluentResults).
-- **Pipeline Behaviors** — `ContextBehavior` (sets message context) → `ValidationBehavior` (FluentValidation) → Handler.
+- **Pipeline Behaviors** — `LoggingBehavior` (timing & result logging) → `ValidationBehavior` (FluentValidation) → Handler.
 - **Repository + Unit of Work** — Repository interfaces live in `Application/Persistence`. Implementations in `Infrastructure/Persistence`. Always call `IUnitOfWork.SaveChanges()` at the end.
 - **Persistence Models** — Domain aggregates are **never** saved directly. Map domain objects to `{Noun}Model` classes in `Infrastructure/Persistence/Models`.
 - **Integration Events** — Defined as interfaces in `Contracts` project. Published via `IMessageBus.Publish<TContract>(anonymousObject)`.
@@ -190,6 +190,7 @@ tests/
 
 - **File-scoped namespaces** — always.
 - **`sealed`** — seal all classes unless inheritance is explicitly required.
+- **Explicit interface access modifiers** — always use explicit `public` on interface members (properties, methods). Never rely on the implicit default.
 - **Primary constructors** — use for DI injection in handlers, services, and repositories.
 - **`var`** — use when the type is obvious from the right side; use explicit type for interface-typed variables.
 - **Expression-bodied members** — use for single-expression methods and properties.
@@ -229,20 +230,19 @@ tests/
 
 ## What Copilot Should NEVER Do
 
-1. **Never** reference or generate code following `ProblemSolvingService` patterns — it is legacy.
-2. **Never** use MediatR — the project uses a custom `ServiceProviderMediator`.
-3. **Never** use controller-based APIs — only Minimal APIs with `IEndpoint`.
-4. **Never** save domain aggregates/entities directly to EF Core — always map to `{Noun}Model`.
-5. **Never** share Application or Domain projects between microservices.
-6. **Never** create a shared messaging/CQRS library — each service owns its abstractions.
-7. **Never** use `async void`.
-8. **Never** swallow exceptions silently.
-9. **Never** use `.Result`, `.Wait()`, or `GetAwaiter().GetResult()` on tasks.
-10. **Never** add package references to Domain projects (they must remain dependency-free).
-11. **Never** use block-scoped namespaces.
-12. **Never** use NgModules in Angular — use standalone components only.
-13. **Never** put business logic in the Api or Infrastructure layer.
-14. **Never** name integration events with `Event`, `Message`, or `IntegrationEvent` suffix.
+1. **Never** use MediatR — the project uses a custom `ServiceProviderMediator`.
+2. **Never** use controller-based APIs — only Minimal APIs with `IEndpoint`.
+3. **Never** save domain aggregates/entities directly to EF Core — always map to `{Noun}Model`.
+4. **Never** share Application or Domain projects between microservices.
+5. **Never** create a shared messaging/CQRS library — each service owns its abstractions.
+6. **Never** use `async void`.
+7. **Never** swallow exceptions silently.
+8. **Never** use `.Result`, `.Wait()`, or `GetAwaiter().GetResult()` on tasks.
+9. **Never** add package references to Domain projects (they must remain dependency-free).
+10. **Never** use block-scoped namespaces.
+11. **Never** use NgModules in Angular — use standalone components only.
+12. **Never** put business logic in the Api or Infrastructure layer.
+13. **Never** name integration events with `Event`, `Message`, or `IntegrationEvent` suffix.
 
 ## Code Pattern Examples (from the actual codebase)
 
@@ -254,8 +254,8 @@ using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Application.Features.SubmitSatProblem;
 
-public sealed record SubmitSatProblemCommand(string Dimacs, MessageContext Context)
-    : IRequest<SubmitSatProblemResult>, IContextualRequest;
+public sealed record SubmitSatProblemCommand(string Dimacs, Guid? SatProblemId = null)
+    : IRequest<SubmitSatProblemResult>;
 ```
 
 ### Handler (Application Layer)
@@ -296,11 +296,10 @@ public class SubmitSatProblemEndpoint : IEndpoint
     private static async Task<Results<Ok<SubmitSatProblemResponse>, ValidationProblem, InternalServerError>> Execute(
         [FromBody] SubmitSatProblemRequest request,
         [FromServices] IMediator mediator,
-        [FromServices] IMessageIdGenerator messageIdGenerator,
         CancellationToken cancellationToken)
     {
         Result<SubmitSatProblemResult> result = await mediator.Send(
-            new SubmitSatProblemCommand(request.Dimacs, messageIdGenerator.NextMessageContext()),
+            new SubmitSatProblemCommand(request.Dimacs),
             cancellationToken);
 
         if (result.IsSuccess)

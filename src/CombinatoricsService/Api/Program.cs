@@ -1,4 +1,5 @@
 using Raijin.CombinatoricsService.Api.Extensions;
+using Raijin.CombinatoricsService.Api.Middleware;
 using Raijin.CombinatoricsService.Application;
 using Raijin.CombinatoricsService.Infrastructure;
 
@@ -11,6 +12,9 @@ builder.AddServiceDefaults();
 // Error handling
 builder.Services.AddProblemDetails();
 
+// Logging
+builder.Services.AddHttpLogging();
+
 // Security
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
@@ -18,6 +22,9 @@ builder.Services.AddAuthorization();
 // OpenAPI (optional but useful for internal tooling)
 builder.Services.AddOpenApi();
 builder.Services.AddEndpoints();
+
+// Correlation context middleware
+builder.Services.AddTransient<CorrelationContextMiddleware>();
 
 // Modules registration
 builder.Services.AddInfrastructure();
@@ -27,6 +34,12 @@ WebApplication app = builder.Build();
 
 // Error pipeline
 app.UseExceptionHandler();
+
+// Correlation context
+app.UseMiddleware<CorrelationContextMiddleware>();
+
+// Logging
+app.UseHttpLogging();
 
 // Zero-trust verification
 app.UseAuthentication();

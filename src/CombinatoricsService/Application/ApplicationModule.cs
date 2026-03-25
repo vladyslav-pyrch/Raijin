@@ -22,10 +22,8 @@ public static class ApplicationModule
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
-    
+
     private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
-        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ContextBehavior<,>))
-        .AddScoped(typeof(IPipelineBehavior<>), typeof(ContextBehavior<>))
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
         .AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))

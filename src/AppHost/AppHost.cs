@@ -13,7 +13,7 @@ IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
 IResourceBuilder<PostgresServerResource> applicationDbServer = builder
     .AddPostgres("raijin-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
-    .WithDataVolume("raijin-db-data")
+    //.WithDataVolume("raijin-db-data")
     .PublishAsContainer();
 
 IResourceBuilder<PostgresDatabaseResource> satSolverDb = applicationDbServer
@@ -21,7 +21,7 @@ IResourceBuilder<PostgresDatabaseResource> satSolverDb = applicationDbServer
 
 IResourceBuilder<ProjectResource> satSolverMigrationWorker = builder
     .AddProject<Raijin_SatSolver_MigrationWorker>("sat-solver-migration-worker")
-    .WithReference(satSolverDb, connectionName: "sat-solver-db")
+    .WithReference(satSolverDb, "sat-solver-db")
     .WaitFor(satSolverDb);
 
 switch (builder.Environment.IsDevelopment())
@@ -30,7 +30,7 @@ switch (builder.Environment.IsDevelopment())
         builder.AddProject<Raijin_SatSolver_Worker>("sat-solver-worker")
             .WithReplicas(3)
             .WithEnvironment("CRYPTOMINISAT_FILE_NAME", "cryptominisat5.exe")
-            .WithReference(satSolverDb, connectionName: "sat-solver-db")
+            .WithReference(satSolverDb, "sat-solver-db")
             .WaitFor(satSolverDb)
             .WaitFor(satSolverMigrationWorker)
             .WithReference(rabbitMq)
@@ -41,7 +41,7 @@ switch (builder.Environment.IsDevelopment())
             builder.AddDockerfile($"sat-solver-worker-{i}", "..", "./SatSolver/Worker/Dockerfile")
                 .WithLifetime(ContainerLifetime.Session)
                 .PublishAsContainer()
-                .WithReference(satSolverDb, connectionName: "sat-solver-db")
+                .WithReference(satSolverDb, "sat-solver-db")
                 .WaitFor(satSolverDb)
                 .WaitFor(satSolverMigrationWorker)
                 .WithReference(rabbitMq)
@@ -51,7 +51,7 @@ switch (builder.Environment.IsDevelopment())
 
 IResourceBuilder<ProjectResource> satSolverApi = builder
     .AddProject<Raijin_SatSolver_Api>("sat-solver-api")
-    .WithReference(satSolverDb, connectionName: "sat-solver-db")
+    .WithReference(satSolverDb, "sat-solver-db")
     .WaitFor(satSolverDb)
     .WaitForCompletion(satSolverMigrationWorker)
     .WithReference(rabbitMq)
@@ -143,8 +143,8 @@ if (builder.Environment.IsDevelopment())
 {
     rabbitMq.WithManagementPlugin();
     applicationDbServer.WithPgWeb();
-    
-    
+
+
     IResourceBuilder<ScalarResource> scalar = builder
         .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
         .WithApiReference(identityServiceApi, (options, _) =>
@@ -153,25 +153,25 @@ if (builder.Environment.IsDevelopment())
             return Task.CompletedTask;
         })
         .WaitFor(identityServiceApi)
-        .WithApiReference(combinatoricsServiceApi,  (options, _) =>
+        .WithApiReference(combinatoricsServiceApi, (options, _) =>
         {
             options.AddDocument("v1");
             return Task.CompletedTask;
         })
         .WaitFor(combinatoricsServiceApi)
-        .WithApiReference(satSolverApi,  (options, _) =>
+        .WithApiReference(satSolverApi, (options, _) =>
         {
             options.AddDocument("v1");
             return Task.CompletedTask;
         })
         .WaitFor(satSolverApi)
-        .WithApiReference(queryServiceApi,  (options, _) =>
+        .WithApiReference(queryServiceApi, (options, _) =>
         {
             options.AddDocument("v1");
             return Task.CompletedTask;
         })
         .WaitFor(queryServiceApi)
-        .WithApiReference(apiGateway,  (options, _) =>
+        .WithApiReference(apiGateway, (options, _) =>
         {
             options.AddDocument("v1");
             return Task.CompletedTask;

@@ -11,15 +11,15 @@ public sealed record Conjunction(ExpressionNode LeftNode, ExpressionNode RightNo
 
     public override IEnumerable<Variable> GetVariables() => [..LeftNode.GetVariables(), ..RightNode.GetVariables()];
     
-    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
+    protected internal override int TseitinTransform(List<IEnumerable<int>> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {
         int left = LeftNode.TseitinTransform(clauses, symbolTable, newLiteralId);
         int right = RightNode.TseitinTransform(clauses, symbolTable, newLiteralId);
         int leftAndRight = newLiteralId();
         
-        clauses.Add(new Clause(literals: [-leftAndRight, left]));
-        clauses.Add(new Clause(literals: [-leftAndRight, right]));
-        clauses.Add(new Clause(literals: [leftAndRight, -left, -right]));
+        clauses.Add([-leftAndRight, left]);
+        clauses.Add([-leftAndRight, right]);
+        clauses.Add([leftAndRight, -left, -right]);
         
         return leftAndRight;
     }

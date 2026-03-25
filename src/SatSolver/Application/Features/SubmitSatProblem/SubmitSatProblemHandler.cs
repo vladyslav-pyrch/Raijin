@@ -11,34 +11,25 @@ public sealed class SubmitSatProblemHandler(
     ISatProblemRepository satProblemRepository,
     IUnitOfWork unitOfWork,
     IMessageBus messageBus,
-    IMessageContextAccessor messageContextAccessor,
-    IMessageIdGenerator messageIdGenerator,
     ILogger<SubmitSatProblemHandler> logger
 ) : IRequestHandler<SubmitSatProblemCommand, SubmitSatProblemResult>
 {
     public async Task<Result<SubmitSatProblemResult>> Handle(SubmitSatProblemCommand request,
         CancellationToken cancellationToken)
     {
-        var satProblemId = Guid.CreateVersion7();
-        logger.LogInformation("Submitting SAT problem {SatProblemId}", satProblemId);
+        Guid satProblemId = request.SatProblemId ?? Guid.CreateVersion7();
 
         var satProblem = SatProblem.Create(satProblemId, request.Dimacs);
-        
+
         await satProblemRepository.Add(satProblem, cancellationToken);
         await unitOfWork.SaveChanges(cancellationToken);
 
-        await messageBus.Publish<ISatProblemSubmitted>(message: new
+        await messageBus.Publish<ISatProblemSubmitted>(new
         {
-            MessageId = messageIdGenerator.NextMessageId(),
-            CorrelationId = messageContextAccessor.CurrentContext.CorrelationId,
-            CausationId = messageContextAccessor.CurrentContext.CausationId,
-            Timestamp = DateTimeOffset.UtcNow,
-            SatProblemId = satProblemId.ToString(),
-            CombinatoricProblemId = (string?)null,
-            Dimacs = request.Dimacs,
+            SatProblemId = satProblemId,
+            request.Dimacs
         }, cancellationToken);
 
-        logger.LogInformation("SAT problem {SatProblemId} submitted successfully", satProblemId);
         return new SubmitSatProblemResult(satProblemId);
     }
 }

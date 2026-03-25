@@ -7,6 +7,9 @@ builder.AddServiceDefaults();
 // Error handling
 builder.Services.AddProblemDetails();
 
+// Logging
+builder.Services.AddHttpLogging();
+
 // Security
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
@@ -22,6 +25,9 @@ WebApplication app = builder.Build();
 
 // Error pipeline
 app.UseExceptionHandler();
+
+// Logging
+app.UseHttpLogging();
 
 // Zero-trust verification
 app.UseAuthentication();

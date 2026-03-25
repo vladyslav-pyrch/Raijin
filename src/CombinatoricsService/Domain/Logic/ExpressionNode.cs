@@ -6,17 +6,19 @@ public abstract record ExpressionNode
 {
     public abstract IEnumerable<Variable> GetVariables();
 
-    public TseitinTransformResult TseitinTransform()
+    public SatReduction TseitinTransform(Guid satReductionId)
     {
         var varId = 1;
         BijectiveDictionary<Variable, int> symbolTable = [];
-        List<Clause> clauses = [];
-        
-        int lastVariable = TseitinTransform(clauses, symbolTable, newLiteralId: () => varId++);
-        clauses.Add(new Clause(literals: [new Literal(lastVariable)]));
+        List<IEnumerable<int>> clauses = [];
 
-        return new TseitinTransformResult(new SatProblem(clauses), symbolTable);
+        int lastVariable = TseitinTransform(clauses, symbolTable, () => varId++);
+        clauses.Add([lastVariable]);
+
+        return new SatReduction(satReductionId, clauses, symbolTable);
     }
-    
-    protected internal abstract int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId);
+
+    protected internal abstract int TseitinTransform(List<IEnumerable<int>> clauses,
+        BijectiveDictionary<Variable, int> symbolTable,
+        Func<int> newLiteralId);
 }

@@ -8,10 +8,10 @@ public sealed record FalseNode : ExpressionNode
 
     public override string ToString() => "false";
 
-    protected internal override int TseitinTransform(List<Clause> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
+    protected internal override int TseitinTransform(List<IEnumerable<int>> clauses, BijectiveDictionary<Variable, int> symbolTable, Func<int> newLiteralId)
     {
         int falseLiteral = newLiteralId();
-        clauses.Add(new Clause(literals: [-falseLiteral]));
+        clauses.Add([-falseLiteral]);
         return falseLiteral;
     }
 }

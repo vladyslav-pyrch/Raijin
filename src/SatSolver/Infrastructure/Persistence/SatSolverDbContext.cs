@@ -13,8 +13,5 @@ public class SatSolverDbContext(DbContextOptions<SatSolverDbContext> options) : 
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(InfrastructureModule.Assembly);
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
-        modelBuilder.AddInboxStateEntity();
     }
 }

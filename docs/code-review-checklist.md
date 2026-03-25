@@ -17,7 +17,6 @@ Use this before submitting a PR or accepting Copilot-generated code.
 - [ ] `UnitOfWork.SaveChanges()` is called **before** publishing integration events (persist-then-publish)
 - [ ] No cross-service references to Application or Domain projects
 - [ ] Each service owns its own `IMediator`, `IRequest`, `IRequestHandler`, `IPipelineBehavior`
-- [ ] No references to or patterns from `ProblemSolvingService` (legacy)
 - [ ] MigrationWorker is a separate project using `BackgroundService` pattern
 
 ## ✅ Naming
