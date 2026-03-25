@@ -7,7 +7,7 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
 
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Repositories;
 
-public class BooleanProblemRepository(
+public sealed class BooleanProblemRepository(
     CombinatoricsServiceDbContext dbContext,
     ILogger<CombinatoricProblemRepository> logger
 ) : IBooleanProblemRepository

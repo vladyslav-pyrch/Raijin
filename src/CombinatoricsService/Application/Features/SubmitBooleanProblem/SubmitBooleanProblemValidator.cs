@@ -3,7 +3,7 @@ using Raijin.CombinatoricsService.Domain.Logic;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 
-public class SubmitBooleanProblemValidator : AbstractValidator<SubmitBooleanProblemCommand>
+public sealed class SubmitBooleanProblemValidator : AbstractValidator<SubmitBooleanProblemCommand>
 {
     public SubmitBooleanProblemValidator()
     {

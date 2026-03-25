@@ -55,23 +55,26 @@ Api → Infrastructure → Application → Domain
 
 ### Domain Layer
 
-- **Owns**: Aggregate roots, entities, value objects, domain services, domain exceptions.
+- **Owns**: Aggregate roots, entities, value objects, domain events, domain services, domain exceptions.
 - **Rules**:
   - Zero NuGet package references. Only `Microsoft.NET.Sdk`.
   - No `using` of anything outside the Domain namespace (except `System.*`).
   - All invariants enforced here — guard clauses in constructors, validation in methods.
   - Rich domain model — behavior lives on the aggregate, not in services.
+  - Domain events are named `{WhatHappened}` (past tense) with **no** `Event` or `DomainEvent` suffix — e.g., `SatProblemCreated`, `SolutionSet`.
+  - Domain events are `sealed record` types colocated with their aggregate.
 - **Example**: `CombinatoricProblem` enforces that decision variables have unique names, at least two states, and that constraints reference only defined variables.
 
 ### Application Layer
 
-- **Owns**: Commands, handlers, validators, ports (repository interfaces, messaging interfaces), DTOs, error types.
+- **Owns**: Commands, handlers, validators, ports (repository interfaces, messaging interfaces), DTOs, error types, domain event handlers.
 - **Rules**:
   - Orchestrates domain operations but contains no business logic itself.
   - Defines interfaces for infrastructure concerns (`ICombinatoricProblemRepository`, `IUnitOfWork`, `IMessageBus`).
   - Each service has its **own** `IMediator`, `IRequest`, `IRequestHandler`, `IPipelineBehavior` — these are NOT shared.
   - Uses FluentValidation for input validation (runs via `ValidationBehavior` in the pipeline).
   - Uses FluentResults for returning success/failure without exceptions for expected errors.
+  - Domain event handlers are named `{WhatHappened}Handler` (same short suffix as integration event handlers).
 - **Allowed dependencies**: Domain project, `Contracts` project, `FluentValidation`, `FluentResults`.
 
 ### Infrastructure Layer
@@ -172,4 +175,6 @@ Handlers always call `unitOfWork.SaveChanges()` **before** publishing integratio
 | **Putting business logic in endpoints** | Endpoints are adapters; all logic goes through the command → handler pipeline |
 | **Creating a shared CQRS/messaging library** | Each service must own its infrastructure abstractions to remain independently deployable |
 | **Using controllers** | Project uses Minimal APIs exclusively |
+| **Adding `Event`/`DomainEvent` suffix to domain events** | Domain events follow the "no suffix" convention: `SatProblemCreated`, not `SatProblemCreatedEvent` |
+| **Using compound type suffixes** | Use short suffixes: `Handler` not `CommandHandler`, `Validator` not `CommandValidator`, `Behavior` not `PipelineBehavior` |
 

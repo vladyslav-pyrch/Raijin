@@ -152,26 +152,57 @@ tests/
 | **Api** | Request DTO | `{EndpointName}Request` | `SubmitSatProblemRequest` |
 | **Api** | Response DTO | `{EndpointName}Response` | `SubmitSatProblemResponse` |
 | **Api** | Sub-model | `{Noun}Model` | `DecisionVariableModel` |
-| **Application** | Command | `{CommandName}Command` | `SubmitCombinatoricProblemCommand` |
-| **Application** | Handler | `{CommandName}Handler` | `SubmitCombinatoricProblemHandler` |
-| **Application** | Result | `{CommandName}Result` | `SubmitCombinatoricProblemResult` |
-| **Application** | Validator | `{CommandName}Validator` | `SubmitCombinatoricProblemValidator` |
+| **Application** | Command | `{Feature}Command` | `SubmitCombinatoricProblemCommand` |
+| **Application** | Handler | `{Feature}Handler` | `SubmitCombinatoricProblemHandler` |
+| **Application** | Result | `{Feature}Result` | `SubmitCombinatoricProblemResult` |
+| **Application** | Validator | `{Feature}Validator` | `SubmitCombinatoricProblemValidator` |
 | **Application** | DTO | `{Noun}Dto` | `DecisionVariableDto` |
 | **Application** | DTO Validator | `{Noun}Validator` | `DecisionVariableValidator` |
+| **Application** | Integration event handler | `{WhatHappened}Handler` | `SatProblemSubmittedHandler` |
+| **Application** | Domain event handler | `{WhatHappened}Handler` | `SatProblemCreatedHandler` |
+| **Application** | Pipeline behavior | `{Concern}Behavior` | `ValidationBehavior` |
+| **Application** | DI module | `ApplicationModule` | `ApplicationModule.AddApplication()` |
+| **Domain** | Aggregate root | `{Noun}` (no suffix) | `CombinatoricProblem` |
+| **Domain** | Entity | `{Noun}` (no suffix) | `DecisionVariable` |
+| **Domain** | Value object | `sealed record` | `Literal`, `Clause` |
+| **Domain** | Domain event | `{WhatHappened}` (no suffix) | `SatProblemCreated` |
+| **Domain** | Domain exception | `{Noun}Exception` | `ParsingException` |
 | **Infrastructure** | Persistence model | `{Noun}Model` | `CombinatoricProblemModel` |
 | **Infrastructure** | EF Configuration | `{Noun}ModelConfiguration` | `CombinatoricProblemModelConfiguration` |
 | **Infrastructure** | Repository | `{Noun}Repository` | `CombinatoricProblemRepository` |
 | **Infrastructure** | DbContext | `{ServiceName}DbContext` | `SatSolverDbContext` |
 | **Infrastructure** | UnitOfWork | `{ServiceName}UnitOfWork` | `SatSolverUnitOfWork` |
 | **Infrastructure** | DI module | `InfrastructureModule` | `InfrastructureModule.AddInfrastructure()` |
-| **Application** | DI module | `ApplicationModule` | `ApplicationModule.AddApplication()` |
+| **Infrastructure** | MassTransit consumer | `MessageConsumer<TMessage>` (generic) | `MessageConsumer<ISatProblemSubmitted>` |
 | **Contracts** | Integration event | `I{WhatHappened}` (no suffix) | `ISatProblemSubmitted` |
-| **Application** | Event handler | `{WhatHappened}Handler` | `SatProblemSubmittedHandler` |
+
+### Naming Suffix Rules (Banned Suffixes)
+
+Every type uses a **short role suffix** — never a compound or redundant suffix. The table below lists banned alternatives for each type category.
+
+| Type | Correct Suffix | Banned Suffixes (never use) |
+|---|---|---|
+| Integration event | *(none)* — `I{WhatHappened}` | `Event`, `Message`, `IntegrationEvent` |
+| Domain event | *(none)* — `{WhatHappened}` | `Event`, `DomainEvent` |
+| Command/Query handler | `Handler` | `RequestHandler`, `CommandHandler`, `QueryHandler` |
+| Integration event handler | `Handler` | `EventHandler`, `MessageHandler`, `IntegrationEventHandler`, `Consumer` |
+| Domain event handler | `Handler` | `EventHandler`, `DomainEventHandler` |
+| Validator | `Validator` | `CommandValidator`, `RequestValidator`, `QueryValidator` |
+| Result | `Result` | `CommandResult`, `HandlerResult`, `Response` (in Application layer) |
+| Pipeline behavior | `Behavior` | `PipelineBehavior` |
+| Command | `Command` | `Request` (in Application layer — `IRequest` is the interface, `Command` is the class suffix) |
+| DTO | `Dto` | `DataTransferObject`, `Model` (in Application layer) |
+| Error type | `Error` | `Exception` (reserve `Exception` for truly exceptional/unrecoverable situations) |
 
 ### Infrastructure Module Naming
 
 - Service with **API only** → `AddInfrastructure()`
 - Service with **API + Worker** → `AddInfrastructureApi()` / `AddInfrastructureWorker()`
+
+### MassTransit Consumer Naming
+
+- Use the generic `MessageConsumer<TMessage>` wrapper — do **not** create individual `{WhatHappened}Consumer` classes.
+- Register as `x.AddConsumer<MessageConsumer<ISatProblemSubmitted>>()` in `InfrastructureModule`.
 
 ### Angular/TypeScript
 
@@ -226,7 +257,13 @@ tests/
 12. Use `[FromBody]`, `[FromServices]`, `[FromQuery]` explicitly in endpoint parameters.
 13. Keep each microservice's messaging abstractions (`IMediator`, `IRequest`, etc.) inside that service's Application project — do **not** create a shared library.
 14. Place integration event interfaces in the `Contracts` project with name pattern `I{WhatHappened}` — no `Event`, `Message`, or `IntegrationEvent` suffix.
-15. Name integration event handlers `{WhatHappened}Handler`.
+15. Name integration event handlers `{WhatHappened}Handler` — no `EventHandler`, `MessageHandler`, or `Consumer` suffix.
+16. Name domain events `{WhatHappened}` (past tense, no suffix) — no `Event` or `DomainEvent` suffix.
+17. Name domain event handlers `{WhatHappened}Handler` — same short suffix as integration event handlers.
+18. Name command/query handlers `{Feature}Handler` — no `CommandHandler`, `RequestHandler`, or `QueryHandler` suffix.
+19. Name validators `{Feature}Validator` — no `CommandValidator` or `RequestValidator` suffix.
+20. Name pipeline behaviors `{Concern}Behavior` — no `PipelineBehavior` suffix.
+21. Follow the **Naming Suffix Rules** table — use only the short role suffix for each type category.
 
 ## What Copilot Should NEVER Do
 
@@ -243,6 +280,11 @@ tests/
 11. **Never** use NgModules in Angular — use standalone components only.
 12. **Never** put business logic in the Api or Infrastructure layer.
 13. **Never** name integration events with `Event`, `Message`, or `IntegrationEvent` suffix.
+14. **Never** name domain events with `Event` or `DomainEvent` suffix — use `{WhatHappened}` (past tense, no suffix).
+15. **Never** use compound handler suffixes — use `Handler`, not `CommandHandler`, `RequestHandler`, `QueryHandler`, `EventHandler`, or `MessageHandler`.
+16. **Never** use compound validator suffixes — use `Validator`, not `CommandValidator` or `RequestValidator`.
+17. **Never** use compound behavior suffixes — use `Behavior`, not `PipelineBehavior`.
+18. **Never** use compound result suffixes — use `Result`, not `CommandResult` or `HandlerResult`.
 
 ## Code Pattern Examples (from the actual codebase)
 
@@ -322,6 +364,16 @@ public interface ISatProblemSubmitted : IMessage
     public string SatProblemId { get; }
     public string Dimacs { get; }
 }
+```
+
+### Domain Event (Domain Layer)
+
+```csharp
+// File: Domain/SatProblems/SatProblemCreated.cs
+// Named {WhatHappened} — NO 'Event' or 'DomainEvent' suffix.
+namespace Raijin.SatSolver.Domain.SatProblems;
+
+public sealed record SatProblemCreated(Guid SatProblemId, string Dimacs);
 ```
 
 ### Domain Entity

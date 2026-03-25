@@ -8,7 +8,7 @@ using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Api.Endpoints.V1.CombinatoricProblems.SubmitCombinatoricProblem;
 
-public class SubmitCombinatoricProblemEndpoint : IEndpoint
+public sealed class SubmitCombinatoricProblemEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {

@@ -8,7 +8,7 @@ using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 
-public class CombinatoricProblemSubmittedHandler(
+public sealed class CombinatoricProblemSubmittedHandler(
     ICombinatoricProblemRepository combinatoricProblemRepository,
     IMediator mediator,
     ILogger<CombinatoricProblemSubmittedHandler> logger

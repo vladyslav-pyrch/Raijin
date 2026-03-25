@@ -53,6 +53,7 @@
 | Messaging interface | `IMediator`, `IMessageBus`, `IRequest<T>`, `IRequestHandler<T, R>` | — |
 | Pipeline behavior | `{Concern}Behavior` | `ValidationBehavior`, `ContextBehavior` |
 | Integration event handler | `{WhatHappened}Handler` | `SatProblemSubmittedHandler` |
+| Domain event handler | `{WhatHappened}Handler` | `SatProblemCreatedHandler` |
 
 #### Domain Layer
 
@@ -61,6 +62,7 @@
 | Aggregate root | `{Noun}` (no suffix) | `CombinatoricProblem`, `SatProblem` |
 | Entity | `{Noun}` | `DecisionVariable`, `Constraint` |
 | Value object | `sealed record` | `Literal`, `Clause` |
+| Domain event | `{WhatHappened}` — **no** `Event`/`DomainEvent` suffix | `SatProblemCreated`, `SolutionSet` |
 | Domain exception | `{Noun}Exception` | `ParsingException` |
 | Enum | `{Noun}` (singular) | `Satisfiability`, `TokenType` |
 
@@ -76,7 +78,7 @@
 | Migration factory | `Migration{ServiceName}DbContextFactory`                                                       | `MigrationCombinatoricsServiceDbContextFactory` |
 | DI module (API only) | `AddInfrastructure()`                                                                          | `services.AddInfrastructure()`                 |
 | DI module (API+Worker) | `AddInfrastructureApi()` / `AddInfrastructureWorker()`                                         | `services.AddInfrastructureApi()`              |
-| MassTransit consumer | Reuses Application's `IMessageHandler<T>` impl, wrapped by MassTransit; {WhatHappened}Consumer | SatProblemSubbittedConsumer                    |
+| MassTransit consumer | `MessageConsumer<TMessage>` (generic wrapper) — do **not** create individual consumer classes | `MessageConsumer<ISatProblemSubmitted>` |
 
 #### Contracts (Shared)
 
@@ -169,4 +171,22 @@ Follow **Conventional Commits**:
 | `perf` | Performance improvement |
 
 **Scope** = service name or `shared`: `feat(sat-solver): add timeout support for CryptoMiniSat`
+
+## 7. Naming Suffix Anti-Patterns
+
+Every type uses a **short role suffix** — never a compound or redundant suffix. Use this table as a quick reference to avoid banned naming patterns.
+
+| Type Category | Correct | Banned (never use) |
+|---|---|---|
+| Integration event | `I{WhatHappened}` | `I{WhatHappened}Event`, `I{WhatHappened}Message`, `I{WhatHappened}IntegrationEvent` |
+| Domain event | `{WhatHappened}` | `{WhatHappened}Event`, `{WhatHappened}DomainEvent` |
+| Command/Query handler | `{Feature}Handler` | `{Feature}CommandHandler`, `{Feature}RequestHandler`, `{Feature}QueryHandler` |
+| Integration event handler | `{WhatHappened}Handler` | `{WhatHappened}EventHandler`, `{WhatHappened}MessageHandler`, `{WhatHappened}Consumer` |
+| Domain event handler | `{WhatHappened}Handler` | `{WhatHappened}EventHandler`, `{WhatHappened}DomainEventHandler` |
+| Validator | `{Feature}Validator` | `{Feature}CommandValidator`, `{Feature}RequestValidator` |
+| Result | `{Feature}Result` | `{Feature}CommandResult`, `{Feature}HandlerResult` |
+| Pipeline behavior | `{Concern}Behavior` | `{Concern}PipelineBehavior` |
+| Command | `{Feature}Command` | `{Feature}Request` (in Application layer) |
+| DTO | `{Noun}Dto` | `{Noun}DataTransferObject`, `{Noun}Model` (in Application layer) |
+| Error type | `{Noun}Error` | Reserve `Exception` for truly exceptional/unrecoverable situations |
 
