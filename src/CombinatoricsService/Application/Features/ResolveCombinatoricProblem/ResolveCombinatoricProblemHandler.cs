@@ -9,31 +9,27 @@ using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 namespace Raijin.CombinatoricsService.Application.Features.ResolveCombinatoricProblem;
 
 public sealed class ResolveCombinatoricProblemHandler(
-    ICombinatoricProblemRepository combinatoricProblemRepository,
-    IUnitOfWork unitOfWork,
+    IEventStore eventStore,
     IMessageBus messageBus,
     ILogger<ResolveCombinatoricProblemHandler> logger
 ) : IRequestHandler<ResolveCombinatoricProblemCommand>
 {
     public async Task<Result> Handle(ResolveCombinatoricProblemCommand request, CancellationToken cancellationToken)
     {
-        CombinatoricProblem? combinatoricProblem = await combinatoricProblemRepository.GetById(
-            request.CombinatoricProblemId,
-            cancellationToken
-        );
+        var combinatoricProblem =
+            await eventStore.GetById<CombinatoricProblem>(request.CombinatoricProblemId, cancellationToken);
 
         if (combinatoricProblem is null)
             return new NotFoundError(nameof(CombinatoricProblem), request.CombinatoricProblemId);
 
         combinatoricProblem.ResolveVariableAssignments(request.BooleanProblemSolutionSolution.VariableAssignments);
 
-        await combinatoricProblemRepository.Update(combinatoricProblem, cancellationToken);
-        await unitOfWork.Commit(cancellationToken);
+        await eventStore.Save(combinatoricProblem, cancellationToken);
 
         await messageBus.Publish<ICombinatoricProblemSolved>(new
         {
             CombinatoricProblemId = combinatoricProblem.Id,
-            Solution = combinatoricProblem.Solution.Assignments.ToDictionary(
+            Solution = combinatoricProblem.Solution.ToDictionary(
                 assignment => assignment.DecisionVariable.Name,
                 assignment => assignment.SelectedState
             )

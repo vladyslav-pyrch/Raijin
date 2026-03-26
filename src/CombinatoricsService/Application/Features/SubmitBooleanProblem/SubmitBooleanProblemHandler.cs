@@ -8,8 +8,7 @@ using Raijin.CombinatoricsService.Domain.BooleanProblems;
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 
 public sealed class SubmitBooleanProblemHandler(
-    IBooleanProblemRepository booleanProblemRepository,
-    IUnitOfWork unitOfWork,
+    IEventStore eventStore,
     IMessageBus messageBus,
     ILogger<SubmitBooleanProblemHandler> logger
 ) : IRequestHandler<SubmitBooleanProblemCommand, SubmitBooleanProblemResult>
@@ -19,11 +18,10 @@ public sealed class SubmitBooleanProblemHandler(
     {
         Guid booleanProblemId = request.BooleanProblemId ?? Guid.CreateVersion7();
 
-        var booleanProblem = new BooleanProblem(booleanProblemId, request.BooleanFormula);
+        var booleanProblem = BooleanProblem.Create(booleanProblemId, request.BooleanFormula);
         string dimacs = booleanProblem.ReduceToSat().Dimacs;
 
-        await booleanProblemRepository.Add(booleanProblem, cancellationToken);
-        await unitOfWork.Commit(cancellationToken);
+        await eventStore.Save(booleanProblem, cancellationToken);
 
         await messageBus.Publish<IBooleanProblemSubmitted>(new
         {

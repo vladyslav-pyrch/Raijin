@@ -9,15 +9,15 @@ using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 namespace Raijin.CombinatoricsService.Application.Features.SubmitBooleanProblem;
 
 public sealed class CombinatoricProblemSubmittedHandler(
-    ICombinatoricProblemRepository combinatoricProblemRepository,
+    IEventStore eventStore,
     IMediator mediator,
     ILogger<CombinatoricProblemSubmittedHandler> logger
 ) : IMessageHandler<ICombinatoricProblemSubmitted>
 {
     public async Task Handle(ICombinatoricProblemSubmitted message, CancellationToken cancellationToken)
     {
-        CombinatoricProblem? combinatoricProblem =
-            await combinatoricProblemRepository.GetById(message.CombinatoricProblemId, cancellationToken);
+        var combinatoricProblem =
+            await eventStore.GetById<CombinatoricProblem>(message.CombinatoricProblemId, cancellationToken);
 
         if (combinatoricProblem is null)
         {

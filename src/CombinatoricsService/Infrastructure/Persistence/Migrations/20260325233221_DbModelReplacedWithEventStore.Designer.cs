@@ -3,18 +3,21 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
+namespace Raijin.CombinatoricsService.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(CombinatoricsServiceDbContext))]
-    partial class CombinatoricsServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325233221_DbModelReplacedWithEventStore")]
+    partial class DbModelReplacedWithEventStore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,11 +31,6 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("AggregateType")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
 
                     b.Property<JsonDocument>("EventData")
                         .IsRequired()

@@ -10,7 +10,6 @@ using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Messaging;
 using Raijin.CombinatoricsService.Infrastructure.Messaging.Filters;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
-using Raijin.CombinatoricsService.Infrastructure.Persistence.Repositories;
 
 namespace Raijin.CombinatoricsService.Infrastructure;
 
@@ -66,12 +65,10 @@ public static class InfrastructureModule
     {
         return services
             .AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>()
-            .AddScoped<ICombinatoricProblemRepository, CombinatoricProblemRepository>()
-            .AddScoped<IBooleanProblemRepository, BooleanProblemRepository>()
-            .AddDbContext<CombinatoricsServiceDbContext>((provider, builder) =>
+            .AddScoped<IEventStore, EfEventStore>()
+            .AddDbContextPool<CombinatoricsServiceDbContext>((provider, builder) =>
             {
                 NpgsqlDataSource dataSource = new NpgsqlDataSourceBuilder(GetDatabaseConnectionString(provider))
-                    .EnableDynamicJson()
                     .Build();
 
                 builder.UseNpgsql(dataSource, optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly));

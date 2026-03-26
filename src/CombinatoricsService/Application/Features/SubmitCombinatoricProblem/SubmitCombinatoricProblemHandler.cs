@@ -8,8 +8,7 @@ using Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
 
 public sealed class SubmitCombinatoricProblemHandler(
-    ICombinatoricProblemRepository combinatoricProblemRepository,
-    IUnitOfWork unitOfWork,
+    IEventStore eventStore,
     IMessageBus messageBus,
     ILogger<SubmitCombinatoricProblemHandler> logger
 ) : IRequestHandler<SubmitCombinatoricProblemCommand, SubmitCombinatoricProblemResult>
@@ -23,12 +22,11 @@ public sealed class SubmitCombinatoricProblemHandler(
         IEnumerable<(string, string[])> decisionVariables =
             request.DecisionVariables.Select(variable => (variable.Name, variable.States));
 
-        CombinatoricProblem combinatoricProblem = new(combinatoricProblemId);
+        var combinatoricProblem = CombinatoricProblem.Create(combinatoricProblemId);
         combinatoricProblem.AddDecisionVariables(decisionVariables);
         combinatoricProblem.AddConstrains(request.Constraints);
 
-        await combinatoricProblemRepository.Add(combinatoricProblem, cancellationToken);
-        await unitOfWork.Commit(cancellationToken);
+        await eventStore.Save(combinatoricProblem, cancellationToken);
 
         await messageBus.Publish<ICombinatoricProblemSubmitted>(new
         {

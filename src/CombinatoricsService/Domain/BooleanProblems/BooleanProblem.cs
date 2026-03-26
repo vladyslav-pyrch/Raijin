@@ -1,29 +1,12 @@
+using Raijin.CombinatoricsService.Domain.Abstractions;
 using Raijin.CombinatoricsService.Domain.Logic;
 using Raijin.CombinatoricsService.Domain.Shared;
 
 namespace Raijin.CombinatoricsService.Domain.BooleanProblems;
 
-public class BooleanProblem
+public class BooleanProblem : AggregateRoot
 {
     private readonly Dictionary<string, Variable> _variables = [];
-
-    public BooleanProblem(Guid id, string formula)
-    {
-        ArgumentNullException.ThrowIfNull(formula);
-
-        Id = id;
-        SetExpression(ExpressionParser.Parse(formula), formula);
-    }
-
-    public BooleanProblem(Guid id, ExpressionNode expression)
-    {
-        ArgumentNullException.ThrowIfNull(expression);
-
-        Id = id;
-        SetExpression(expression, expression.ToString());
-    }
-
-    public Guid Id { get; }
 
     public string Formula { get; private set; } = null!;
 
@@ -33,27 +16,20 @@ public class BooleanProblem
 
     public Satisfiability Satisfiability { get; private set; } = Satisfiability.Unknown;
 
-    public BooleanProblemSolution Solution { get; private set; } = new([]);
+    public IEnumerable<VariableAssignment> Solution { get; private set; } = [];
 
-    public static BooleanProblem Rehydrate(Guid id,
-        string formula,
-        Satisfiability satisfiability,
-        IDictionary<string, bool> solution)
+    public static BooleanProblem Create(Guid id, string formula)
     {
-        ArgumentNullException.ThrowIfNull(formula);
+        var booleanProblem = new BooleanProblem();
+        booleanProblem.Enqueue(new BooleanProblemCreated(id, formula));
+        return booleanProblem;
+    }
 
-        var problem = new BooleanProblem(id, formula);
-
-        foreach (Variable variable in problem.Expression.GetVariables())
-            problem._variables.TryAdd(variable.Name, variable);
-
-        problem.Satisfiability = satisfiability;
-        problem.Solution = new BooleanProblemSolution(solution.Select(kvp => new VariableAssignment(
-            problem._variables[kvp.Key],
-            kvp.Value
-        )));
-
-        return problem;
+    public static BooleanProblem Create(Guid id, ExpressionNode expression)
+    {
+        var booleanProblem = new BooleanProblem();
+        booleanProblem.Enqueue(new BooleanProblemCreated(id, expression.ToString()));
+        return booleanProblem;
     }
 
     public SatReduction ReduceToSat()
@@ -67,8 +43,7 @@ public class BooleanProblem
 
         if (variableAssignments.Count == 0)
         {
-            Solution = new BooleanProblemSolution([]);
-            Satisfiability = Satisfiability.Unsatisfiable;
+            Enqueue(new BooleanProblemSolutionSet([], Satisfiability.Unsatisfiable));
             return;
         }
 
@@ -86,11 +61,11 @@ public class BooleanProblem
                 nameof(variableAssignments)
             );
 
-        Solution = new BooleanProblemSolution(variableAssignments.Select(kvp => new VariableAssignment(
+        List<VariableAssignment> assignments = variableAssignments.Select(kvp => new VariableAssignment(
             _variables[kvp.Key],
             kvp.Value
-        )));
-        Satisfiability = Satisfiability.Satisfiable;
+        )).ToList();
+        Enqueue(new BooleanProblemSolutionSet(assignments, Satisfiability.Satisfiable));
     }
 
     public void ResolveSatSolution(int[] literals)
@@ -118,15 +93,20 @@ public class BooleanProblem
         SetSolution(assignments);
     }
 
-    private void SetExpression(ExpressionNode expression, string formula)
+    internal void Apply(BooleanProblemCreated domainEvent)
     {
-        ArgumentNullException.ThrowIfNull(expression);
-        ArgumentNullException.ThrowIfNull(formula);
-
-        Formula = formula;
-        Expression = expression;
+        Id = domainEvent.Id;
+        Formula = domainEvent.Formula;
+        Expression = ExpressionParser.Parse(domainEvent.Formula);
+        Satisfiability = Satisfiability.Unknown;
 
         foreach (Variable variable in Expression.GetVariables())
             _variables.TryAdd(variable.Name, variable);
+    }
+
+    internal void Apply(BooleanProblemSolutionSet domainEvent)
+    {
+        Satisfiability = domainEvent.Satisfiability;
+        Solution = domainEvent.Solution;
     }
 }

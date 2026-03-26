@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Raijin.CombinatoricsService.Domain.Logic;
 
@@ -5,6 +6,12 @@ namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
 public sealed partial record DecisionVariable
 {
+    [JsonConstructor]
+    public DecisionVariable(string name, IReadOnlyList<string> states)
+        : this(name, (IEnumerable<string>)states)
+    {
+    }
+
     public DecisionVariable(string name, IEnumerable<string> states)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -14,7 +21,7 @@ public sealed partial record DecisionVariable
                 "The name must start with a letter and can only contain letters, digits, and hyphens.", nameof(name));
 
         ArgumentNullException.ThrowIfNull(states);
-        
+
         IReadOnlyList<string> statesCopy = [..states];
 
         if (statesCopy.Count <= 1)
@@ -35,8 +42,11 @@ public sealed partial record DecisionVariable
     public string Name { get; }
 
     public IReadOnlyList<string> States { get; }
-    
-    public Variable[] ToVariables() => States.Select(state => new Variable($"{Name}_is_{state}")).ToArray();
+
+    public Variable[] ToVariables()
+    {
+        return States.Select(state => new Variable($"{Name}_is_{state}")).ToArray();
+    }
 
     [GeneratedRegex("^[a-zA-Z][a-zA-Z0-9-]*$")]
     private partial Regex ValidNamePattern();

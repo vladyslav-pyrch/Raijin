@@ -1,15 +1,15 @@
+using Raijin.CombinatoricsService.Domain.Abstractions;
 using Raijin.CombinatoricsService.Domain.BooleanProblems;
 using Raijin.CombinatoricsService.Domain.Logic;
 using Raijin.CombinatoricsService.Domain.Shared;
 
 namespace Raijin.CombinatoricsService.Domain.CombinatoricProblems;
 
-public class CombinatoricProblem(Guid id)
+public class CombinatoricProblem : AggregateRoot
 {
     private readonly List<Constraint> _constrains = [];
     private readonly Dictionary<string, DecisionVariable> _decisionVariables = [];
-
-    public Guid Id { get; } = id;
+    private readonly List<DecisionVariableAssignment> _solution = [];
 
     public IReadOnlyList<DecisionVariable> DecisionVariables => _decisionVariables.Values.ToList();
 
@@ -17,38 +17,24 @@ public class CombinatoricProblem(Guid id)
 
     public Satisfiability Satisfiability { get; private set; } = Satisfiability.Unknown;
 
-    public CombinatoricProblemSolution Solution { get; private set; } = new([]);
+    public IReadOnlyList<DecisionVariableAssignment> Solution => _solution;
 
-    public static CombinatoricProblem Rehydrate(
-        Guid id,
-        IEnumerable<(string Name, string[] States)> decisionVariables,
-        IEnumerable<string> constraints,
-        Satisfiability satisfiability,
-        IReadOnlyDictionary<string, string> solution)
+    public static CombinatoricProblem Create(Guid id)
     {
-        var combinatoricProblem = new CombinatoricProblem(id);
-
-        foreach ((string name, string[] states) in decisionVariables)
-            combinatoricProblem._decisionVariables.Add(name, new DecisionVariable(name, states));
-
-        foreach (string constraint in constraints)
-            combinatoricProblem._constrains.Add(new Constraint(constraint));
-
-        combinatoricProblem.Satisfiability = satisfiability;
-        combinatoricProblem.Solution = new CombinatoricProblemSolution(solution.Select(kvp =>
-            new DecisionVariableAssignment(
-                combinatoricProblem._decisionVariables[kvp.Key],
-                kvp.Value
-            )
-        ));
-
+        var combinatoricProblem = new CombinatoricProblem();
+        combinatoricProblem.Enqueue(new CombinatoricProblemCreated(id));
         return combinatoricProblem;
     }
 
     public void AddDecisionVariable(string name, string[] states)
     {
         var decisionVariable = new DecisionVariable(name, states);
-        _decisionVariables.Add(name, decisionVariable);
+
+        if (_decisionVariables.ContainsKey(name))
+            throw new ArgumentException($"A decision variable with the name '{name}' already exists in the problem.",
+                nameof(name));
+
+        Enqueue(new DecisionVariableAdded(decisionVariable));
     }
 
     public void AddDecisionVariables(IEnumerable<(string Name, string[] States)> decisionVariables)
@@ -59,7 +45,28 @@ public class CombinatoricProblem(Guid id)
 
     public void AddConstrain(string formula)
     {
-        AddConstrain(new Constraint(formula));
+        var constraint = new Constraint(formula);
+
+        foreach (Variable variable in constraint.Expression.GetVariables())
+        {
+            string[] parts = variable.Name.Split("_is_");
+            string decisionVariableName = parts[0];
+            string decisionVariableState = parts[1];
+
+            if (!_decisionVariables.TryGetValue(decisionVariableName, out DecisionVariable? decisionVariable))
+                throw new ArgumentException(
+                    $"The decision variable '{decisionVariableName}' is used in the constraints but is not defined in the decision variables",
+                    nameof(constraint)
+                );
+
+            if (!decisionVariable.States.Contains(decisionVariableState))
+                throw new ArgumentException(
+                    $"The state '{decisionVariableState}' of decision variable '{decisionVariableName}' is used in the constraints but is not defined in the decision variables",
+                    nameof(constraint)
+                );
+        }
+
+        Enqueue(new ConstraintAdded(constraint));
     }
 
     public void AddConstrains(IEnumerable<string> formulas)
@@ -74,8 +81,7 @@ public class CombinatoricProblem(Guid id)
 
         if (solution.Count == 0)
         {
-            Solution = new CombinatoricProblemSolution([]);
-            Satisfiability = Satisfiability.Unsatisfiable;
+            Enqueue(new CombinatoricProblemSolutionSet([], Satisfiability.Unsatisfiable));
             return;
         }
 
@@ -100,11 +106,10 @@ public class CombinatoricProblem(Guid id)
                 nameof(solution)
             );
 
-        Solution = new CombinatoricProblemSolution(solution.Select(kvp => new DecisionVariableAssignment(
-            _decisionVariables[kvp.Key],
-            kvp.Value
-        )));
-        Satisfiability = Satisfiability.Satisfiable;
+        List<DecisionVariableAssignment> decisionVariableAssignments = solution.Select(kvp =>
+            new DecisionVariableAssignment(_decisionVariables[kvp.Key], kvp.Value)).ToList();
+
+        Enqueue(new CombinatoricProblemSolutionSet(decisionVariableAssignments, Satisfiability.Satisfiable));
     }
 
     public void ResolveVariableAssignments(IDictionary<string, bool> variableAssignments)
@@ -114,7 +119,7 @@ public class CombinatoricProblem(Guid id)
         BooleanProblem booleanProblem = ReduceToBooleanProblem();
         booleanProblem.SetSolution(variableAssignments);
 
-        Dictionary<string, string> solution = booleanProblem.Solution.Assignments
+        Dictionary<string, string> solution = booleanProblem.Solution
             .Where(assignment => assignment.Value)
             .Select(assignment => assignment.Variable.Name.Split("_is_"))
             .ToDictionary(parts => parts[0], parts => parts[1]);
@@ -135,37 +140,35 @@ public class CombinatoricProblem(Guid id)
                     .Aggregate((acc, expression) => acc.And(expression))
             );
 
-        var booleanProblem = new BooleanProblem(Id, booleanReduction);
+        var booleanProblem = BooleanProblem.Create(Id, booleanReduction);
 
         return booleanProblem;
     }
 
-    private void AddConstrain(Constraint constraint)
+    internal void Apply(CombinatoricProblemCreated created)
     {
-        CheckVariables(constraint);
-        _constrains.Add(constraint);
+        Id = created.Id;
+        Satisfiability = Satisfiability.Unknown;
     }
 
-    private void CheckVariables(Constraint constraint)
+    internal void Apply(ConstraintAdded constraintAdded)
     {
-        foreach (Variable variable in constraint.Expression.GetVariables())
-        {
-            string[] parts = variable.Name.Split("_is_");
-            string decisionVariableName = parts[0];
-            string decisionVariableState = parts[1];
+        _constrains.Add(constraintAdded.Constraint);
+    }
 
-            if (!_decisionVariables.TryGetValue(decisionVariableName, out DecisionVariable? decisionVariable))
-                throw new ArgumentException(
-                    $"The decision variable '{decisionVariableName}' is used in the constraints but is not defined in the decision variables",
-                    nameof(constraint)
-                );
+    internal void Apply(DecisionVariableAdded decisionVariableAdded)
+    {
+        _decisionVariables.Add(
+            decisionVariableAdded.DecisionVariable.Name,
+            decisionVariableAdded.DecisionVariable
+        );
+    }
 
-            if (!decisionVariable.States.Contains(decisionVariableState))
-                throw new ArgumentException(
-                    $"The state '{decisionVariableState}' of decision variable '{decisionVariableName}' is used in the constraints but is not defined in the decision variables",
-                    nameof(constraint)
-                );
-        }
+    internal void Apply(CombinatoricProblemSolutionSet solutionSet)
+    {
+        _solution.Clear();
+        _solution.AddRange(solutionSet.Solution);
+        Satisfiability = solutionSet.Satisfiability;
     }
 
     private static ExpressionNode BuildAtLeastOneStateConstraint(DecisionVariable decisionVariable)
