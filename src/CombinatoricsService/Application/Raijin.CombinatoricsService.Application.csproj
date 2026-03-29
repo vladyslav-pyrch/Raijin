@@ -17,4 +17,14 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\BooleanProblems\" />
+    <Folder Include="Features\ConstraintSatisfiabilityProblems\" />
+    <Folder Include="Features\EdgeColoringProblems\" />
+    <Folder Include="Features\IndependetSetProblems\" />
+    <Folder Include="Features\NowhereZeroFlowProblems\" />
+    <Folder Include="Features\SchedulingProblems\" />
+    <Folder Include="Features\VertexColouringProblems\" />
+  </ItemGroup>
+
 </Project>

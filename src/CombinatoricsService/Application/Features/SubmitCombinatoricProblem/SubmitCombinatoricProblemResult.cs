@@ -1,3 +1,0 @@
-namespace Raijin.CombinatoricsService.Application.Features.SubmitCombinatoricProblem;
-
-public sealed record SubmitCombinatoricProblemResult(Guid CombinatoricsProblemId);

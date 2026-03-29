@@ -5,7 +5,7 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence;
 
 public class CombinatoricsServiceDbContext(DbContextOptions<CombinatoricsServiceDbContext> options) : DbContext(options)
 {
-    internal DbSet<StoredEvent> StoredEvents { get; set; } = null!;
+    internal DbSet<ProblemModel> Problems { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
