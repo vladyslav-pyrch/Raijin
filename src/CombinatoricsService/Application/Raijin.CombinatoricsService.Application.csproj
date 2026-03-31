@@ -18,13 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\BooleanProblems\" />
-    <Folder Include="Features\ConstraintSatisfiabilityProblems\" />
-    <Folder Include="Features\EdgeColoringProblems\" />
-    <Folder Include="Features\IndependetSetProblems\" />
-    <Folder Include="Features\NowhereZeroFlowProblems\" />
-    <Folder Include="Features\SchedulingProblems\" />
-    <Folder Include="Features\VertexColouringProblems\" />
+    <Folder Include="Features\Problems\Boolean\" />
+    <Folder Include="Features\Problems\ConstraintSatisfiability\" />
+    <Folder Include="Features\Problems\EdgeColoring\" />
+    <Folder Include="Features\Problems\IndependetSet\" />
+    <Folder Include="Features\Problems\NowhereZeroFlow\" />
+    <Folder Include="Features\Problems\Scheduling\" />
+    <Folder Include="Features\Problems\VertexColouring\" />
   </ItemGroup>
 
 </Project>

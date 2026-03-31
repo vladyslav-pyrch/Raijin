@@ -7,26 +7,31 @@ using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems;
 
-public class CreateProblemEndpoint : IEndpoint
+public class UpdateProblemEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapPost("/problems", Execute)
-            .WithName("create problem")
+        endpoint.MapPatch("problems/{id:Guid}", Execute)
+            .WithName("update problem")
             .WithTags("problems");
     }
 
-    public static async Task<Results<Created<CreateProblemResponse>, ValidationProblem, InternalServerError>> Execute(
-        [FromBody] CreateProblemRequest request,
+    public static async Task<Results<NoContent, ValidationProblem, NotFound, InternalServerError>> Execute(
+        [FromRoute] Guid id,
+        [FromBody] UpdateProblemRequest request,
         [FromServices] IMediator mediator
     )
     {
-        Result<CreateProblemResult> result = await mediator.Send(new CreateProblemCommand(
+        Result result = await mediator.Send(new UpdateProblemCommand(
+            id,
             request.Name,
-            request.Description ?? string.Empty,
+            request.Description,
             request.ProblemType,
             request.Instance
         ), CancellationToken.None);
+
+        if (result.IsNotFoundError())
+            return TypedResults.NotFound();
 
         if (result.IsValidationError())
             return TypedResults.ValidationProblem(result.ToValidationErrorDictionary());
@@ -34,25 +39,17 @@ public class CreateProblemEndpoint : IEndpoint
         if (result.IsFailed)
             return TypedResults.InternalServerError();
 
-        return TypedResults.Created("problems/{ProblemId}", new CreateProblemResponse
-        {
-            ProblemId = result.Value.Id
-        });
+        return TypedResults.NoContent();
     }
 }
 
-public class CreateProblemRequest
+public class UpdateProblemRequest
 {
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
 
     public string? Description { get; set; }
 
-    public string ProblemType { get; set; } = null!;
+    public string? ProblemType { get; set; }
 
-    public InstanceDto Instance { get; set; } = null!;
-}
-
-public class CreateProblemResponse
-{
-    public Guid ProblemId { get; set; }
+    public InstanceDto? Instance { get; set; }
 }

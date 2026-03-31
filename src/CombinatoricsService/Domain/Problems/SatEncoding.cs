@@ -2,10 +2,8 @@ namespace Raijin.CombinatoricsService.Domain.Problems;
 
 public sealed record SatEncoding
 {
-    public SatEncoding(string dimacs, VariableMap variableMap)
+    private SatEncoding(string dimacs, VariableMap variableMap)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(dimacs);
-        ArgumentNullException.ThrowIfNull(variableMap);
         Dimacs = dimacs;
         VariableMap = variableMap;
     }
@@ -13,4 +11,14 @@ public sealed record SatEncoding
     public string Dimacs { get; }
 
     public VariableMap VariableMap { get; }
+
+    public static SatEncoding Create(string dimacs, VariableMap variableMap)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(dimacs);
+        ArgumentNullException.ThrowIfNull(variableMap);
+
+        return new SatEncoding(dimacs, variableMap);
+    }
+
+    public static SatEncoding Rehydrate(string dimacs, VariableMap variableMap) => new(dimacs, variableMap);
 }

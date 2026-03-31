@@ -22,6 +22,20 @@ public sealed class SatRun
 
     internal static SatRun Create() => new(DateTime.UtcNow);
 
+    public static SatRun Rehydrate(
+        SatRunStatus status,
+        Satisfiability satisfiability,
+        IReadOnlyList<int> assignment,
+        DateTime createdAt,
+        DateTime? completedAt
+    ) => new(createdAt)
+    {
+        Status = status,
+        Satisfiability = satisfiability,
+        Assignment = assignment,
+        CompletedAt = completedAt
+    };
+
     internal void MarkAsRunning()
     {
         if (Status != SatRunStatus.Pending)
@@ -62,19 +76,4 @@ public sealed class SatRun
         if (Status is not SatRunStatus.Pending and not SatRunStatus.Running)
             throw new InvalidOperationException($"Cannot {action} a SAT run in '{Status}' status.");
     }
-
-    public static SatRun Rehydrate(
-        Guid id,
-        SatRunStatus status,
-        Satisfiability satisfiability,
-        IReadOnlyList<int> assignment,
-        DateTime createdAt,
-        DateTime? completedAt
-    ) => new(createdAt)
-    {
-        Status = status,
-        Satisfiability = satisfiability,
-        Assignment = assignment,
-        CompletedAt = completedAt
-    };
 }

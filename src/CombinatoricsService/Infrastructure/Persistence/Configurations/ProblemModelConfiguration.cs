@@ -18,17 +18,15 @@ public sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Problem
             .IsRequired()
             .HasMaxLength(5000);
 
-        builder.Property(problem => problem.ProblemKind)
+        builder.Property(problem => problem.ProblemType)
             .IsRequired()
             .HasMaxLength(100);
 
         builder.Property(problem => problem.Instance)
-            .HasColumnType("jsonb")
-            .IsRequired();
+            .HasColumnType("jsonb");
 
         builder.Property(problem => problem.Solution)
-            .HasColumnType("jsonb")
-            .IsRequired();
+            .HasColumnType("jsonb");
 
         builder.OwnsOne(problem => problem.SatEncoding, satEncoding =>
         {

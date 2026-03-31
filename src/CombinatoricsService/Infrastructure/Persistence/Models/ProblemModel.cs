@@ -10,7 +10,7 @@ public class ProblemModel
 
     public string Description { get; set; }
 
-    public string ProblemKind { get; set; }
+    public string ProblemType { get; set; }
 
     public JsonDocument Instance { get; set; }
 

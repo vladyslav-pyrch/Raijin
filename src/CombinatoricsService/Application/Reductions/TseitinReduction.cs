@@ -1,5 +1,5 @@
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
-using Raijin.CombinatoricsService.Domain.BooleanSatisfiabilityProblems;
+using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 namespace Raijin.CombinatoricsService.Application.Reductions;
 

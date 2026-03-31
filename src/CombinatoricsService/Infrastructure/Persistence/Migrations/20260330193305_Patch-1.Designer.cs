@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence;
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CombinatoricsServiceDbContext))]
-    partial class CombinatoricsServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260330193305_Patch-1")]
+    partial class Patch1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,7 +46,7 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("ProblemType")
+                    b.Property<string>("ProblemKind")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");

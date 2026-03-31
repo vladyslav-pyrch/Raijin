@@ -1,13 +1,13 @@
 ﻿using System.Text.Json.Serialization;
-using Raijin.CombinatoricsService.Domain.BooleanSatisfiabilityProblems;
+using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 namespace Raijin.CombinatoricsService.Domain.Problems;
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(BooleanSatisfiabilityInstance), "sat")]
+[JsonPolymorphic]
+[JsonDerivedType(typeof(BooleanSatisfiabilityInstance), ProblemTypes.BooleanSatisfiabilityProblem)]
 public abstract record Instance
 {
-    [JsonIgnore] public abstract string ProblemKind { get; }
+    [JsonIgnore] public abstract string ProblemType { get; }
 
     internal abstract SatEncoding ReduceToSat();
 

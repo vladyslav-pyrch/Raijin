@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Raijin.CombinatoricsService.Application.Factories;
+using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Messaging.Behaviors;
 using Raijin.CombinatoricsService.Application.Parsing;
@@ -13,46 +15,35 @@ public static class ApplicationModule
 {
     public static Assembly Assembly => typeof(ApplicationModule).Assembly;
 
-    public static IServiceCollection AddApplication(this IServiceCollection services)
-    {
-        return services
-            .AddCommandHandlers()
-            .AddEventHandlers()
-            .AddPipelineBehaviors()
-            .AddApplicationServices()
-            .AddValidatorsFromAssembly(Assembly);
-    }
+    public static IServiceCollection AddApplication(this IServiceCollection services) => services
+        .AddCommandHandlers()
+        .AddEventHandlers()
+        .AddPipelineBehaviors()
+        .AddApplicationServices()
+        .AddValidatorsFromAssembly(Assembly)
+        .AddInstanceFactories();
 
-    private static IServiceCollection AddApplicationServices(this IServiceCollection services)
-    {
-        return services
-            .AddSingleton<BoolExprParser>()
-            .AddSingleton<IBoolExprParser>(sp => sp.GetRequiredService<BoolExprParser>())
-            .AddSingleton<IParser<BoolExpr>>(sp => sp.GetRequiredService<BoolExprParser>())
-            .AddSingleton<IReduction<BoolExpr, TseitinResult>, TseitinReduction>();
-    }
+    private static IServiceCollection AddInstanceFactories(this IServiceCollection services) => services
+        .AddScoped<IInstanceFactory, BooleanSatisfiabilityInstanceFactory>();
 
-    private static IServiceCollection AddCommandHandlers(this IServiceCollection services)
-    {
-        return services
-            .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
-            .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
-    }
+    private static IServiceCollection AddApplicationServices(this IServiceCollection services) => services
+        .AddSingleton<BoolExprParser>()
+        .AddSingleton<IBoolExprParser>(sp => sp.GetRequiredService<BoolExprParser>())
+        .AddSingleton<IParser<BoolExpr>>(sp => sp.GetRequiredService<BoolExprParser>())
+        .AddSingleton<IReduction<BoolExpr, TseitinResult>, TseitinReduction>();
 
-    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
-    {
-        return services
-            .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
-    }
+    private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
 
-    private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services)
-    {
-        return services
-            .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
-            .AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
-            .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
-            .AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
-    }
+    private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
+        .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
+
+    private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
+        .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
+        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
+        .AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
 
     private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services,
         Type genericInterfaceType)
