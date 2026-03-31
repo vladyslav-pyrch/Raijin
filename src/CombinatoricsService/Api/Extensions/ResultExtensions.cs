@@ -29,4 +29,10 @@ public static class ResultExtensions
 
     public static bool IsNotFoundError<T>(this Result<T> result) =>
         result.ToResult().IsNotFoundError();
+
+    public static bool IsIllegalOperationError(this Result result) =>
+        result.Errors.Any(error => error is IllegalOperationError);
+
+    public static bool IsIllegalOperationError<T>(this Result<T> result) =>
+        result.ToResult().IsIllegalOperationError();
 }

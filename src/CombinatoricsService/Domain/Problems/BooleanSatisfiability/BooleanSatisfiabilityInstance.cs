@@ -4,9 +4,7 @@ namespace Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses) : Instance
 {
-    public override string ProblemType => ProblemTypes.BooleanSatisfiabilityProblem;
-
-    public int GetVariableCount() => Clauses.Max(c => c.GetMaxVariableId());
+    public int GetVariableCount() => GetClauseCount() > 0 ? Clauses.Max(c => c.GetMaxVariableId()) : 0;
 
     public int GetClauseCount() => Clauses.Count;
 
@@ -18,6 +16,8 @@ public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses
             sb.AppendLine(clause.ToDimacsFormat());
         return sb.ToString();
     }
+
+    public override string ProblemType() => ProblemTypes.BooleanSatisfiabilityProblem;
 
     internal override SatEncoding ReduceToSat()
     {

@@ -7,7 +7,7 @@ namespace Raijin.CombinatoricsService.Domain.Problems;
 [JsonDerivedType(typeof(BooleanSatisfiabilityInstance), ProblemTypes.BooleanSatisfiabilityProblem)]
 public abstract record Instance
 {
-    [JsonIgnore] public abstract string ProblemType { get; }
+    public abstract string ProblemType();
 
     internal abstract SatEncoding ReduceToSat();
 

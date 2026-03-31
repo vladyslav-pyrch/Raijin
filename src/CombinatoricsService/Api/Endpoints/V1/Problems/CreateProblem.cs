@@ -7,7 +7,7 @@ using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems;
 
-public class CreateProblemEndpoint : IEndpoint
+public sealed class CreateProblemEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
@@ -24,8 +24,7 @@ public class CreateProblemEndpoint : IEndpoint
         Result<CreateProblemResult> result = await mediator.Send(new CreateProblemCommand(
             request.Name,
             request.Description ?? string.Empty,
-            request.ProblemType,
-            request.Instance
+            request.ProblemType
         ), CancellationToken.None);
 
         if (result.IsValidationError())
@@ -41,18 +40,16 @@ public class CreateProblemEndpoint : IEndpoint
     }
 }
 
-public class CreateProblemRequest
+public sealed class CreateProblemRequest
 {
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
 
     public string ProblemType { get; set; } = null!;
-
-    public InstanceDto Instance { get; set; } = null!;
 }
 
-public class CreateProblemResponse
+public sealed class CreateProblemResponse
 {
     public Guid ProblemId { get; set; }
 }

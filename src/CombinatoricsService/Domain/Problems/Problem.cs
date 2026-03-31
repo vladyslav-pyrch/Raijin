@@ -81,7 +81,7 @@ public sealed class Problem
     public void SetInstance(Instance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
-        if (instance.ProblemType != ProblemType)
+        if (instance.ProblemType() != ProblemType)
             throw new ArgumentException(
                 $"Instance problem kind '{instance.ProblemType}' does not match problem type '{ProblemType}'",
                 nameof(instance)

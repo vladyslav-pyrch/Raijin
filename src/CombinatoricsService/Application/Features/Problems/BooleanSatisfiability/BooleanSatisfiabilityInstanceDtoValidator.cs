@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Raijin.CombinatoricsService.Domain.Problems;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 
@@ -17,6 +16,4 @@ public class BooleanSatisfiabilityInstanceDtoValidator : AbstractValidator<Boole
             .Must(clause => clause.All(literal => literal != 0))
             .WithMessage("Literals must be non-zero integers.");
     }
-
-    public string ProblemType => ProblemTypes.BooleanSatisfiabilityProblem;
 }

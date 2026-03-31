@@ -7,7 +7,9 @@ using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 
-public class BooleanSatisfiabilityInstanceFactory(IServiceProvider service) : IInstanceFactory
+public class BooleanSatisfiabilityInstanceFactory(
+    IValidator<BooleanSatisfiabilityInstanceDto>? validator
+) : IInstanceFactory
 {
     public string ProblemType => ProblemTypes.BooleanSatisfiabilityProblem;
 
@@ -17,12 +19,10 @@ public class BooleanSatisfiabilityInstanceFactory(IServiceProvider service) : II
             throw new ArgumentException(
                 $"Invalid instance DTO type. Expected {typeof(BooleanSatisfiabilityInstanceDto)}, got {instanceDto.GetType()}");
 
-        var validator =
-            service.GetService(typeof(IValidator<>).MakeGenericType(typeof(BooleanSatisfiabilityInstanceDto))) as
-                IValidator<BooleanSatisfiabilityInstanceDto>;
+        var result = Result.FailIfNotEmpty(
+            validator?.Validate(booleanSatisfiabilityInstanceDto).ToValidationErrors() ?? []
+        );
 
-        var result =
-            Result.FailIfNotEmpty(validator?.Validate(booleanSatisfiabilityInstanceDto).ToValidationErrors() ?? []);
         if (result.IsFailed)
             return result;
 

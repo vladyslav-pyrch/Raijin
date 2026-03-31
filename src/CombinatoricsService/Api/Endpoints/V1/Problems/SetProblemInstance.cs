@@ -7,25 +7,24 @@ using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems;
 
-public sealed class UpdateProblemEndpoint : IEndpoint
+public sealed class SetProblemInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapPatch("problems/{id:Guid}", Execute)
-            .WithName("update problem")
+        endpoint.MapPut("problems/{id:Guid}/instance", Execute)
+            .WithName("set problem instance")
             .WithTags("problems");
     }
 
     public static async Task<Results<NoContent, ValidationProblem, NotFound, InternalServerError>> Execute(
         [FromRoute] Guid id,
-        [FromBody] UpdateProblemRequest request,
+        [FromBody] SetProblemInstanceRequest request,
         [FromServices] IMediator mediator
     )
     {
-        Result result = await mediator.Send(new UpdateProblemCommand(
+        Result result = await mediator.Send(new SetProblemInstanceCommand(
             id,
-            request.Name,
-            request.Description
+            request.Instance
         ), CancellationToken.None);
 
         if (result.IsNotFoundError())
@@ -41,9 +40,7 @@ public sealed class UpdateProblemEndpoint : IEndpoint
     }
 }
 
-public sealed class UpdateProblemRequest
+public sealed class SetProblemInstanceRequest
 {
-    public string? Name { get; set; }
-
-    public string? Description { get; set; }
+    public InstanceDto Instance { get; set; } = null!;
 }
