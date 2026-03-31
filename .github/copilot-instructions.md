@@ -66,10 +66,12 @@ Cross-cutting shared projects:
 - **CQRS** — Commands go through `IMediator` → `IPipelineBehavior` pipeline → `IRequestHandler`. Handlers return `Result<T>` (FluentResults).
 - **Pipeline Behaviors** — `LoggingBehavior` (timing & result logging) → `ValidationBehavior` (FluentValidation) → Handler.
 - **Repository + Unit of Work** — Repository interfaces live in `Application/Persistence`. Implementations in `Infrastructure/Persistence`. Always call `IUnitOfWork.SaveChanges()` at the end.
-- **Persistence Models** — Domain aggregates are **never** saved directly. Map domain objects to `{Noun}Model` classes in `Infrastructure/Persistence/Models`.
+- **Persistence Models** — Domain aggregates are **never** saved directly. Map domain objects to `{Noun}Model` classes in `Infrastructure/Persistence/Models`. **Application layer must NOT see or reference database/persistence models.** Persistence models belong exclusively in `Infrastructure/Persistence/Models`. Application defines repository interfaces using domain types only. `IRepository<T>` for DB models is an internal Infrastructure implementation detail, not an Application port.
 - **Integration Events** — Defined as interfaces in `Contracts` project. Published via `IMessageBus.Publish<TContract>(anonymousObject)`.
 - **Persist-then-Publish** — Always call `unitOfWork.SaveChanges()` **before** publishing integration events via `IMessageBus`. This ensures the entity is committed to the database before any consumer can attempt to read it.
 - **Each service is fully independent** — owns its own messaging abstractions (`IMediator`, `IRequest`, `IPipelineBehavior`, etc.), its own persistence, its own models. No shared Application/Domain code between services. This is intentional to avoid a distributed monolith.
+- **JSONB columns** should use `JsonDocument` (not string) for performance and query support.
+- Services other than `QueryService` can have their own queries for internal logic (e.g., fetching earlier snapshots for blaming).
 
 ## Folder Structure Map
 
@@ -152,26 +154,57 @@ tests/
 | **Api** | Request DTO | `{EndpointName}Request` | `SubmitSatProblemRequest` |
 | **Api** | Response DTO | `{EndpointName}Response` | `SubmitSatProblemResponse` |
 | **Api** | Sub-model | `{Noun}Model` | `DecisionVariableModel` |
-| **Application** | Command | `{CommandName}Command` | `SubmitCombinatoricProblemCommand` |
-| **Application** | Handler | `{CommandName}Handler` | `SubmitCombinatoricProblemHandler` |
-| **Application** | Result | `{CommandName}Result` | `SubmitCombinatoricProblemResult` |
-| **Application** | Validator | `{CommandName}Validator` | `SubmitCombinatoricProblemValidator` |
+| **Application** | Command | `{Feature}Command` | `SubmitCombinatoricProblemCommand` |
+| **Application** | Handler | `{Feature}Handler` | `SubmitCombinatoricProblemHandler` |
+| **Application** | Result | `{Feature}Result` | `SubmitCombinatoricProblemResult` |
+| **Application** | Validator | `{Feature}Validator` | `SubmitCombinatoricProblemValidator` |
 | **Application** | DTO | `{Noun}Dto` | `DecisionVariableDto` |
 | **Application** | DTO Validator | `{Noun}Validator` | `DecisionVariableValidator` |
+| **Application** | Integration event handler | `{WhatHappened}Handler` | `SatProblemSubmittedHandler` |
+| **Application** | Domain event handler | `{WhatHappened}Handler` | `SatProblemCreatedHandler` |
+| **Application** | Pipeline behavior | `{Concern}Behavior` | `ValidationBehavior` |
+| **Application** | DI module | `ApplicationModule` | `ApplicationModule.AddApplication()` |
+| **Domain** | Aggregate root | `{Noun}` (no suffix) | `CombinatoricProblem` |
+| **Domain** | Entity | `{Noun}` (no suffix) | `DecisionVariable` |
+| **Domain** | Value object | `sealed record` | `Literal`, `Clause` |
+| **Domain** | Domain event | `{WhatHappened}` (no suffix) | `SatProblemCreated` |
+| **Domain** | Domain exception | `{Noun}Exception` | `ParsingException` |
 | **Infrastructure** | Persistence model | `{Noun}Model` | `CombinatoricProblemModel` |
 | **Infrastructure** | EF Configuration | `{Noun}ModelConfiguration` | `CombinatoricProblemModelConfiguration` |
 | **Infrastructure** | Repository | `{Noun}Repository` | `CombinatoricProblemRepository` |
 | **Infrastructure** | DbContext | `{ServiceName}DbContext` | `SatSolverDbContext` |
 | **Infrastructure** | UnitOfWork | `{ServiceName}UnitOfWork` | `SatSolverUnitOfWork` |
 | **Infrastructure** | DI module | `InfrastructureModule` | `InfrastructureModule.AddInfrastructure()` |
-| **Application** | DI module | `ApplicationModule` | `ApplicationModule.AddApplication()` |
+| **Infrastructure** | MassTransit consumer | `MessageConsumer<TMessage>` (generic) | `MessageConsumer<ISatProblemSubmitted>` |
 | **Contracts** | Integration event | `I{WhatHappened}` (no suffix) | `ISatProblemSubmitted` |
-| **Application** | Event handler | `{WhatHappened}Handler` | `SatProblemSubmittedHandler` |
+
+### Naming Suffix Rules (Banned Suffixes)
+
+Every type uses a **short role suffix** — never a compound or redundant suffix. The table below lists banned alternatives for each type category.
+
+| Type | Correct Suffix | Banned Suffixes (never use) |
+|---|---|---|
+| Integration event | *(none)* — `I{WhatHappened}` | `Event`, `Message`, `IntegrationEvent` |
+| Domain event | *(none)* — `{WhatHappened}` | `Event`, `DomainEvent` |
+| Command/Query handler | `Handler` | `RequestHandler`, `CommandHandler`, `QueryHandler` |
+| Integration event handler | `Handler` | `EventHandler`, `MessageHandler`, `IntegrationEventHandler`, `Consumer` |
+| Domain event handler | `Handler` | `EventHandler`, `DomainEventHandler` |
+| Validator | `Validator` | `CommandValidator`, `RequestValidator`, `QueryValidator` |
+| Result | `Result` | `CommandResult`, `HandlerResult`, `Response` (in Application layer) |
+| Pipeline behavior | `Behavior` | `PipelineBehavior` |
+| Command | `Command` | `Request` (in Application layer — `IRequest` is the interface, `Command` is the class suffix) |
+| DTO | `Dto` | `DataTransferObject`, `Model` (in Application layer) |
+| Error type | `Error` | `Exception` (reserve `Exception` for truly exceptional/unrecoverable situations) |
 
 ### Infrastructure Module Naming
 
 - Service with **API only** → `AddInfrastructure()`
 - Service with **API + Worker** → `AddInfrastructureApi()` / `AddInfrastructureWorker()`
+
+### MassTransit Consumer Naming
+
+- Use the generic `MessageConsumer<TMessage>` wrapper — do **not** create individual `{WhatHappened}Consumer` classes.
+- Register as `x.AddConsumer<MessageConsumer<ISatProblemSubmitted>>()` in `InfrastructureModule`.
 
 ### Angular/TypeScript
 
@@ -226,7 +259,13 @@ tests/
 12. Use `[FromBody]`, `[FromServices]`, `[FromQuery]` explicitly in endpoint parameters.
 13. Keep each microservice's messaging abstractions (`IMediator`, `IRequest`, etc.) inside that service's Application project — do **not** create a shared library.
 14. Place integration event interfaces in the `Contracts` project with name pattern `I{WhatHappened}` — no `Event`, `Message`, or `IntegrationEvent` suffix.
-15. Name integration event handlers `{WhatHappened}Handler`.
+15. Name integration event handlers `{WhatHappened}Handler` — no `EventHandler`, `MessageHandler`, or `Consumer` suffix.
+16. Name domain events `{WhatHappened}` (past tense, no suffix) — no `Event` or `DomainEvent` suffix.
+17. Name domain event handlers `{WhatHappened}Handler` — same short suffix as integration event handlers.
+18. Name command/query handlers `{Feature}Handler` — no `CommandHandler`, `RequestHandler`, or `QueryHandler` suffix.
+19. Name validators `{Feature}Validator` — no `CommandValidator` or `RequestValidator` suffix.
+20. Name pipeline behaviors `{Concern}Behavior` — no `PipelineBehavior` suffix.
+21. Follow the **Naming Suffix Rules** table — use only the short role suffix for each type category.
 
 ## What Copilot Should NEVER Do
 
@@ -243,139 +282,9 @@ tests/
 11. **Never** use NgModules in Angular — use standalone components only.
 12. **Never** put business logic in the Api or Infrastructure layer.
 13. **Never** name integration events with `Event`, `Message`, or `IntegrationEvent` suffix.
-
-## Code Pattern Examples (from the actual codebase)
-
-### Command (Application Layer)
-
-```csharp
-// File: Application/Features/SubmitSatProblem/SubmitSatProblemCommand.cs
-using Raijin.SatSolver.Application.Messaging;
-
-namespace Raijin.SatSolver.Application.Features.SubmitSatProblem;
-
-public sealed record SubmitSatProblemCommand(string Dimacs, Guid? SatProblemId = null)
-    : IRequest<SubmitSatProblemResult>;
-```
-
-### Handler (Application Layer)
-
-```csharp
-// File: Application/Features/SubmitCombinatoricProblem/SubmitCombinatoricProblemHandler.cs
-public sealed class SubmitCombinatoricProblemHandler(
-    ICombinatoricProblemRepository combinatoricProblemRepository,
-    IUnitOfWork unitOfWork,
-    IMessageBus messageBus,
-    ILogger<SubmitCombinatoricProblemHandler> logger
-) : IRequestHandler<SubmitCombinatoricProblemCommand, SubmitCombinatoricProblemResult>
-{
-    public async Task<Result<SubmitCombinatoricProblemResult>> Handle(
-        SubmitCombinatoricProblemCommand request, CancellationToken cancellationToken)
-    {
-        // ... build domain object, persist first
-        await unitOfWork.SaveChanges(cancellationToken);
-        // ... then publish integration events
-        return new SubmitCombinatoricProblemResult(combinatoricProblemId);
-    }
-}
-```
-
-### Endpoint (Api Layer)
-
-```csharp
-// File: Api/Endpoints/V1/Sat/SubmitSatProblem/SubmitSatProblemEndpoint.cs
-public class SubmitSatProblemEndpoint : IEndpoint
-{
-    public void Map(IEndpointRouteBuilder endpoint)
-    {
-        endpoint.MapPost("/v1/sat", Execute)
-            .WithName("SubmitSatProblem")
-            .WithTags("sat");
-    }
-
-    private static async Task<Results<Ok<SubmitSatProblemResponse>, ValidationProblem, InternalServerError>> Execute(
-        [FromBody] SubmitSatProblemRequest request,
-        [FromServices] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        Result<SubmitSatProblemResult> result = await mediator.Send(
-            new SubmitSatProblemCommand(request.Dimacs),
-            cancellationToken);
-
-        if (result.IsSuccess)
-            return TypedResults.Ok(new SubmitSatProblemResponse { SatProblemId = result.Value.SatProblemId });
-        if (result.HasError<ValidationError>())
-            return TypedResults.ValidationProblem(errors: result.ToValidationErrorDictionary());
-        return TypedResults.InternalServerError();
-    }
-}
-```
-
-### Integration Event (Contracts)
-
-```csharp
-// File: Contracts/ISatProblemSubmitted.cs
-namespace Raijin.Application.Contracts;
-
-public interface ISatProblemSubmitted : IMessage
-{
-    public string SatProblemId { get; }
-    public string Dimacs { get; }
-}
-```
-
-### Domain Entity
-
-```csharp
-// File: Domain/CombinatoricProblems/CombinatoricProblem.cs
-public class CombinatoricProblem(Guid id)
-{
-    private readonly Dictionary<string, DecisionVariable> _decisionVariables = [];
-    private readonly List<Constraint> _constrains = [];
-
-    public Guid Id { get; } = id;
-    public IReadOnlyList<DecisionVariable> DecisionVariables => _decisionVariables.Values.ToList();
-    public IReadOnlyList<Constraint> Constraints => _constrains;
-
-    public void AddDecisionVariable(string name, string[] states) { /* ... */ }
-    public void AddConstrain(string formula) => AddConstrain(new Constraint(formula));
-}
-```
-
-### Persistence Model (Infrastructure Layer)
-
-```csharp
-// File: Infrastructure/Persistence/Models/CombinatoricProblemModel.cs
-namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
-
-internal class CombinatoricProblemModel
-{
-    public Guid Id { get; set; }
-    public List<DecisionVariableModel> DecisionVariables { get; set; }
-    public string[] Constraints { get; set; }
-}
-```
-
-### Unit Test (BDD Style)
-
-```csharp
-// File: tests/SatSolver/Domain/SatProblems/SatProblemTests.cs
-[Trait("Category", "Unit")]
-[Trait("Service", "SatSolver")]
-public class SatProblemTests
-{
-    [Fact]
-    public void GivenDimacs_WhenCreate_ThenSatProblemIsCreated()
-    {
-        // Given
-        var dimacs = "p cnf 3 2\n1 -3 0\n-1 2 3 0";
-
-        // When
-        var satProblem = SatProblem.Create(Guid.CreateVersion7(), dimacs);
-
-        // Then
-        satProblem.Should().NotBeNull();
-    }
-}
-```
+14. **Never** name domain events with `Event` or `DomainEvent` suffix — use `{WhatHappened}` (past tense, no suffix).
+15. **Never** use compound handler suffixes — use `Handler`, not `CommandHandler`, `RequestHandler`, `QueryHandler`, `EventHandler`, or `MessageHandler`.
+16. **Never** use compound validator suffixes — use `Validator`, not `CommandValidator` or `RequestValidator`.
+17. **Never** use compound behavior suffixes — use `Behavior`, not `PipelineBehavior`.
+18. **Never** use compound result suffixes — use `Result`, not `CommandResult` or `HandlerResult`.
 

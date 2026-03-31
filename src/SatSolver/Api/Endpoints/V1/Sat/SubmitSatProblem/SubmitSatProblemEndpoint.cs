@@ -8,7 +8,7 @@ using Raijin.SatSolver.Application.Messaging;
 
 namespace Raijin.SatSolver.Api.Endpoints.V1.Sat.SubmitSatProblem;
 
-public class SubmitSatProblemEndpoint : IEndpoint
+public sealed class SubmitSatProblemEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {

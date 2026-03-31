@@ -81,7 +81,9 @@ tests/
 | Domain aggregate | `{AggregateRoot}Tests.cs` | `SatProblemTests.cs` |
 | Domain entity | `{Entity}Tests.cs` | `DecisionVariableTests.cs` |
 | Domain value object | `{ValueObject}Tests.cs` | `LiteralTests.cs`, `ClauseTests.cs` |
+| Domain event | `{DomainEvent}Tests.cs` | `SatProblemCreatedTests.cs` |
 | Application handler | `{Feature}HandlerTests.cs` | `SubmitSatProblemHandlerTests.cs` |
+| Domain event handler | `{WhatHappened}HandlerTests.cs` | `SatProblemCreatedHandlerTests.cs` |
 | API endpoint | `{Feature}EndpointTests.cs` | `SubmitSatProblemEndpointTests.cs` |
 | Integration test | `{Component}Tests.cs` | `SatSolverTests.cs` |
 
@@ -119,7 +121,9 @@ This enables filtering: `dotnet test --filter "Category=Unit&Service=SatSolver"`
 |---|---|---|---|
 | **P0** | Domain | Aggregate roots, entities, value objects — all invariants, all edge cases | Unit |
 | **P0** | Domain | Domain services and pure logic | Unit |
+| **P0** | Domain | Domain events — correct data, naming (no `Event`/`DomainEvent` suffix) | Unit |
 | **P1** | Application | Command handlers — happy path + error paths | Unit (mock repos/bus) |
+| **P1** | Application | Domain event handlers — side effects + projections | Unit (mock repos/bus) |
 | **P1** | Application | Validators — valid and invalid inputs | Unit |
 | **P2** | Api | Endpoint mapping — request → command → response mapping | Unit (mock mediator) |
 | **P3** | Infrastructure | Repository implementations, SAT solver integration | Integration |

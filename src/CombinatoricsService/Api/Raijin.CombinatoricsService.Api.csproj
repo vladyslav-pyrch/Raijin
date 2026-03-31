@@ -15,4 +15,15 @@
     <ProjectReference Include="..\Infrastructure\Raijin.CombinatoricsService.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\V1\Problems\BooleanSatisfiability\" />
+    <Folder Include="Endpoints\V1\Problems\NowhereZeroFlow\" />
+    <Folder Include="Endpoints\V1\Problems\IndependetSet\" />
+    <Folder Include="Endpoints\V1\Problems\EdgeColoring\" />
+    <Folder Include="Endpoints\V1\Problems\VertexColouring\" />
+    <Folder Include="Endpoints\V1\Problems\Scheduling\" />
+    <Folder Include="Endpoints\V1\Problems\Boolean\" />
+    <Folder Include="Endpoints\V1\Problems\ConstraintSatisfiability\" />
+  </ItemGroup>
+
 </Project>

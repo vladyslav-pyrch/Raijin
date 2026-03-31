@@ -3,6 +3,8 @@ using Raijin.SatSolver.Domain.SatProblems;
 
 namespace Raijin.SatSolver.Domain.Tests.SatProblems;
 
+[Trait("Category", "Unit")]
+[Trait("Service", "SatSolver")]
 public class SatProblemTests
 {
     [Fact]

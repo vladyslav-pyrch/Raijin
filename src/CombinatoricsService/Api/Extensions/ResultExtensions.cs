@@ -17,4 +17,22 @@ public static class ResultExtensions
 
     public static IDictionary<string, string[]> ToValidationErrorDictionary<T>(this Result<T> result) =>
         result.ToResult().ToValidationErrorDictionary();
+
+    public static bool IsValidationError(this Result result) =>
+        result.Errors.Any(error => error is ValidationError);
+
+    public static bool IsValidationError<T>(this Result<T> result) =>
+        result.ToResult().IsValidationError();
+
+    public static bool IsNotFoundError(this Result result) =>
+        result.Errors.Any(error => error is NotFoundError);
+
+    public static bool IsNotFoundError<T>(this Result<T> result) =>
+        result.ToResult().IsNotFoundError();
+
+    public static bool IsIllegalOperationError(this Result result) =>
+        result.Errors.Any(error => error is IllegalOperationError);
+
+    public static bool IsIllegalOperationError<T>(this Result<T> result) =>
+        result.ToResult().IsIllegalOperationError();
 }

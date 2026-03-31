@@ -18,6 +18,8 @@ Use this before submitting a PR or accepting Copilot-generated code.
 - [ ] No cross-service references to Application or Domain projects
 - [ ] Each service owns its own `IMediator`, `IRequest`, `IRequestHandler`, `IPipelineBehavior`
 - [ ] MigrationWorker is a separate project using `BackgroundService` pattern
+- [ ] Domain events are `sealed record` types colocated with their aggregate in the Domain layer
+- [ ] Domain event names follow `{WhatHappened}` (past tense, no `Event`/`DomainEvent` suffix)
 
 ## ✅ Naming
 
@@ -29,8 +31,15 @@ Use this before submitting a PR or accepting Copilot-generated code.
 - [ ] Repository: `I{AggregateRoot}Repository` (interface), `{AggregateRoot}Repository` (impl)
 - [ ] DbContext: `{ServiceName}DbContext`; UnitOfWork: `{ServiceName}UnitOfWork`
 - [ ] Integration event: `I{WhatHappened}` — no `Event`/`Message`/`IntegrationEvent` suffix
-- [ ] Integration event handler: `{WhatHappened}Handler`
+- [ ] Domain event: `{WhatHappened}` — no `Event`/`DomainEvent` suffix
+- [ ] Integration event handler: `{WhatHappened}Handler` — no `EventHandler`/`MessageHandler`/`Consumer` suffix
+- [ ] Domain event handler: `{WhatHappened}Handler` — no `EventHandler`/`DomainEventHandler` suffix
+- [ ] Command/query handler: `{Feature}Handler` — no `CommandHandler`/`RequestHandler`/`QueryHandler` suffix
+- [ ] Validator: no `CommandValidator`/`RequestValidator` compound suffix
+- [ ] Pipeline behavior: `{Concern}Behavior` — no `PipelineBehavior` suffix
+- [ ] Result: `{Feature}Result` — no `CommandResult`/`HandlerResult` suffix
 - [ ] Infrastructure module: `AddInfrastructure()` (API only) or `AddInfrastructureApi()`/`AddInfrastructureWorker()` (both)
+- [ ] MassTransit consumer: uses generic `MessageConsumer<TMessage>`, not individual consumer classes
 - [ ] Namespaces match folder structure exactly
 - [ ] File name matches type name
 
