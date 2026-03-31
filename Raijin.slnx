@@ -4,6 +4,10 @@
     <Project Path="src/AppHost/Raijin.AppHost.csproj" />
     <Project Path="src/Contracts/Raijin.Application.Contracts.csproj" />
     <Project Path="src/ServiceDefaults/Raijin.ServiceDefaults.csproj" />
+    <Project Path="src/Spa/spa.esproj">
+      <Build />
+      <Deploy />
+    </Project>
   </Folder>
   <Folder Name="/src/CombinatoricsService/">
     <Project Path="src/CombinatoricsService/Api/Raijin.CombinatoricsService.Api.csproj" />
@@ -18,13 +22,6 @@
     <Project Path="src/IdentityService/Domain/Raijin.IdentityService.Domain.csproj" />
     <Project Path="src/IdentityService/Infrastructure/Raijin.IdentityService.Infrastructure.csproj" />
     <Project Path="src/IdentityService/MigrationWorker/Raijin.IdentityService.MigrationWorker.csproj" />
-  </Folder>
-  <Folder Name="/src/QueryService/">
-    <Project Path="src/QueryService/Api/Raijin.QueryService.Api.csproj" />
-    <Project Path="src/QueryService/Application/Raijin.QueryService.Application.csproj" />
-    <Project Path="src/QueryService/Domain/Raijin.QueryService.Domain.csproj" />
-    <Project Path="src/QueryService/Infrastructure/Raijin.QueryService.Infrastructure.csproj" />
-    <Project Path="src/QueryService/MigrationWorker/Raijin.QueryService.MigrationWorker.csproj" />
   </Folder>
   <Folder Name="/src/SatSolver/">
     <Project Path="src/SatSolver/Api/Raijin.SatSolver.Api.csproj" />

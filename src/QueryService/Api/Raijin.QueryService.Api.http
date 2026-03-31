@@ -1,6 +1,0 @@
-@Raijin.QueryService.Api_HostAddress = http://localhost:5235
-
-GET {{Raijin.QueryService.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

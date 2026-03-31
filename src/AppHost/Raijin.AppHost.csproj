@@ -25,10 +25,9 @@
     <ProjectReference Include="..\CombinatoricsService\MigrationWorker\Raijin.CombinatoricsService.MigrationWorker.csproj" />
     <ProjectReference Include="..\IdentityService\Api\Raijin.IdentityService.Api.csproj" />
     <ProjectReference Include="..\IdentityService\MigrationWorker\Raijin.IdentityService.MigrationWorker.csproj" />
-    <ProjectReference Include="..\QueryService\Api\Raijin.QueryService.Api.csproj" />
-    <ProjectReference Include="..\QueryService\MigrationWorker\Raijin.QueryService.MigrationWorker.csproj" />
     <ProjectReference Include="..\SatSolver\Api\Raijin.SatSolver.Api.csproj" />
     <ProjectReference Include="..\SatSolver\MigrationWorker\Raijin.SatSolver.MigrationWorker.csproj" />
     <ProjectReference Include="..\SatSolver\Worker\Raijin.SatSolver.Worker.csproj" />
+    <ProjectReference Include="..\Spa\spa.esproj" />
   </ItemGroup>
 </Project>

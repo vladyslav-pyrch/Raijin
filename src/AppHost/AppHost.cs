@@ -97,28 +97,6 @@ IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
 IResourceBuilder<PostgresDatabaseResource> queryServiceDb = applicationDbServer
     .AddDatabase("query-service-db");
 
-IResourceBuilder<RedisResource> queryServiceRedis = builder
-    .AddRedis("query-service-redis-db")
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
-
-IResourceBuilder<ProjectResource> queryServiceMigrationWorker = builder
-    .AddProject<Raijin_QueryService_MigrationWorker>("query-service-migration-worker")
-    .WithReference(queryServiceDb)
-    .WaitFor(queryServiceDb);
-
-IResourceBuilder<ProjectResource> queryServiceApi = builder
-    .AddProject<Raijin_QueryService_Api>("query-service-api")
-    .WithHttpHealthCheck("/health")
-    .WithReference(queryServiceDb)
-    .WaitFor(queryServiceDb)
-    .WaitForCompletion(queryServiceMigrationWorker)
-    .WithReference(queryServiceRedis)
-    .WaitFor(queryServiceRedis)
-    .WithReference(rabbitMq)
-    .WaitFor(rabbitMq)
-    .PublishAsDockerFile();
-
 IResourceBuilder<ProjectResource> apiGateway = builder
     .AddProject<Raijin_ApiGateway>("api-gateway")
     .WithHttpHealthCheck("/health")
@@ -128,15 +106,12 @@ IResourceBuilder<ProjectResource> apiGateway = builder
     .WaitFor(combinatoricsServiceApi)
     .WithReference(satSolverApi)
     .WaitFor(satSolverApi)
-    .WithReference(queryServiceApi)
-    .WaitFor(queryServiceApi)
     .PublishAsDockerFile();
 
 IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
-    .AddJavaScriptApp("spa-frontend", "../Spa", OperatingSystem.IsLinux() ? "start" : "win:start")
+    .AddViteApp("spa-frontend", "../Spa")
     .WithReference(apiGateway)
     .WaitFor(apiGateway)
-    .WithHttpEndpoint(env: "PORT")
     .PublishAsDockerFile();
 
 if (builder.Environment.IsDevelopment())
@@ -165,12 +140,6 @@ if (builder.Environment.IsDevelopment())
             return Task.CompletedTask;
         })
         .WaitFor(satSolverApi)
-        .WithApiReference(queryServiceApi, (options, _) =>
-        {
-            options.AddDocument("v1");
-            return Task.CompletedTask;
-        })
-        .WaitFor(queryServiceApi)
         .WithApiReference(apiGateway, (options, _) =>
         {
             options.AddDocument("v1");
