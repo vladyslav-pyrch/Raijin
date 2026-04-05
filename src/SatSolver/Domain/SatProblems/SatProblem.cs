@@ -25,12 +25,6 @@ public sealed class SatProblem
 
     public Solution Solution { get; private set; }
 
-    public Guid? CorrelationId { get; private set; }
-
-    public Guid? InitiatorId { get; private set; }
-
-    public string? UserId { get; private set; }
-
     public int NumberOfVariables => Clauses.Select(clause => clause.MaxSatVariableId).Append(0).Max();
 
     public int NumberOfClauses => Clauses.Count();
