@@ -11,20 +11,18 @@ public class CryptominisatSolver(
     IOptions<CryptominisatSolveOptions> options,
     ILogger<CryptominisatSolver> logger) : ISatSolver
 {
-    public Task<int[]> Solve(SatProblem problem, CancellationToken cancellationToken)
-    {
-        return InternalSolveAsync(problem, null, cancellationToken);
-    }
+    public Task<int[]> Solve(SatProblem problem, CancellationToken cancellationToken) =>
+        InternalSolveAsync(problem, null, cancellationToken);
 
-    public Task<int[]> Solve(SatProblem problem, int timeout, CancellationToken cancellationToken)
-    {
-        return InternalSolveAsync(problem, timeout, cancellationToken);
-    }
+    public Task<int[]> Solve(SatProblem problem, int timeout, CancellationToken cancellationToken) =>
+        InternalSolveAsync(problem, timeout, cancellationToken);
 
-    private async Task<int[]> InternalSolveAsync(SatProblem problem, int? timeout, CancellationToken cancellationToken)
+    private async Task<int[]> InternalSolveAsync(SatProblem problem,
+        int? timeout,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string filePath = await WriteProblemInFile(problem.Dimacs);
+        string filePath = await WriteProblemInFile(problem.ToDimacs());
 
         var stopwatch = Stopwatch.StartNew();
         string result = await CallCryptominisat(filePath, timeout, cancellationToken);
@@ -71,9 +69,8 @@ public class CryptominisatSolver(
         }
     }
 
-    private ProcessStartInfo CreateCryptominisatProcessStartInfo(string filePath, int? timeout)
-    {
-        return new ProcessStartInfo
+    private ProcessStartInfo CreateCryptominisatProcessStartInfo(string filePath, int? timeout) =>
+        new()
         {
             FileName = options.Value.FileName,
             Arguments = timeout.HasValue ? $"--verb 0 --maxtime {timeout.Value} {filePath}" : $"--verb 0 {filePath}",
@@ -82,7 +79,6 @@ public class CryptominisatSolver(
             CreateNoWindow = true,
             UseShellExecute = false
         };
-    }
 
     private async Task<string> GetOutputFromProcess(Process process, CancellationToken cancellationToken)
     {

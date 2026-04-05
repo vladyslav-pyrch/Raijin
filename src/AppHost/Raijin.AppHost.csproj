@@ -18,14 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\SatSolver\Application\Raijin.SatSolver.Application.Tests.csproj" />
-    <ProjectReference Include="..\..\tests\SatSolver\Domain\Raijin.SatSolver.Domain.Tests.csproj" />
     <ProjectReference Include="..\ApiGateway\Raijin.ApiGateway.csproj" />
     <ProjectReference Include="..\CombinatoricsService\Api\Raijin.CombinatoricsService.Api.csproj" />
     <ProjectReference Include="..\CombinatoricsService\MigrationWorker\Raijin.CombinatoricsService.MigrationWorker.csproj" />
     <ProjectReference Include="..\IdentityService\Api\Raijin.IdentityService.Api.csproj" />
     <ProjectReference Include="..\IdentityService\MigrationWorker\Raijin.IdentityService.MigrationWorker.csproj" />
-    <ProjectReference Include="..\SatSolver\Api\Raijin.SatSolver.Api.csproj" />
+    <ProjectReference Include="..\SatSolver\EventConsumerWorker\Raijin.SatSolver.EventConsumerWorker.csproj" />
     <ProjectReference Include="..\SatSolver\MigrationWorker\Raijin.SatSolver.MigrationWorker.csproj" />
     <ProjectReference Include="..\SatSolver\Worker\Raijin.SatSolver.Worker.csproj" />
     <ProjectReference Include="..\Spa\spa.esproj" />

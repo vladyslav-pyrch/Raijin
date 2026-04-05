@@ -2,9 +2,16 @@ using FluentResults;
 
 namespace Raijin.CombinatoricsService.Application.Errors;
 
-public sealed class NotFoundError(string entityName, Guid id) : Error($"{entityName} '{id}' was not found.")
+public sealed class NotFoundError : Error
 {
-    public string EntityName => entityName;
+    public NotFoundError(string entityName, Guid id) : base($"{entityName} '{id}' was not found.")
+    {
+        EntityName = entityName;
+        Id = id;
+        Metadata["key"] = id;
+    }
 
-    public Guid Id => id;
+    public string EntityName { get; }
+
+    public Guid Id { get; }
 }

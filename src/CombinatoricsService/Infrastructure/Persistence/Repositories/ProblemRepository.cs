@@ -22,7 +22,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
             model.Instance is { } instance ? instance.Deserialize<Instance>() : null,
             model.SatEncoding is { } encoding
                 ? SatEncoding.Rehydrate(
-                    encoding.Dimacs,
+                    encoding.Clauses.Select(clauseModel => clauseModel.Literals),
                     encoding.VariableMap.Deserialize<VariableMap>()!
                 )
                 : null,
@@ -53,7 +53,10 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
             SatEncoding = problem.SatEncoding is { } encoding
                 ? new SatEncodingModel
                 {
-                    Dimacs = encoding.Dimacs,
+                    Clauses = encoding.Clauses.Select(clause => new ClauseModel
+                    {
+                        Literals = clause as int[] ?? clause.ToArray()
+                    }).ToList(),
                     VariableMap = JsonSerializer.SerializeToDocument(encoding.VariableMap)
                 }
                 : null,
@@ -89,7 +92,10 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
         model.SatEncoding = problem.SatEncoding is { } encoding
             ? new SatEncodingModel
             {
-                Dimacs = encoding.Dimacs,
+                Clauses = encoding.Clauses.Select(clause => new ClauseModel
+                {
+                    Literals = clause as int[] ?? clause.ToArray()
+                }).ToList(),
                 VariableMap = JsonSerializer.SerializeToDocument(encoding.VariableMap)
             }
             : null;

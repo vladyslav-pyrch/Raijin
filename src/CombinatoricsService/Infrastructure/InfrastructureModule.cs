@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Raijin.Application.Contracts;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Messaging;
@@ -18,27 +17,30 @@ public static class InfrastructureModule
 {
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services) =>
-        services
-            .AddMessaging()
-            .AddPersistence();
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    {
+        services.AddMessaging();
+        services.AddPersistence();
 
+        return services;
+    }
 
-    private static IServiceCollection AddMessaging(this IServiceCollection services) => services
-        .AddScoped<IMediator, ServiceProviderMediator>()
-        .AddScoped<IMessageBus, MassTransitMessageBus>()
-        .AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>()
-        .AddScoped(typeof(CorrelationContextConsumeFilter<>))
-        .AddScoped(typeof(CorrelationContextPublishFilter<>))
-        .AddScoped(typeof(LoggingConsumeFilter<>))
-        .AddScoped(typeof(LoggingPublishFilter<>))
-        .AddScoped(typeof(CausationConsumeFilter<>))
-        .AddScoped(typeof(CausationPublishFilter<>))
-        .AddMassTransit(x =>
+    private static IServiceCollection AddMessaging(this IServiceCollection services)
+    {
+        services.AddScoped<IMediator, ServiceProviderMediator>();
+        services.AddScoped<IMessageBus, MassTransitMessageBus>();
+        services.AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>();
+        services.AddScoped(typeof(CorrelationContextConsumeFilter<>));
+        services.AddScoped(typeof(CorrelationContextPublishFilter<>));
+        services.AddScoped(typeof(CorrelationContextSendFilter<>));
+        services.AddScoped(typeof(LoggingConsumeFilter<>));
+        services.AddScoped(typeof(LoggingPublishFilter<>));
+        services.AddScoped(typeof(LoggingSendFilter<>));
+        services.AddScoped(typeof(CausationConsumeFilter<>));
+        services.AddScoped(typeof(CausationPublishFilter<>));
+        services.AddScoped(typeof(CausationSendFilter<>));
+        services.AddMassTransit(x =>
         {
-            x.AddConsumer<MessageConsumer<ICombinatoricProblemSubmitted>>();
-            x.AddConsumer<MessageConsumer<ISatProblemSolved>>();
-            x.AddConsumer<MessageConsumer<IBooleanProblemSolved>>();
             x.SetKebabCaseEndpointNameFormatter();
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -47,6 +49,10 @@ public static class InfrastructureModule
                 cfg.UseConsumeFilter(typeof(CorrelationContextConsumeFilter<>), context);
                 cfg.UseConsumeFilter(typeof(CausationConsumeFilter<>), context);
                 cfg.UseConsumeFilter(typeof(LoggingConsumeFilter<>), context);
+
+                cfg.UseSendFilter(typeof(CorrelationContextSendFilter<>), context);
+                cfg.UseSendFilter(typeof(CausationSendFilter<>), context);
+                cfg.UseSendFilter(typeof(LoggingSendFilter<>), context);
 
                 cfg.UsePublishFilter(typeof(CorrelationContextPublishFilter<>), context);
                 cfg.UsePublishFilter(typeof(CausationPublishFilter<>), context);
@@ -57,16 +63,23 @@ public static class InfrastructureModule
             });
         });
 
-    public static IServiceCollection AddPersistence(this IServiceCollection services) => services
-        .AddDbContextPool<CombinatoricsServiceDbContext>((provider, builder) =>
+        return services;
+    }
+
+    public static IServiceCollection AddPersistence(this IServiceCollection services)
+    {
+        services.AddDbContextPool<CombinatoricsServiceDbContext>((provider, builder) =>
         {
             NpgsqlDataSource dataSource = new NpgsqlDataSourceBuilder(GetDatabaseConnectionString(provider))
                 .Build();
 
             builder.UseNpgsql(dataSource, optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly));
-        })
-        .AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>()
-        .AddScoped<IProblemRepository, ProblemRepository>();
+        });
+        services.AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>();
+        services.AddScoped<IProblemRepository, ProblemRepository>();
+
+        return services;
+    }
 
     private static string GetRabbitMqConnectionString(IServiceProvider provider) =>
         provider.GetRequiredService<IConfiguration>().GetConnectionString("rabbit-mq")

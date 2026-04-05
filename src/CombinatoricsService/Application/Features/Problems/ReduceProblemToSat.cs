@@ -21,7 +21,10 @@ public sealed class ReduceProblemToSatCommandHandler(
             return new NotFoundError(nameof(Problem), request.ProblemId);
 
         if (problem.Instance is null)
-            return new IllegalOperationError($"Problem with id {request.ProblemId} does not have an instance set.");
+            return new ConflictError($"Problem with id {request.ProblemId} does not have an instance set");
+
+        if (problem.SatEncoding is not null)
+            return new ConflictError($"Problem with id {request.ProblemId} already has a sat reduction");
 
         problem.ReduceToSat();
 

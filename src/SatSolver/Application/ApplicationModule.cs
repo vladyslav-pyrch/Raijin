@@ -10,29 +10,39 @@ public static class ApplicationModule
 {
     public static readonly Assembly Assembly = typeof(ApplicationModule).Assembly;
 
-    public static IServiceCollection AddApplication(this IServiceCollection services) => services
-        .AddCommandHandlers()
-        .AddEventHandlers()
-        .AddPipelineBehaviors()
-        .AddValidatorsFromAssembly(Assembly);
+    public static IServiceCollection AddApplication(this IServiceCollection services)
+    {
+        services.AddCommandHandlers();
+        services.AddPipelineBehaviors();
+        services.AddValidatorsFromAssembly(Assembly);
 
-    private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
-        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
+        return services;
+    }
 
-    private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
+    private static IServiceCollection AddCommandHandlers(this IServiceCollection services)
+    {
+        services.AddGenericInterfaceImplementations(typeof(IRequestHandler<>));
+        services.AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
 
-    private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
-        .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
-        .AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
-        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
-        .AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
+        return services;
+    }
 
-    private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services, Type genericInterfaceType)
+    private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services)
+    {
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
+
+        return services;
+    }
+
+    private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services,
+        Type genericInterfaceType)
     {
         IEnumerable<Type> types = Assembly.GetTypes()
-            .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericInterfaceType) && !t.IsAbstract);
+            .Where(t => t.GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericInterfaceType) && !t.IsAbstract);
 
         foreach (Type type in types)
         {

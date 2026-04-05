@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
+using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -16,27 +17,26 @@ public sealed class SetProblemInstanceEndpoint : IEndpoint
             .WithTags("problems");
     }
 
-    public static async Task<Results<NoContent, ValidationProblem, NotFound, InternalServerError>> Execute(
-        [FromRoute] Guid id,
-        [FromBody] SetProblemInstanceRequest request,
-        [FromServices] IMediator mediator
-    )
+    public static async Task<Results<NoContent, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>>
+        Execute(
+            [FromRoute] Guid id,
+            [FromBody] SetProblemInstanceRequest request,
+            [FromServices] IMediator mediator,
+            CancellationToken cancellationToken
+        )
     {
-        Result result = await mediator.Send(new SetProblemInstanceCommand(
-            id,
-            request.Instance
-        ), CancellationToken.None);
+        Result result = await mediator.Send(new SetProblemInstanceCommand(id, request.Instance), cancellationToken);
 
-        if (result.IsNotFoundError())
-            return TypedResults.NotFound();
+        if (result.IsSuccess)
+            return TypedResults.NoContent();
 
-        if (result.IsValidationError())
-            return TypedResults.ValidationProblem(result.ToValidationErrorDictionary());
+        if (result.Has(out NotFoundError? notFoundError))
+            return notFoundError.ToNotFoundResult();
 
-        if (result.IsFailed)
-            return TypedResults.InternalServerError();
+        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
+            return validationErrors.ToValidationProblemResult();
 
-        return TypedResults.NoContent();
+        return TypedResults.InternalServerError();
     }
 }
 

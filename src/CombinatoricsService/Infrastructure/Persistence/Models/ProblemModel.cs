@@ -2,7 +2,7 @@
 
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
 
-public class ProblemModel
+internal class ProblemModel
 {
     public Guid Id { get; set; }
 

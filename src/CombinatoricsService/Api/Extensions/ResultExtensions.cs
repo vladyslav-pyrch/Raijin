@@ -1,38 +1,80 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentResults;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Application.Errors;
 
 namespace Raijin.CombinatoricsService.Api.Extensions;
 
 public static class ResultExtensions
 {
-    public static IDictionary<string, string[]> ToValidationErrorDictionary(this Result result)
+    public static NotFound<ProblemDetails> ToNotFoundResult(this NotFoundError notFoundError)
+        => TypedResults.NotFound(new ProblemDetails
+        {
+            Title = "Not Found",
+            Status = StatusCodes.Status404NotFound,
+            Detail = notFoundError.Message,
+            Extensions = notFoundError.Metadata
+        });
+
+    public static Conflict<ProblemDetails> ToConflictResult(this ConflictError conflictError)
+        => TypedResults.Conflict(new ProblemDetails
+        {
+            Title = "Conflict",
+            Status = StatusCodes.Status409Conflict,
+            Detail = conflictError.Message,
+            Extensions = conflictError.Metadata
+        });
+
+    public static ValidationProblem ToValidationProblemResult(this IReadOnlyList<ValidationError> validationErrors)
+        => TypedResults.ValidationProblem(
+            validationErrors.GroupBy(error => error.PropertyName).ToDictionary(
+                grouping => grouping.Key,
+                grouping => grouping.Select(error => error.Message).ToArray()
+            ),
+            title: "Validation Problem",
+            detail: "One or more validation errors has occured",
+            extensions: validationErrors.GroupedMetadata()!
+        );
+
+    private static Dictionary<string, object> GroupedMetadata(this IReadOnlyList<IError> errors)
     {
-        return result.Errors.OfType<ValidationError>()
-            .GroupBy(error => error.PropertyName)
-            .ToDictionary(
-                group => group.Key,
-                group => group.Select(error => error.Problem).ToArray()
-            );
+        Dictionary<string, List<object>> groupedMetadata = [];
+
+        foreach (IError error in errors)
+        foreach (KeyValuePair<string, object> kvp in error.Metadata)
+        {
+            if (!groupedMetadata.TryGetValue(kvp.Key, out List<object>? values))
+            {
+                values = [];
+                groupedMetadata[kvp.Key] = values;
+            }
+
+            values.Add(kvp.Value);
+        }
+
+        return groupedMetadata.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.Count == 1 ? kvp.Value.First() : kvp.Value.ToArray()
+        );
     }
 
-    public static IDictionary<string, string[]> ToValidationErrorDictionary<T>(this Result<T> result) =>
-        result.ToResult().ToValidationErrorDictionary();
+    extension(ResultBase result)
+    {
+        public IError? Error => result.Errors.FirstOrDefault();
 
-    public static bool IsValidationError(this Result result) =>
-        result.Errors.Any(error => error is ValidationError);
+        public bool Has<TError>([NotNullWhen(true)] out TError? error) where TError : IError
+        {
+            error = result.Errors.OfType<TError>().FirstOrDefault();
 
-    public static bool IsValidationError<T>(this Result<T> result) =>
-        result.ToResult().IsValidationError();
+            return error != null;
+        }
 
-    public static bool IsNotFoundError(this Result result) =>
-        result.Errors.Any(error => error is NotFoundError);
+        public bool Has<TError>([NotNullWhen(true)] out IReadOnlyList<TError>? errors) where TError : IError
+        {
+            errors = result.Errors.OfType<TError>().ToList();
 
-    public static bool IsNotFoundError<T>(this Result<T> result) =>
-        result.ToResult().IsNotFoundError();
-
-    public static bool IsIllegalOperationError(this Result result) =>
-        result.Errors.Any(error => error is IllegalOperationError);
-
-    public static bool IsIllegalOperationError<T>(this Result<T> result) =>
-        result.ToResult().IsIllegalOperationError();
+            return errors.Count > 0;
+        }
+    }
 }

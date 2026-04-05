@@ -24,3 +24,24 @@ public sealed class LoggingPublishFilter<TMessage>(
         context.CreateFilterScope(nameof(LoggingPublishFilter<>));
     }
 }
+
+public sealed class LoggingSendFilter<TMessage>(
+    ILogger<LoggingSendFilter<TMessage>> logger
+) : IFilter<SendContext<TMessage>> where TMessage : class, IMessage
+{
+    private readonly string MessageType = typeof(TMessage).Name;
+
+    public async Task Send(SendContext<TMessage> context, IPipe<SendContext<TMessage>> next)
+    {
+        logger.LogInformation(
+            "Sending message of type {MessageType} with MessageId: {MessageId} and Body: {@Message}", MessageType,
+            context.MessageId, context.Message);
+
+        await next.Send(context);
+    }
+
+    public void Probe(ProbeContext context)
+    {
+        context.CreateFilterScope(nameof(LoggingPublishFilter<>));
+    }
+}

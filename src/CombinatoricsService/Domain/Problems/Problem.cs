@@ -105,6 +105,9 @@ public sealed class Problem
 
     public void StartSatRun()
     {
+        if (SatEncoding is null)
+            throw new InvalidOperationException("Cannot start a SAT run without SAT encoding");
+
         if (SatRun is not null)
             throw new InvalidOperationException("A SAT run already exists for this reduction");
 

@@ -2,23 +2,24 @@ namespace Raijin.CombinatoricsService.Domain.Problems;
 
 public sealed record SatEncoding
 {
-    private SatEncoding(string dimacs, VariableMap variableMap)
+    private SatEncoding(IEnumerable<IEnumerable<int>> clauses, VariableMap variableMap)
     {
-        Dimacs = dimacs;
+        Clauses = clauses;
         VariableMap = variableMap;
     }
 
-    public string Dimacs { get; }
+    public IEnumerable<IEnumerable<int>> Clauses { get; }
 
     public VariableMap VariableMap { get; }
 
-    public static SatEncoding Create(string dimacs, VariableMap variableMap)
+    public static SatEncoding Create(IEnumerable<IEnumerable<int>> clauses, VariableMap variableMap)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(dimacs);
+        ArgumentNullException.ThrowIfNull(clauses);
         ArgumentNullException.ThrowIfNull(variableMap);
 
-        return new SatEncoding(dimacs, variableMap);
+        return new SatEncoding(clauses, variableMap);
     }
 
-    public static SatEncoding Rehydrate(string dimacs, VariableMap variableMap) => new(dimacs, variableMap);
+    public static SatEncoding Rehydrate(IEnumerable<IEnumerable<int>> clauses, VariableMap variableMap) =>
+        new(clauses, variableMap);
 }

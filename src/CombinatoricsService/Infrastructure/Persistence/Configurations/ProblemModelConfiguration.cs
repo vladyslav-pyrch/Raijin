@@ -4,7 +4,7 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
 
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Configurations;
 
-public sealed class ProblemModelConfiguration : IEntityTypeConfiguration<ProblemModel>
+internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<ProblemModel>
 {
     public void Configure(EntityTypeBuilder<ProblemModel> builder)
     {
@@ -32,10 +32,10 @@ public sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Problem
         {
             satEncoding.ToTable("SatEncodings");
 
-            satEncoding.HasKey(run => run.Id);
+            satEncoding.HasKey(encoding => encoding.Id);
 
             satEncoding.WithOwner()
-                .HasForeignKey(run => run.ProblemId);
+                .HasForeignKey(encoding => encoding.ProblemId);
 
             satEncoding.Property(encoding => encoding.Id)
                 .ValueGeneratedOnAdd();
@@ -44,8 +44,21 @@ public sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Problem
                 .HasColumnType("jsonb")
                 .IsRequired();
 
-            satEncoding.Property(encoding => encoding.Dimacs)
-                .IsRequired();
+            satEncoding.OwnsMany(encoding => encoding.Clauses, clause =>
+            {
+                clause.ToTable("Clauses");
+
+                clause.HasKey(c => c.Id);
+
+                clause.WithOwner()
+                    .HasForeignKey(c => c.SatEncodingId);
+
+                clause.Property(c => c.Id)
+                    .ValueGeneratedOnAdd();
+
+                clause.PrimitiveCollection(c => c.Literals)
+                    .IsRequired();
+            });
         });
 
         builder.OwnsOne(problem => problem.SatRun, satRun =>
