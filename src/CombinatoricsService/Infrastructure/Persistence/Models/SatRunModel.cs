@@ -1,6 +1,6 @@
 ﻿namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
 
-public class SatRunModel
+internal class SatRunModel
 {
     public Guid Id { get; set; }
 

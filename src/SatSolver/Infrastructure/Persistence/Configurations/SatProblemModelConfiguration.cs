@@ -4,7 +4,7 @@ using Raijin.SatSolver.Infrastructure.Persistence.Models;
 
 namespace Raijin.SatSolver.Infrastructure.Persistence.Configurations;
 
-internal class SatProblemModelConfiguration : IEntityTypeConfiguration<SatProblemModel>
+internal sealed class SatProblemModelConfiguration : IEntityTypeConfiguration<SatProblemModel>
 {
     public void Configure(EntityTypeBuilder<SatProblemModel> builder)
     {
@@ -12,14 +12,27 @@ internal class SatProblemModelConfiguration : IEntityTypeConfiguration<SatProble
 
         builder.Property(model => model.Id).ValueGeneratedNever();
 
-        builder.Property(model => model.Dimacs)
-            .IsRequired();
-
         builder.PrimitiveCollection(model => model.Solution)
             .IsRequired();
 
         builder.Property(model => model.Satisfiability)
-            .IsRequired()
-            .HasMaxLength(20);
+            .HasMaxLength(20)
+            .IsRequired();
+
+        builder.Property(model => model.SolvingStatus)
+            .HasMaxLength(20)
+            .IsRequired();
+
+        builder.OwnsMany(model => model.Clauses, clauseBuilder =>
+        {
+            clauseBuilder.WithOwner()
+                .HasForeignKey("SatProblemId");
+
+            clauseBuilder.PrimitiveCollection(model => model.Literals)
+                .IsRequired();
+        });
+
+        builder.Property(model => model.CreatedAt)
+            .IsRequired();
     }
 }

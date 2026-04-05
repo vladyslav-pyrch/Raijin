@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
+using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -18,25 +19,23 @@ public sealed class CreateProblemEndpoint : IEndpoint
 
     public static async Task<Results<Created<CreateProblemResponse>, ValidationProblem, InternalServerError>> Execute(
         [FromBody] CreateProblemRequest request,
-        [FromServices] IMediator mediator
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken
     )
     {
         Result<CreateProblemResult> result = await mediator.Send(new CreateProblemCommand(
             request.Name,
             request.Description ?? string.Empty,
             request.ProblemType
-        ), CancellationToken.None);
+        ), cancellationToken);
 
-        if (result.IsValidationError())
-            return TypedResults.ValidationProblem(result.ToValidationErrorDictionary());
+        if (result.IsSuccess)
+            return TypedResults.Created($"/problems/{result.Value.Id}", new CreateProblemResponse(result.Value.Id));
 
-        if (result.IsFailed)
-            return TypedResults.InternalServerError();
+        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
+            return validationErrors.ToValidationProblemResult();
 
-        return TypedResults.Created("problems/{ProblemId}", new CreateProblemResponse
-        {
-            ProblemId = result.Value.Id
-        });
+        return TypedResults.InternalServerError();
     }
 }
 
@@ -49,7 +48,4 @@ public sealed class CreateProblemRequest
     public string ProblemType { get; set; } = null!;
 }
 
-public sealed class CreateProblemResponse
-{
-    public Guid ProblemId { get; set; }
-}
+public sealed record CreateProblemResponse(Guid ProblemId);

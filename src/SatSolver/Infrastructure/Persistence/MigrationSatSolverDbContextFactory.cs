@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace Raijin.SatSolver.Infrastructure.Persistence;
 
-public class MigrationSatSolverDbContextFactory : IDesignTimeDbContextFactory<SatSolverDbContext>
+public sealed class MigrationSatSolverDbContextFactory : IDesignTimeDbContextFactory<SatSolverDbContext>
 {
     public SatSolverDbContext CreateDbContext(string[] args)
     {
@@ -11,7 +11,7 @@ public class MigrationSatSolverDbContextFactory : IDesignTimeDbContextFactory<Sa
 
         builder.UseNpgsql(
             "Host=localhost;Port=5432;Database=dev;Username=dev;Password=dev",
-            npgsql => npgsql.MigrationsAssembly(typeof(InfrastructureModule).Assembly.FullName)
+            npgsql => npgsql.MigrationsAssembly(InfrastructureModule.Assembly.FullName)
         );
 
         return new SatSolverDbContext(builder.Options);

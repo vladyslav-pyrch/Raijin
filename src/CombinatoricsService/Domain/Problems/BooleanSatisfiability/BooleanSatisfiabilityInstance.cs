@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses) : Instance
@@ -8,26 +6,19 @@ public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses
 
     public int GetClauseCount() => Clauses.Count;
 
-    public string ToDimacsFormat()
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine($"p cnf {GetVariableCount()} {GetClauseCount()}");
-        foreach (Clause clause in Clauses)
-            sb.AppendLine(clause.ToDimacsFormat());
-        return sb.ToString();
-    }
-
     public override string ProblemType() => ProblemTypes.BooleanSatisfiabilityProblem;
 
     internal override SatEncoding ReduceToSat()
     {
-        string dimacs = ToDimacsFormat();
+        IEnumerable<IEnumerable<int>> clauses = Clauses
+            .Select(clause =>
+                clause.Literals.Select(literal => literal.Variable.Id * (literal.Negated ? -1 : 1)).ToArray()
+            ).ToArray();
 
         var variableMap = Enumerable.Range(1, GetVariableCount())
             .ToDictionary(x => x, x => x.ToString());
 
-
-        return SatEncoding.Create(dimacs, new VariableMap(variableMap));
+        return SatEncoding.Create(clauses, new VariableMap(variableMap));
     }
 
     internal override Solution InterpretSolution(IReadOnlyList<int> assignment, VariableMap variableMap)

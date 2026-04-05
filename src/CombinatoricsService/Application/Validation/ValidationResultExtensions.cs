@@ -1,4 +1,3 @@
-using FluentResults;
 using FluentValidation.Results;
 using Raijin.CombinatoricsService.Application.Errors;
 
@@ -6,9 +5,8 @@ namespace Raijin.CombinatoricsService.Application.Validation;
 
 public static class ValidationResultExtensions
 {
-    public static IEnumerable<Error> ToValidationErrors(this ValidationResult validationResult) =>
+    public static IEnumerable<ValidationError> ToValidationErrors(this ValidationResult validationResult) =>
         validationResult.Errors.Select(error =>
             new ValidationError(error.PropertyName, error.ErrorMessage)
-                .WithMetadata("ErrorCode", error.ErrorCode)
         );
 }

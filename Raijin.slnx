@@ -24,19 +24,12 @@
     <Project Path="src/IdentityService/MigrationWorker/Raijin.IdentityService.MigrationWorker.csproj" />
   </Folder>
   <Folder Name="/src/SatSolver/">
-    <Project Path="src/SatSolver/Api/Raijin.SatSolver.Api.csproj" />
     <Project Path="src/SatSolver/Application/Raijin.SatSolver.Application.csproj" />
     <Project Path="src/SatSolver/Domain/Raijin.SatSolver.Domain.csproj" />
+    <Project Path="src/SatSolver/EventConsumerWorker/Raijin.SatSolver.EventConsumerWorker.csproj" />
     <Project Path="src/SatSolver/Infrastructure/Raijin.SatSolver.Infrastructure.csproj" />
     <Project Path="src/SatSolver/MigrationWorker/Raijin.SatSolver.MigrationWorker.csproj" />
     <Project Path="src/SatSolver/Worker/Raijin.SatSolver.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/" />
-  <Folder Name="/tests/CombinatoricsService/">
-    <Project Path="tests/CombinatoricsService/Domain/Raijin.CombinatoricsService.Domain.Tests.csproj" />
-  </Folder>
-  <Folder Name="/tests/SatSolver/">
-    <Project Path="tests/SatSolver/Application/Raijin.SatSolver.Application.Tests.csproj" />
-    <Project Path="tests/SatSolver/Domain/Raijin.SatSolver.Domain.Tests.csproj" />
-  </Folder>
 </Solution>

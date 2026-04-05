@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
+using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -16,28 +17,24 @@ public sealed class ReduceProblemToSatEndpoint : IEndpoint
             .WithTags("problems");
     }
 
-    public static async Task<Results<NoContent, ValidationProblem, NotFound, Conflict<string>, InternalServerError>>
-        Execute(
+    public static async
+        Task<Results<NoContent, NotFound<ProblemDetails>, Conflict<ProblemDetails>, InternalServerError>> Execute(
             [FromRoute] Guid id,
-            [FromServices] IMediator mediator
+            [FromServices] IMediator mediator,
+            CancellationToken cancellationToken
         )
     {
-        Result result = await mediator.Send(new ReduceProblemToSatCommand(
-            id
-        ), CancellationToken.None);
+        Result result = await mediator.Send(new ReduceProblemToSatCommand(id), cancellationToken);
 
-        if (result.IsValidationError())
-            return TypedResults.ValidationProblem(result.ToValidationErrorDictionary());
+        if (result.IsSuccess)
+            return TypedResults.NoContent();
 
-        if (result.IsNotFoundError())
-            return TypedResults.NotFound();
+        if (result.Has(out NotFoundError? notFoundError))
+            return notFoundError.ToNotFoundResult();
 
-        if (result.IsIllegalOperationError())
-            return TypedResults.Conflict(result.Errors.First().Message);
+        if (result.Has(out ConflictError? conflictError))
+            return conflictError.ToConflictResult();
 
-        if (result.IsFailed)
-            return TypedResults.InternalServerError();
-
-        return TypedResults.NoContent();
+        return TypedResults.InternalServerError();
     }
 }

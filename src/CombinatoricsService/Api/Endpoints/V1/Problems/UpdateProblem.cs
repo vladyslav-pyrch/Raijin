@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
+using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -16,28 +17,27 @@ public sealed class UpdateProblemEndpoint : IEndpoint
             .WithTags("problems");
     }
 
-    public static async Task<Results<NoContent, ValidationProblem, NotFound, InternalServerError>> Execute(
-        [FromRoute] Guid id,
-        [FromBody] UpdateProblemRequest request,
-        [FromServices] IMediator mediator
-    )
+    public static async Task<Results<NoContent, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>>
+        Execute(
+            [FromRoute] Guid id,
+            [FromBody] UpdateProblemRequest request,
+            [FromServices] IMediator mediator,
+            CancellationToken cancellationToken
+        )
     {
-        Result result = await mediator.Send(new UpdateProblemCommand(
-            id,
-            request.Name,
-            request.Description
-        ), CancellationToken.None);
+        Result result = await mediator.Send(new UpdateProblemCommand(id, request.Name, request.Description),
+            cancellationToken);
 
-        if (result.IsNotFoundError())
-            return TypedResults.NotFound();
+        if (result.IsSuccess)
+            return TypedResults.NoContent();
 
-        if (result.IsValidationError())
-            return TypedResults.ValidationProblem(result.ToValidationErrorDictionary());
+        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
+            return validationErrors.ToValidationProblemResult();
 
-        if (result.IsFailed)
-            return TypedResults.InternalServerError();
+        if (result.Has(out NotFoundError? notFoundError))
+            return notFoundError.ToNotFoundResult();
 
-        return TypedResults.NoContent();
+        return TypedResults.InternalServerError();
     }
 }
 

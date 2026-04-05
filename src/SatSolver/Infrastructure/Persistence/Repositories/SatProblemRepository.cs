@@ -7,54 +7,77 @@ using Raijin.SatSolver.Infrastructure.Persistence.Models;
 namespace Raijin.SatSolver.Infrastructure.Persistence.Repositories;
 
 public sealed class SatProblemRepository(SatSolverDbContext dbContext, ILogger<SatProblemRepository> logger)
-    : ISatProblemRepository
+    : ISatProblemJobRepository
 {
     public Task Add(SatProblem satProblem, CancellationToken cancellationToken)
     {
         dbContext.SatProblems.Add(new SatProblemModel
         {
             Id = satProblem.Id,
-            Dimacs = satProblem.Dimacs,
-            Solution = satProblem.Satisfiability switch
+            Solution = satProblem.Solution.Assignments.ToArray(),
+            Satisfiability = satProblem.Solution.Satisfiability.ToString(),
+            SolvingStatus = satProblem.SolvingStatus.ToString(),
+            Clauses = satProblem.Clauses.Select(clause => new ClauseModel
             {
-                Satisfiability.Satisfiable => satProblem.Solution,
-                Satisfiability.Unsatisfiable or Satisfiability.Unknown => [],
-                _ => throw new ArgumentOutOfRangeException()
-            },
-            Satisfiability = satProblem.Satisfiability.ToString()
+                Literals = clause.Literals.Select(literal => literal.Value).ToArray()
+            }).ToList(),
+            CreatedAt = DateTime.UtcNow
         });
+
         return Task.CompletedTask;
     }
 
     public async Task<SatProblem?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        SatProblemModel? model = await dbContext.SatProblems
-            .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
+        SatProblemModel? model = await dbContext.SatProblems.FindAsync([id], cancellationToken);
 
         if (model is null)
             return null;
 
-        var satisfiability = Enum.Parse<Satisfiability>(model.Satisfiability);
-
-        SatProblem satProblem = SatProblem.Rehydrate(model.Id, model.Dimacs, satisfiability, model.Solution);
-
-        return satProblem;
+        return ModelToSatProblem(model);
     }
 
     public async Task Update(SatProblem satProblem, CancellationToken cancellationToken)
     {
-        SatProblemModel satProblemModel = await dbContext.SatProblems
-            .FirstAsync(model => model.Id == satProblem.Id, cancellationToken);
+        SatProblemModel? model = await dbContext.SatProblems.FindAsync([satProblem.Id], cancellationToken);
 
-        satProblemModel.Dimacs = satProblem.Dimacs;
-        satProblemModel.Solution = satProblem.Satisfiability switch
+        if (model is null)
+            throw new InvalidOperationException("Trying to update sat problem that is not persisted yet.");
+
+        model.Solution = satProblem.Solution.Assignments.ToArray();
+        model.Satisfiability = satProblem.Solution.Satisfiability.ToString();
+        model.SolvingStatus = satProblem.SolvingStatus.ToString();
+        model.Clauses = satProblem.Clauses.Select(clause => new ClauseModel
         {
-            Satisfiability.Satisfiable => satProblem.Solution,
-            Satisfiability.Unsatisfiable or Satisfiability.Unknown => [],
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        satProblemModel.Satisfiability = satProblem.Satisfiability.ToString();
-
-        dbContext.SatProblems.Update(satProblemModel);
+            Literals = clause.Literals.Select(literal => literal.Value).ToArray()
+        }).ToList();
     }
+
+    public async Task<SatProblem?> GetNextPendingAndLock(CancellationToken cancellationToken)
+    {
+        SatProblemModel? model = await dbContext.SatProblems
+            .FromSqlRaw("""
+                        SELECT * FROM "SatProblems"
+                        WHERE "SolvingStatus" = 'Pending' 
+                        ORDER BY "CreatedAt"
+                        LIMIT 1 
+                        FOR UPDATE SKIP LOCKED
+                        """)
+            .Include(model => model.Clauses)
+            .AsTracking() // Ensure it's tracked so UnitOfWork can save the domain changes
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (model is null)
+            return null;
+
+        return ModelToSatProblem(model);
+    }
+
+    private static SatProblem ModelToSatProblem(SatProblemModel model) => SatProblem.Rehydrate(
+        model.Id,
+        Enum.Parse<SolvingStatus>(model.SolvingStatus),
+        model.Clauses.Select(clause => clause.Literals),
+        Enum.Parse<Satisfiability>(model.Satisfiability),
+        model.Solution
+    );
 }

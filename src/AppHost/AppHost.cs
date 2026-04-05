@@ -1,19 +1,21 @@
 using Aspire.Hosting.JavaScript;
-using Microsoft.Extensions.Hosting;
 using Projects;
 using Scalar.Aspire;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
+
 IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
     .AddRabbitMQ("rabbit-mq")
     .WithLifetime(ContainerLifetime.Persistent)
+    .WithManagementPlugin()
     .PublishAsContainer();
 
 IResourceBuilder<PostgresServerResource> applicationDbServer = builder
     .AddPostgres("raijin-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     //.WithDataVolume("raijin-db-data")
+    .WithPgWeb()
     .PublishAsContainer();
 
 IResourceBuilder<PostgresDatabaseResource> satSolverDb = applicationDbServer
@@ -24,39 +26,21 @@ IResourceBuilder<ProjectResource> satSolverMigrationWorker = builder
     .WithReference(satSolverDb, "sat-solver-db")
     .WaitFor(satSolverDb);
 
-switch (builder.Environment.IsDevelopment())
-{
-    case true:
-        builder.AddProject<Raijin_SatSolver_Worker>("sat-solver-worker")
-            .WithReplicas(3)
-            .WithEnvironment("CRYPTOMINISAT_FILE_NAME", "cryptominisat5.exe")
-            .WithReference(satSolverDb, "sat-solver-db")
-            .WaitFor(satSolverDb)
-            .WaitFor(satSolverMigrationWorker)
-            .WithReference(rabbitMq)
-            .WaitFor(rabbitMq);
-        break;
-    case false:
-        for (var i = 0; i < 3; i++)
-            builder.AddDockerfile($"sat-solver-worker-{i}", "..", "./SatSolver/Worker/Dockerfile")
-                .WithLifetime(ContainerLifetime.Session)
-                .PublishAsContainer()
-                .WithReference(satSolverDb, "sat-solver-db")
-                .WaitFor(satSolverDb)
-                .WaitFor(satSolverMigrationWorker)
-                .WithReference(rabbitMq)
-                .WaitFor(rabbitMq);
-        break;
-}
-
-IResourceBuilder<ProjectResource> satSolverApi = builder
-    .AddProject<Raijin_SatSolver_Api>("sat-solver-api")
+IResourceBuilder<ProjectResource> satSolverEventConsumerWorker = builder
+    .AddProject<Raijin_SatSolver_EventConsumerWorker>("sat-solver-event-consumer")
     .WithReference(satSolverDb, "sat-solver-db")
     .WaitFor(satSolverDb)
     .WaitForCompletion(satSolverMigrationWorker)
     .WithReference(rabbitMq)
-    .WaitFor(rabbitMq)
-    .PublishAsDockerFile();
+    .WaitFor(rabbitMq);
+
+IResourceBuilder<ProjectResource> satSolverWorker = builder.AddProject<Raijin_SatSolver_Worker>("sat-solver-worker")
+    .WithEnvironment("CRYPTOMINISAT_FILE_NAME", "cryptominisat5.exe")
+    .WithReference(satSolverDb, "sat-solver-db")
+    .WaitFor(satSolverDb)
+    .WaitForCompletion(satSolverMigrationWorker)
+    .WithReference(rabbitMq)
+    .WaitFor(rabbitMq);
 
 IResourceBuilder<PostgresDatabaseResource> identityServiceDb = applicationDbServer
     .AddDatabase("identity-service-db");
@@ -94,9 +78,6 @@ IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
     .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
-IResourceBuilder<PostgresDatabaseResource> queryServiceDb = applicationDbServer
-    .AddDatabase("query-service-db");
-
 IResourceBuilder<ProjectResource> apiGateway = builder
     .AddProject<Raijin_ApiGateway>("api-gateway")
     .WithHttpHealthCheck("/health")
@@ -104,8 +85,6 @@ IResourceBuilder<ProjectResource> apiGateway = builder
     .WaitFor(identityServiceApi)
     .WithReference(combinatoricsServiceApi)
     .WaitFor(combinatoricsServiceApi)
-    .WithReference(satSolverApi)
-    .WaitFor(satSolverApi)
     .PublishAsDockerFile();
 
 IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
@@ -114,41 +93,27 @@ IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
     .WaitFor(apiGateway)
     .PublishAsDockerFile();
 
-if (builder.Environment.IsDevelopment())
-{
-    rabbitMq.WithManagementPlugin();
-    applicationDbServer.WithPgWeb();
-
-
-    IResourceBuilder<ScalarResource> scalar = builder
-        .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
-        .WithApiReference(identityServiceApi, (options, _) =>
-        {
-            options.AddDocument("v1");
-            return Task.CompletedTask;
-        })
-        .WaitFor(identityServiceApi)
-        .WithApiReference(combinatoricsServiceApi, (options, _) =>
-        {
-            options.AddDocument("v1");
-            return Task.CompletedTask;
-        })
-        .WaitFor(combinatoricsServiceApi)
-        .WithApiReference(satSolverApi, (options, _) =>
-        {
-            options.AddDocument("v1");
-            return Task.CompletedTask;
-        })
-        .WaitFor(satSolverApi)
-        .WithApiReference(apiGateway, (options, _) =>
-        {
-            options.AddDocument("v1");
-            return Task.CompletedTask;
-        })
-        .WaitFor(apiGateway)
-        .WithLifetime(ContainerLifetime.Persistent)
-        .PublishAsContainer();
-}
-
+IResourceBuilder<ScalarResource> scalar = builder
+    .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
+    .WithApiReference(identityServiceApi, (options, _) =>
+    {
+        options.AddDocument("v1");
+        return Task.CompletedTask;
+    })
+    .WaitFor(identityServiceApi)
+    .WithApiReference(combinatoricsServiceApi, (options, _) =>
+    {
+        options.AddDocument("v1");
+        return Task.CompletedTask;
+    })
+    .WaitFor(combinatoricsServiceApi)
+    .WithApiReference(apiGateway, (options, _) =>
+    {
+        options.AddDocument("v1");
+        return Task.CompletedTask;
+    })
+    .WaitFor(apiGateway)
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
 
 builder.Build().Run();

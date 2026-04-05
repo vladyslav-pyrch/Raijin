@@ -65,10 +65,6 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid");
 
-                            b1.Property<string>("Dimacs")
-                                .IsRequired()
-                                .HasColumnType("text");
-
                             b1.Property<Guid>("ProblemId")
                                 .HasColumnType("uuid");
 
@@ -85,6 +81,31 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("ProblemId");
+
+                            b1.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ClauseModel", "Clauses", b2 =>
+                                {
+                                    b2.Property<Guid>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("uuid");
+
+                                    b2.PrimitiveCollection<int[]>("Literals")
+                                        .IsRequired()
+                                        .HasColumnType("integer[]");
+
+                                    b2.Property<Guid>("SatEncodingId")
+                                        .HasColumnType("uuid");
+
+                                    b2.HasKey("Id");
+
+                                    b2.HasIndex("SatEncodingId");
+
+                                    b2.ToTable("Clauses", (string)null);
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("SatEncodingId");
+                                });
+
+                            b1.Navigation("Clauses");
                         });
 
                     b.OwnsOne("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatRunModel", "SatRun", b1 =>

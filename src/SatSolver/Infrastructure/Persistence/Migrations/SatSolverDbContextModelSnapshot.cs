@@ -27,9 +27,8 @@ namespace Raijin.SatSolver.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Dimacs")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Satisfiability")
                         .IsRequired()
@@ -40,9 +39,42 @@ namespace Raijin.SatSolver.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("integer[]");
 
+                    b.Property<string>("SolvingStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.HasKey("Id");
 
                     b.ToTable("SatProblems");
+                });
+
+            modelBuilder.Entity("Raijin.SatSolver.Infrastructure.Persistence.Models.SatProblemModel", b =>
+                {
+                    b.OwnsMany("Raijin.SatSolver.Infrastructure.Persistence.Models.ClauseModel", "Clauses", b1 =>
+                        {
+                            b1.Property<Guid>("SatProblemId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.PrimitiveCollection<int[]>("Literals")
+                                .IsRequired()
+                                .HasColumnType("integer[]");
+
+                            b1.HasKey("SatProblemId", "Id");
+
+                            b1.ToTable("ClauseModel");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SatProblemId");
+                        });
+
+                    b.Navigation("Clauses");
                 });
 #pragma warning restore 612, 618
         }

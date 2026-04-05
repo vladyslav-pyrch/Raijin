@@ -17,7 +17,6 @@ public static class ApplicationModule
 
     public static IServiceCollection AddApplication(this IServiceCollection services) => services
         .AddCommandHandlers()
-        .AddEventHandlers()
         .AddPipelineBehaviors()
         .AddApplicationServices()
         .AddValidatorsFromAssembly(Assembly)
@@ -35,9 +34,6 @@ public static class ApplicationModule
     private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
         .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
-
-    private static IServiceCollection AddEventHandlers(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(IMessageHandler<>));
 
     private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
