@@ -16,7 +16,7 @@ public sealed class CreateProblemHandler(
         CancellationToken cancellationToken)
     {
         var id = Guid.CreateVersion7();
-        var problem = Problem.Create(id, request.Name, request.Description, request.ProblemType);
+        var problem = Problem.Create(id, request.Name, request.Description);
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
@@ -27,8 +27,7 @@ public sealed class CreateProblemHandler(
 
 public sealed record CreateProblemCommand(
     string Name,
-    string Description,
-    string ProblemType
+    string Description
 ) : IRequest<CreateProblemResult>;
 
 public sealed record CreateProblemResult(
@@ -45,10 +44,5 @@ public sealed class CreateProblemValidator : AbstractValidator<CreateProblemComm
         RuleFor(command => command.Description)
             .NotNull()
             .MaximumLength(5000);
-        RuleFor(command => command.ProblemType)
-            .NotEmpty()
-            .MaximumLength(100)
-            .Must(ProblemTypes.IsValid)
-            .WithMessage($"The valid problem types are: {string.Join(", ", ProblemTypes.GetAll())}");
     }
 }
