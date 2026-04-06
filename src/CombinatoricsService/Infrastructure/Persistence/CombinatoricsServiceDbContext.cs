@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
 
@@ -12,5 +13,9 @@ public class CombinatoricsServiceDbContext(DbContextOptions<CombinatoricsService
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(InfrastructureModule.Assembly);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }

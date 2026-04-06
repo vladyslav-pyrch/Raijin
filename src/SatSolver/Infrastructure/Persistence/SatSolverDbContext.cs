@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Raijin.SatSolver.Infrastructure.Persistence.Models;
 
@@ -12,5 +13,9 @@ public sealed class SatSolverDbContext(DbContextOptions<SatSolverDbContext> opti
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(InfrastructureModule.Assembly);
+
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }

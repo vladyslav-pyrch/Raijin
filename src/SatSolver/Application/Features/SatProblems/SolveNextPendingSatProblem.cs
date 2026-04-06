@@ -40,14 +40,14 @@ public sealed class SolveNextPendingSatProblemHandler(
         }
 
         await satProblemJobRepository.Update(satProblem, cancellationToken);
-        await unitOfWork.Commit(cancellationToken);
-
         await messageBus.Publish<ISatProblemSolved>(new
         {
             ProblemId = satProblem.Id,
             Solution = satProblem.Solution.Assignments,
             satProblem.Solution.Satisfiability
         }, cancellationToken);
+        await unitOfWork.Commit(cancellationToken);
+
 
         return Result.Ok();
     }

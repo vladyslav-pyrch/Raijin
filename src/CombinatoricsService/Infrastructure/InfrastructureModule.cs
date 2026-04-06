@@ -41,6 +41,25 @@ public static class InfrastructureModule
         services.AddScoped(typeof(CausationSendFilter<>));
         services.AddMassTransit(x =>
         {
+            x.AddEntityFrameworkOutbox<CombinatoricsServiceDbContext>(configurator =>
+            {
+                configurator.UsePostgres();
+
+                configurator.UseBusOutbox(options =>
+                {
+                    options.MessageDeliveryLimit = 100;
+                    options.MessageDeliveryTimeout = TimeSpan.FromSeconds(45);
+                });
+            });
+            x.AddConfigureEndpointsCallback((context, name, cfg) =>
+            {
+                cfg.UseEntityFrameworkOutbox<CombinatoricsServiceDbContext>(context, options =>
+                {
+                    options.MessageDeliveryLimit = 100;
+                    options.MessageDeliveryTimeout = TimeSpan.FromSeconds(45);
+                });
+            });
+
             x.SetKebabCaseEndpointNameFormatter();
             x.UsingRabbitMq((context, cfg) =>
             {

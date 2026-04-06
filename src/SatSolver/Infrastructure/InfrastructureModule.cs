@@ -51,6 +51,25 @@ public static class InfrastructureModule
         {
             busRegistrationConfiguration?.Invoke(x);
 
+            x.AddEntityFrameworkOutbox<SatSolverDbContext>(configurator =>
+            {
+                configurator.UsePostgres();
+
+                configurator.UseBusOutbox(options =>
+                {
+                    options.MessageDeliveryLimit = 100;
+                    options.MessageDeliveryTimeout = TimeSpan.FromSeconds(45);
+                });
+            });
+            x.AddConfigureEndpointsCallback((context, name, cfg) =>
+            {
+                cfg.UseEntityFrameworkOutbox<SatSolverDbContext>(context, options =>
+                {
+                    options.MessageDeliveryLimit = 100;
+                    options.MessageDeliveryTimeout = TimeSpan.FromSeconds(45);
+                });
+            });
+
             x.SetKebabCaseEndpointNameFormatter();
             x.UsingRabbitMq((context, cfg) =>
             {
