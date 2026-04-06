@@ -33,12 +33,12 @@ public sealed class SolveProblemHandler(
         problem.MarkSatRunAsRunning();
 
         await problemRepository.Update(problem, cancellationToken);
-        await unitOfWork.Commit(cancellationToken);
-
         await messageBus.Send<ISubmitSatProblem>(new
         {
-            ProblemId = problem.Id, problem.SatEncoding.Clauses
+            ProblemId = problem.Id,
+            problem.SatEncoding.Clauses
         }, cancellationToken);
+        await unitOfWork.Commit(cancellationToken);
 
         return Result.Ok();
     }

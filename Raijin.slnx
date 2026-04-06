@@ -31,5 +31,4 @@
     <Project Path="src/SatSolver/MigrationWorker/Raijin.SatSolver.MigrationWorker.csproj" />
     <Project Path="src/SatSolver/Worker/Raijin.SatSolver.Worker.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
 </Solution>
