@@ -25,8 +25,7 @@ public sealed class CreateProblemEndpoint : IEndpoint
     {
         Result<CreateProblemResult> result = await mediator.Send(new CreateProblemCommand(
             request.Name,
-            request.Description ?? string.Empty,
-            request.ProblemType
+            request.Description ?? string.Empty
         ), cancellationToken);
 
         if (result.IsSuccess)
@@ -44,8 +43,6 @@ public sealed class CreateProblemRequest
     public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
-
-    public string ProblemType { get; set; } = null!;
 }
 
 public sealed record CreateProblemResponse(Guid ProblemId);

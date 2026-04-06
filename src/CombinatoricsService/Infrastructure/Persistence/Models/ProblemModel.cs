@@ -10,8 +10,6 @@ internal class ProblemModel
 
     public string Description { get; set; }
 
-    public string ProblemType { get; set; }
-
     public JsonDocument Instance { get; set; }
 
     public JsonDocument Solution { get; set; }

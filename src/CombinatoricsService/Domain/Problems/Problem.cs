@@ -2,12 +2,11 @@
 
 public sealed class Problem
 {
-    private Problem(Guid id, string name, string description, string problemType)
+    private Problem(Guid id, string name, string description)
     {
         Id = id;
         Name = name;
         Description = description;
-        ProblemType = problemType;
     }
 
     public Guid Id { get; }
@@ -15,8 +14,6 @@ public sealed class Problem
     public string Name { get; private set; }
 
     public string Description { get; private set; }
-
-    public string ProblemType { get; }
 
     public Instance? Instance { get; private set; }
 
@@ -26,31 +23,27 @@ public sealed class Problem
 
     public Solution? Solution { get; private set; }
 
-    public static Problem Create(Guid id, string name, string description, string problemType)
+    public static Problem Create(Guid id, string name, string description)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(description);
-        ArgumentException.ThrowIfNullOrWhiteSpace(problemType);
 
         if (name.Length > 100)
             throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
         if (description.Length > 5000)
             throw new ArgumentException("Description cannot exceed 1000 characters", nameof(description));
-        if (problemType.Length > 100)
-            throw new ArgumentException("Problem kind cannot exceed 100 characters", nameof(problemType));
 
-        return new Problem(id, name, description, problemType);
+        return new Problem(id, name, description);
     }
 
     public static Problem Rehydrate(Guid id,
         string name,
         string description,
-        string problemType,
         Instance? instance,
         SatEncoding? satEncoding,
         SatRun? satRun,
         Solution? solution
-    ) => new(id, name, description, problemType)
+    ) => new(id, name, description)
     {
         Instance = instance,
         SatEncoding = satEncoding,
@@ -81,11 +74,6 @@ public sealed class Problem
     public void SetInstance(Instance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
-        if (instance.ProblemType() != ProblemType)
-            throw new ArgumentException(
-                $"Instance problem kind '{instance.ProblemType}' does not match problem type '{ProblemType}'",
-                nameof(instance)
-            );
 
         Instance = instance;
         SatEncoding = null!;

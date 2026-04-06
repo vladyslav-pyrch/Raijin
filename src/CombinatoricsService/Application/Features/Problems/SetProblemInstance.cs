@@ -27,11 +27,11 @@ public sealed class SetProblemInstanceCommandHandler(
             return new NotFoundError(nameof(Problem), request.ProblemId);
 
         IInstanceFactory? instanceFactory = problemInstanceFactories
-            .FirstOrDefault(factory => factory.ProblemType == problem.ProblemType);
+            .FirstOrDefault(factory => factory.ProblemType == request.Instance.ProblemType);
 
         if (instanceFactory is null)
             throw new InvalidOperationException(
-                $"No instance factory found for problem type {problem.ProblemType}");
+                $"No instance factory found for problem type {request.Instance.ProblemType}");
 
         Result<Instance> instanceResult = instanceFactory.CreateInstance(request.Instance);
 
@@ -61,7 +61,10 @@ public sealed record SetProblemInstanceCommand(
 
 [JsonPolymorphic]
 [JsonDerivedType(typeof(BooleanSatisfiabilityInstanceDto), ProblemTypes.BooleanSatisfiabilityProblem)]
-public abstract record InstanceDto;
+public abstract record InstanceDto
+{
+    public abstract string ProblemType { get; }
+}
 
 public sealed class SetProblemInstanceValidator : AbstractValidator<SetProblemInstanceCommand>
 {

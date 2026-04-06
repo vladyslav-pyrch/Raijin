@@ -18,7 +18,6 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
             model.Id,
             model.Name,
             model.Description,
-            model.ProblemType,
             model.Instance is { } instance ? instance.Deserialize<Instance>() : null,
             model.SatEncoding is { } encoding
                 ? SatEncoding.Rehydrate(
@@ -48,7 +47,6 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
             Id = problem.Id,
             Name = problem.Name,
             Description = problem.Description,
-            ProblemType = problem.ProblemType,
             Instance = JsonSerializer.SerializeToDocument(problem.Instance),
             SatEncoding = problem.SatEncoding is { } encoding
                 ? new SatEncodingModel
@@ -87,7 +85,6 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
 
         model.Name = problem.Name;
         model.Description = problem.Description;
-        model.ProblemType = problem.ProblemType;
         model.Instance = JsonSerializer.SerializeToDocument(problem.Instance);
         model.SatEncoding = problem.SatEncoding is { } encoding
             ? new SatEncodingModel
