@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
+using Raijin.CombinatoricsService.Domain.Shared;
 
 namespace Raijin.CombinatoricsService.Domain.Problems;
 

@@ -1,4 +1,7 @@
-﻿namespace Raijin.CombinatoricsService.Domain.Problems;
+﻿using Raijin.CombinatoricsService.Domain.SatRuns;
+using Raijin.CombinatoricsService.Domain.Shared;
+
+namespace Raijin.CombinatoricsService.Domain.Problems;
 
 public sealed class Problem
 {
@@ -19,7 +22,7 @@ public sealed class Problem
 
     public SatEncoding? SatEncoding { get; private set; }
 
-    public SatRun? SatRun { get; private set; }
+    public Guid? SatRunId { get; private set; }
 
     public Solution? Solution { get; private set; }
 
@@ -41,13 +44,13 @@ public sealed class Problem
         string description,
         Instance? instance,
         SatEncoding? satEncoding,
-        SatRun? satRun,
+        Guid? satRunId,
         Solution? solution
     ) => new(id, name, description)
     {
         Instance = instance,
         SatEncoding = satEncoding,
-        SatRun = satRun,
+        SatRunId = satRunId,
         Solution = solution
     };
 
@@ -76,9 +79,9 @@ public sealed class Problem
         ArgumentNullException.ThrowIfNull(instance);
 
         Instance = instance;
-        SatEncoding = null!;
-        SatRun = null!;
-        Solution = null!;
+        SatEncoding = null;
+        SatRunId = null;
+        Solution = null;
     }
 
     public void ReduceToSat()
@@ -91,65 +94,35 @@ public sealed class Problem
         SatEncoding = instance.ReduceToSat();
     }
 
-    public void StartSatRun()
+    public void LinkSatRun(Guid satRunId)
     {
         if (SatEncoding is null)
-            throw new InvalidOperationException("Cannot start a SAT run without SAT encoding");
+            throw new InvalidOperationException("Cannot link a SAT run without SAT encoding");
 
-        if (SatRun is not null)
-            throw new InvalidOperationException("A SAT run already exists for this reduction");
+        if (SatRunId is not null)
+            throw new InvalidOperationException("A SAT run is already linked to this problem");
 
-        SatRun = SatRun.Create();
+        SatRunId = satRunId;
     }
 
-    public void MarkSatRunAsRunning()
-    {
-        SatRun satRun = GetSatRunOrThrow();
-
-        satRun.MarkAsRunning();
-    }
-
-    public void CompleteSatRun(Satisfiability satisfiability, IReadOnlyList<int> assignment)
+    public void InterpretSolution(Satisfiability satisfiability, IReadOnlyList<int> assignment)
     {
         ArgumentNullException.ThrowIfNull(assignment);
 
-        SatRun satRun = GetSatRunOrThrow();
-
-        satRun.Complete(satisfiability, assignment);
-    }
-
-    public void FailSatRun(Guid snapshotId)
-    {
-        SatRun satRun = GetSatRunOrThrow();
-
-        satRun.Fail();
-    }
-
-    public void TimeOutSatRun(Guid snapshotId)
-    {
-        SatRun satRun = GetSatRunOrThrow();
-
-        satRun.TimeOut();
-    }
-
-    public void InterpretSolution()
-    {
         Instance instance = GetInstanceOrThrow();
         SatEncoding satEncoding = GetSatEncodingOrThrow();
-        SatRun satRun = GetSatRunOrThrow();
 
-        if (satRun.Status != SatRunStatus.Completed)
-            throw new InvalidOperationException(
-                $"Cannot interpret solution from a SAT run in '{satRun.Status}' status");
+        if (SatRunId is null)
+            throw new InvalidOperationException("No SAT run is linked to this problem");
 
-        if (satRun.Satisfiability != Satisfiability.Satisfiable)
+        if (satisfiability != Satisfiability.Satisfiable)
             throw new InvalidOperationException(
                 "Cannot interpret solution from an unsatisfiable or unknown SAT result");
 
         if (Solution is not null)
             throw new InvalidOperationException("Solution already interpreted for this instance");
 
-        Solution = instance.InterpretSolution(satRun.Assignment, satEncoding.VariableMap);
+        Solution = instance.InterpretSolution(assignment, satEncoding.VariableMap);
     }
 
     private Instance GetInstanceOrThrow()
@@ -164,19 +137,5 @@ public sealed class Problem
         if (SatEncoding is null)
             throw new InvalidOperationException("SAT encoding is not set");
         return SatEncoding;
-    }
-
-    private SatRun GetSatRunOrThrow()
-    {
-        if (SatRun is null)
-            throw new InvalidOperationException("SAT run is not set");
-        return SatRun;
-    }
-
-    private Solution GetSolutionOrThrow()
-    {
-        if (Solution is null)
-            throw new InvalidOperationException("Problem solution is not set");
-        return Solution;
     }
 }

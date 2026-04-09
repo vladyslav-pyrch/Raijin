@@ -1,4 +1,5 @@
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
+using Raijin.CombinatoricsService.Domain.Shared;
 
 namespace Raijin.CombinatoricsService.Domain.Problems.Boolean;
 

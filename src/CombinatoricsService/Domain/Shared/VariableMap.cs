@@ -1,4 +1,4 @@
-namespace Raijin.CombinatoricsService.Domain.Problems;
+namespace Raijin.CombinatoricsService.Domain.Shared;
 
 public sealed record VariableMap
 {

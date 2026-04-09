@@ -1,14 +1,22 @@
-﻿namespace Raijin.CombinatoricsService.Domain.Problems;
+using Raijin.CombinatoricsService.Domain.Shared;
+
+namespace Raijin.CombinatoricsService.Domain.SatRuns;
 
 public sealed class SatRun
 {
-    private SatRun(DateTime createdAt)
+    private SatRun(Guid id, SatEncoding satEncoding, DateTime createdAt)
     {
+        Id = id;
+        SatEncoding = satEncoding;
         Status = SatRunStatus.Pending;
         Satisfiability = Satisfiability.Unknown;
         Assignment = [];
         CreatedAt = createdAt;
     }
+
+    public Guid Id { get; }
+
+    public SatEncoding SatEncoding { get; }
 
     public SatRunStatus Status { get; private set; }
 
@@ -20,15 +28,22 @@ public sealed class SatRun
 
     public DateTime? CompletedAt { get; private set; }
 
-    internal static SatRun Create() => new(DateTime.UtcNow);
+    public static SatRun Create(Guid id, SatEncoding satEncoding)
+    {
+        ArgumentNullException.ThrowIfNull(satEncoding);
+
+        return new(id, satEncoding, DateTime.UtcNow);
+    }
 
     public static SatRun Rehydrate(
+        Guid id,
+        SatEncoding satEncoding,
         SatRunStatus status,
         Satisfiability satisfiability,
         IReadOnlyList<int> assignment,
         DateTime createdAt,
         DateTime? completedAt
-    ) => new(createdAt)
+    ) => new(id, satEncoding, createdAt)
     {
         Status = status,
         Satisfiability = satisfiability,
@@ -36,7 +51,7 @@ public sealed class SatRun
         CompletedAt = completedAt
     };
 
-    internal void MarkAsRunning()
+    public void MarkAsRunning()
     {
         if (Status != SatRunStatus.Pending)
             throw new InvalidOperationException($"Cannot mark a SAT run as running in '{Status}' status.");
@@ -44,7 +59,7 @@ public sealed class SatRun
         Status = SatRunStatus.Running;
     }
 
-    internal void Complete(Satisfiability satisfiability, IReadOnlyList<int> assignment)
+    public void Complete(Satisfiability satisfiability, IReadOnlyList<int> assignment)
     {
         ArgumentNullException.ThrowIfNull(assignment);
         EnsureActiveStatus("complete");
@@ -55,7 +70,7 @@ public sealed class SatRun
         CompletedAt = DateTime.UtcNow;
     }
 
-    internal void Fail()
+    public void Fail()
     {
         EnsureActiveStatus("fail");
 
@@ -63,7 +78,7 @@ public sealed class SatRun
         CompletedAt = DateTime.UtcNow;
     }
 
-    internal void TimeOut()
+    public void TimeOut()
     {
         EnsureActiveStatus("time out");
 

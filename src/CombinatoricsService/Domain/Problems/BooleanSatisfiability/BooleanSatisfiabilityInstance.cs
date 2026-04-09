@@ -1,3 +1,5 @@
+using Raijin.CombinatoricsService.Domain.Shared;
+
 namespace Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses) : Instance
