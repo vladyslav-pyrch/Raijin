@@ -4,43 +4,12 @@ using Scalar.Aspire;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-
-IResourceBuilder<RabbitMQServerResource> rabbitMq = builder
-    .AddRabbitMQ("rabbit-mq")
-    .WithLifetime(ContainerLifetime.Persistent)
-    .WithManagementPlugin()
-    .PublishAsContainer();
-
 IResourceBuilder<PostgresServerResource> applicationDbServer = builder
     .AddPostgres("raijin-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     //.WithDataVolume("raijin-db-data")
     .WithPgWeb()
     .PublishAsContainer();
-
-IResourceBuilder<PostgresDatabaseResource> satSolverDb = applicationDbServer
-    .AddDatabase("sat-solver-db");
-
-IResourceBuilder<ProjectResource> satSolverMigrationWorker = builder
-    .AddProject<Raijin_SatSolver_MigrationWorker>("sat-solver-migration-worker")
-    .WithReference(satSolverDb, "sat-solver-db")
-    .WaitFor(satSolverDb);
-
-IResourceBuilder<ProjectResource> satSolverEventConsumerWorker = builder
-    .AddProject<Raijin_SatSolver_EventConsumerWorker>("sat-solver-event-consumer")
-    .WithReference(satSolverDb, "sat-solver-db")
-    .WaitFor(satSolverDb)
-    .WaitForCompletion(satSolverMigrationWorker)
-    .WithReference(rabbitMq)
-    .WaitFor(rabbitMq);
-
-IResourceBuilder<ProjectResource> satSolverWorker = builder.AddProject<Raijin_SatSolver_Worker>("sat-solver-worker")
-    .WithEnvironment("CRYPTOMINISAT_FILE_NAME", "cryptominisat5.exe")
-    .WithReference(satSolverDb, "sat-solver-db")
-    .WaitFor(satSolverDb)
-    .WaitForCompletion(satSolverMigrationWorker)
-    .WithReference(rabbitMq)
-    .WaitFor(rabbitMq);
 
 IResourceBuilder<PostgresDatabaseResource> identityServiceDb = applicationDbServer
     .AddDatabase("identity-service-db");
@@ -56,8 +25,6 @@ IResourceBuilder<ProjectResource> identityServiceApi = builder
     .WithReference(identityServiceDb)
     .WaitFor(identityServiceDb)
     .WaitForCompletion(identityServiceMigrationWorker)
-    .WithReference(rabbitMq)
-    .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
 IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = applicationDbServer
@@ -68,14 +35,20 @@ IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb);
 
+IResourceBuilder<ProjectResource> satSolverWorker = builder
+    .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-service-sat-solver")
+    .WithEnvironment("CRYPTOMINISAT_FILE_NAME", "cryptominisat5.exe")
+    .WithReference(combinatoricsServiceDb)
+    .WaitFor(combinatoricsServiceDb)
+    .WaitForCompletion(combinatoricsServiceMigrationWorker)
+    .PublishAsDockerFile();
+
 IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
     .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-service-api")
     .WithHttpHealthCheck("/health")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
     .WaitForCompletion(combinatoricsServiceMigrationWorker)
-    .WithReference(rabbitMq)
-    .WaitFor(rabbitMq)
     .PublishAsDockerFile();
 
 IResourceBuilder<ProjectResource> apiGateway = builder
