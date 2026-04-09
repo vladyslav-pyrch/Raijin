@@ -8,8 +8,7 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
 public sealed class CreateProblemHandler(
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork,
-    IMessageBus messageBus
+    IUnitOfWork unitOfWork
 ) : IRequestHandler<CreateProblemCommand, CreateProblemResult>
 {
     public async Task<Result<CreateProblemResult>> Handle(CreateProblemCommand request,

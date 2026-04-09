@@ -13,10 +13,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
 public sealed class SetProblemInstanceCommandHandler(
     IEnumerable<IInstanceFactory> problemInstanceFactories,
-    IServiceProvider serviceProvider,
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork,
-    IMessageBus messageBus
+    IUnitOfWork unitOfWork
 ) : IRequestHandler<SetProblemInstanceCommand>
 {
     public async Task<Result> Handle(SetProblemInstanceCommand request, CancellationToken cancellationToken)
