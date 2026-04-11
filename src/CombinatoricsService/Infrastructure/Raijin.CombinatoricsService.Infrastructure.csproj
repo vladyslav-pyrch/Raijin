@@ -11,9 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="8.5.8" />
-    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.8" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
       <PrivateAssets>all</PrivateAssets>
@@ -26,7 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Persistence\Migrations\" />
+    <Folder Include="Solvers\Cryptominisat\" />
+    <Folder Include="Solvers\Verisat\" />
   </ItemGroup>
 
 </Project>

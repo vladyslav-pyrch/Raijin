@@ -1,15 +1,16 @@
 ﻿using System.Reflection;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using Quartz;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
+using Raijin.CombinatoricsService.Application.Solvers;
 using Raijin.CombinatoricsService.Infrastructure.Messaging;
-using Raijin.CombinatoricsService.Infrastructure.Messaging.Filters;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Persistence.Repositories;
+using Raijin.CombinatoricsService.Infrastructure.Solvers.Cryptominisat;
 
 namespace Raijin.CombinatoricsService.Infrastructure;
 
@@ -17,10 +18,17 @@ public static class InfrastructureModule
 {
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        Action<IServiceCollectionQuartzConfigurator>? quartzConfiguration = null
+    )
     {
+        ArgumentNullException.ThrowIfNull(quartzConfiguration);
+
         services.AddMessaging();
         services.AddPersistence();
+        services.AddSolvers();
+        services.AddQuartz(quartzConfiguration);
 
         return services;
     }
@@ -28,59 +36,6 @@ public static class InfrastructureModule
     private static IServiceCollection AddMessaging(this IServiceCollection services)
     {
         services.AddScoped<IMediator, ServiceProviderMediator>();
-        services.AddScoped<IMessageBus, MassTransitMessageBus>();
-        services.AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>();
-        services.AddScoped(typeof(CorrelationContextConsumeFilter<>));
-        services.AddScoped(typeof(CorrelationContextPublishFilter<>));
-        services.AddScoped(typeof(CorrelationContextSendFilter<>));
-        services.AddScoped(typeof(LoggingConsumeFilter<>));
-        services.AddScoped(typeof(LoggingPublishFilter<>));
-        services.AddScoped(typeof(LoggingSendFilter<>));
-        services.AddScoped(typeof(CausationConsumeFilter<>));
-        services.AddScoped(typeof(CausationPublishFilter<>));
-        services.AddScoped(typeof(CausationSendFilter<>));
-        services.AddMassTransit(x =>
-        {
-            x.AddEntityFrameworkOutbox<CombinatoricsServiceDbContext>(configurator =>
-            {
-                configurator.UsePostgres();
-
-                configurator.UseBusOutbox(options =>
-                {
-                    options.MessageDeliveryLimit = 100;
-                    options.MessageDeliveryTimeout = TimeSpan.FromSeconds(45);
-                });
-            });
-            x.AddConfigureEndpointsCallback((context, name, cfg) =>
-            {
-                cfg.UseEntityFrameworkOutbox<CombinatoricsServiceDbContext>(context, options =>
-                {
-                    options.MessageDeliveryLimit = 100;
-                    options.MessageDeliveryTimeout = TimeSpan.FromSeconds(45);
-                });
-            });
-
-            x.SetKebabCaseEndpointNameFormatter();
-            x.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host(new Uri(GetRabbitMqConnectionString(context)));
-
-                cfg.UseConsumeFilter(typeof(CorrelationContextConsumeFilter<>), context);
-                cfg.UseConsumeFilter(typeof(CausationConsumeFilter<>), context);
-                cfg.UseConsumeFilter(typeof(LoggingConsumeFilter<>), context);
-
-                cfg.UseSendFilter(typeof(CorrelationContextSendFilter<>), context);
-                cfg.UseSendFilter(typeof(CausationSendFilter<>), context);
-                cfg.UseSendFilter(typeof(LoggingSendFilter<>), context);
-
-                cfg.UsePublishFilter(typeof(CorrelationContextPublishFilter<>), context);
-                cfg.UsePublishFilter(typeof(CausationPublishFilter<>), context);
-                cfg.UsePublishFilter(typeof(LoggingPublishFilter<>), context);
-
-                cfg.ConfigureEndpoints(context);
-                cfg.UseInstrumentation();
-            });
-        });
 
         return services;
     }
@@ -96,13 +51,29 @@ public static class InfrastructureModule
         });
         services.AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>();
         services.AddScoped<IProblemRepository, ProblemRepository>();
+        services.AddScoped<ISatRunRepository, SatRunRepository>();
 
         return services;
     }
 
-    private static string GetRabbitMqConnectionString(IServiceProvider provider) =>
-        provider.GetRequiredService<IConfiguration>().GetConnectionString("rabbit-mq")
-        ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
+    private static IServiceCollection AddSolvers(this IServiceCollection services)
+    {
+        services.AddOptions<CryptominisatSolveOptions>()
+            .Configure((CryptominisatSolveOptions options, IConfiguration configuration) =>
+            {
+                IConfigurationSection section = configuration.GetSection(CryptominisatSolveOptions.SectionName);
+                if (section[nameof(CryptominisatSolveOptions.FileName)] is { } fileName)
+                    options.FileName = fileName;
+                if (int.TryParse(section[nameof(CryptominisatSolveOptions.TimeoutSeconds)], out int timeout))
+                    options.TimeoutSeconds = timeout;
+                if (section[nameof(CryptominisatSolveOptions.CnfDirectory)] is { } dir)
+                    options.CnfDirectory = dir;
+            });
+        services.AddTransient<ICryptominisatCli, CryptominisatCli>();
+        services.AddTransient<ISatSolver, CryptominisatSolver>();
+
+        return services;
+    }
 
     private static string GetDatabaseConnectionString(IServiceProvider provider) =>
         provider.GetRequiredService<IConfiguration>().GetConnectionString("combinatorics-service-db")
