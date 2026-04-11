@@ -12,7 +12,7 @@ public sealed class ReduceToSatEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapPost("/problems/{id:Guid}/reduce-to-sat", Execute)
+        endpoint.MapPost("/problems/{id:Guid}/solution", Execute)
             .WithName("reduce to sat")
             .WithTags("problems");
     }
