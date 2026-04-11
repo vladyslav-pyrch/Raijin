@@ -20,8 +20,6 @@ public sealed class Problem
 
     public Instance? Instance { get; private set; }
 
-    public SatEncoding? SatEncoding { get; private set; }
-
     public Guid? SatRunId { get; private set; }
 
     public Solution? Solution { get; private set; }
@@ -43,13 +41,11 @@ public sealed class Problem
         string name,
         string description,
         Instance? instance,
-        SatEncoding? satEncoding,
         Guid? satRunId,
         Solution? solution
     ) => new(id, name, description)
     {
         Instance = instance,
-        SatEncoding = satEncoding,
         SatRunId = satRunId,
         Solution = solution
     };
@@ -79,26 +75,19 @@ public sealed class Problem
         ArgumentNullException.ThrowIfNull(instance);
 
         Instance = instance;
-        SatEncoding = null;
         SatRunId = null;
         Solution = null;
     }
 
-    public void ReduceToSat()
+    public SatEncoding ReduceToSat()
     {
-        if (SatEncoding is not null)
-            throw new InvalidOperationException("SAT encoding already exists for this instance");
-
         Instance instance = GetInstanceOrThrow();
 
-        SatEncoding = instance.ReduceToSat();
+        return instance.ReduceToSat().SatEncoding;
     }
 
     public void LinkSatRun(Guid satRunId)
     {
-        if (SatEncoding is null)
-            throw new InvalidOperationException("Cannot link a SAT run without SAT encoding");
-
         if (SatRunId is not null)
             throw new InvalidOperationException("A SAT run is already linked to this problem");
 
@@ -110,7 +99,6 @@ public sealed class Problem
         ArgumentNullException.ThrowIfNull(assignment);
 
         Instance instance = GetInstanceOrThrow();
-        SatEncoding satEncoding = GetSatEncodingOrThrow();
 
         if (SatRunId is null)
             throw new InvalidOperationException("No SAT run is linked to this problem");
@@ -122,7 +110,7 @@ public sealed class Problem
         if (Solution is not null)
             throw new InvalidOperationException("Solution already interpreted for this instance");
 
-        Solution = instance.InterpretSolution(assignment, satEncoding.VariableMap);
+        Solution = instance.InterpretSolution(assignment);
     }
 
     private Instance GetInstanceOrThrow()
@@ -130,12 +118,5 @@ public sealed class Problem
         if (Instance is null)
             throw new InvalidOperationException("Problem instance is not set");
         return Instance;
-    }
-
-    private SatEncoding GetSatEncodingOrThrow()
-    {
-        if (SatEncoding is null)
-            throw new InvalidOperationException("SAT encoding is not set");
-        return SatEncoding;
     }
 }

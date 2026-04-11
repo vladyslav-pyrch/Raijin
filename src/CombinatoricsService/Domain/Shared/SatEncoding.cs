@@ -4,10 +4,9 @@ namespace Raijin.CombinatoricsService.Domain.Shared;
 
 public sealed record SatEncoding
 {
-    private SatEncoding(IEnumerable<IEnumerable<int>> clauses, VariableMap variableMap)
+    private SatEncoding(IEnumerable<IEnumerable<int>> clauses)
     {
         Clauses = clauses;
-        VariableMap = variableMap;
     }
 
     public IEnumerable<IEnumerable<int>> Clauses { get; }
@@ -16,18 +15,15 @@ public sealed record SatEncoding
 
     public int NumberOfClauses => Clauses.Count();
 
-    public VariableMap VariableMap { get; }
-
-    public static SatEncoding Create(IEnumerable<IEnumerable<int>> clauses, VariableMap variableMap)
+    public static SatEncoding Create(IEnumerable<IEnumerable<int>> clauses)
     {
         ArgumentNullException.ThrowIfNull(clauses);
-        ArgumentNullException.ThrowIfNull(variableMap);
 
-        return new SatEncoding(clauses, variableMap);
+        return new SatEncoding(clauses);
     }
 
-    public static SatEncoding Rehydrate(IEnumerable<IEnumerable<int>> clauses, VariableMap variableMap) =>
-        new(clauses, variableMap);
+    public static SatEncoding Rehydrate(IEnumerable<IEnumerable<int>> clauses) =>
+        new(clauses);
 
     public string ToDimacs()
     {

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
 using Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
@@ -9,103 +10,58 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
 {
     public async Task<Problem?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        ProblemModel? model = await dbContext.Problems.FindAsync([id], cancellationToken);
+        var model = await dbContext.Problems
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        if (model is null)
-            return null;
-
-        return Problem.Rehydrate(
-            model.Id,
-            model.Name,
-            model.Description,
-            model.Instance is { } instance ? instance.Deserialize<Instance>() : null,
-            model.SatEncoding is { } encoding
-                ? SatEncoding.Rehydrate(
-                    encoding.Clauses.Select(clauseModel => clauseModel.Literals),
-                    encoding.VariableMap.Deserialize<VariableMap>()!
-                )
-                : null,
-            model.SatRun is { } run
-                ? SatRun.Rehydrate(
-                    Enum.Parse<SatRunStatus>(run.Status),
-                    Enum.Parse<Satisfiability>(run.Satisfiability),
-                    run.Assignment,
-                    run.CreatedAt,
-                    run.CompletedAt
-                )
-                : null,
-            model.Solution is { } solution ? solution.Deserialize<Solution>() : null
-        );
-
-        return null;
+        return model is null ? null : ToDomain(model);
     }
 
     public Task Add(Problem problem, CancellationToken cancellationToken)
     {
-        var model = new ProblemModel
-        {
-            Id = problem.Id,
-            Name = problem.Name,
-            Description = problem.Description,
-            Instance = JsonSerializer.SerializeToDocument(problem.Instance),
-            SatEncoding = problem.SatEncoding is { } encoding
-                ? new SatEncodingModel
-                {
-                    Clauses = encoding.Clauses.Select(clause => new ClauseModel
-                    {
-                        Literals = clause as int[] ?? clause.ToArray()
-                    }).ToList(),
-                    VariableMap = JsonSerializer.SerializeToDocument(encoding.VariableMap)
-                }
-                : null,
-            SatRun = problem.SatRun is { } run
-                ? new SatRunModel
-                {
-                    Satisfiability = run.Satisfiability.ToString(),
-                    Status = run.Status.ToString(),
-                    CreatedAt = run.CreatedAt,
-                    CompletedAt = run.CompletedAt,
-                    Assignment = problem.SatRun.Assignment.ToArray()
-                }
-                : null,
-            Solution = JsonSerializer.SerializeToDocument(problem.Solution)
-        };
-
-        dbContext.Problems.Add(model);
-
+        dbContext.Problems.Add(ToModel(problem));
         return Task.CompletedTask;
     }
 
     public async Task Update(Problem problem, CancellationToken cancellationToken)
     {
-        ProblemModel? model = await dbContext.Problems.FindAsync([problem.Id], cancellationToken);
+        var existingModel = await dbContext.Problems.FindAsync([problem.Id], cancellationToken);
 
-        if (model is null)
-            throw new InvalidOperationException("Cannot update an entity that does not exists");
+        if (existingModel is null)
+            throw new InvalidOperationException($"Problem {problem.Id} not found.");
 
-        model.Name = problem.Name;
-        model.Description = problem.Description;
-        model.Instance = JsonSerializer.SerializeToDocument(problem.Instance);
-        model.SatEncoding = problem.SatEncoding is { } encoding
-            ? new SatEncodingModel
-            {
-                Clauses = encoding.Clauses.Select(clause => new ClauseModel
-                {
-                    Literals = clause as int[] ?? clause.ToArray()
-                }).ToList(),
-                VariableMap = JsonSerializer.SerializeToDocument(encoding.VariableMap)
-            }
-            : null;
-        model.SatRun = problem.SatRun is { } run
-            ? new SatRunModel
-            {
-                Satisfiability = run.Satisfiability.ToString(),
-                Status = run.Status.ToString(),
-                CreatedAt = run.CreatedAt,
-                CompletedAt = run.CompletedAt,
-                Assignment = problem.SatRun.Assignment.ToArray()
-            }
-            : null;
-        model.Solution = JsonSerializer.SerializeToDocument(problem.Solution);
+        if (existingModel.SatRunId is not null && existingModel.SatRunId != problem.SatRunId)
+        {
+            var staleRun = await dbContext.SatRuns
+                .FindAsync([existingModel.SatRunId.Value], cancellationToken);
+
+            if (staleRun is not null)
+                dbContext.SatRuns.Remove(staleRun);
+        }
+
+        existingModel.Name = problem.Name;
+        existingModel.Description = problem.Description;
+        existingModel.SatRunId = problem.SatRunId;
+        existingModel.Instance = JsonSerializer.SerializeToDocument(problem.Instance);
+        existingModel.Solution = JsonSerializer.SerializeToDocument(problem.Solution);
     }
+
+    private static ProblemModel ToModel(Problem problem) => new()
+    {
+        Id = problem.Id,
+        Name = problem.Name,
+        Description = problem.Description,
+        SatRunId = problem.SatRunId,
+        Instance = JsonSerializer.SerializeToDocument(problem.Instance),
+        Solution = JsonSerializer.SerializeToDocument(problem.Solution)
+    };
+
+    private static Problem ToDomain(ProblemModel model) => Problem.Rehydrate(
+        model.Id,
+        model.Name,
+        model.Description,
+        model.Instance.Deserialize<Instance>(),
+        model.SatRunId,
+        model.Solution.Deserialize<Solution>()
+    );
 }

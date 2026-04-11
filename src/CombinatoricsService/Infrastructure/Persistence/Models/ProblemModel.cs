@@ -14,7 +14,5 @@ internal class ProblemModel
 
     public JsonDocument Solution { get; set; }
 
-    public SatRunModel? SatRun { get; set; }
-
-    public SatEncodingModel? SatEncoding { get; set; }
+    public Guid? SatRunId { get; set; }
 }

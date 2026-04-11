@@ -32,7 +32,7 @@ public sealed class SatRun
     {
         ArgumentNullException.ThrowIfNull(satEncoding);
 
-        return new(id, satEncoding, DateTime.UtcNow);
+        return new SatRun(id, satEncoding, DateTime.UtcNow);
     }
 
     public static SatRun Rehydrate(

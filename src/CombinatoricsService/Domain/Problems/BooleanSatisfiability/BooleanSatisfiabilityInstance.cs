@@ -10,27 +10,29 @@ public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses
 
     public override string ProblemType() => ProblemTypes.BooleanSatisfiabilityProblem;
 
-    internal override SatEncoding ReduceToSat()
+    internal override (SatEncoding SatEncoding, VariableMap VariableMap) ReduceToSat()
     {
         IEnumerable<IEnumerable<int>> clauses = Clauses
             .Select(clause =>
                 clause.Literals.Select(literal => literal.Variable.Id * (literal.Negated ? -1 : 1)).ToArray()
             ).ToArray();
 
-        var variableMap = Enumerable.Range(1, GetVariableCount())
-            .ToDictionary(x => x, x => x.ToString());
+        Dictionary<int, object> variableMap = Enumerable.Range(1, GetVariableCount())
+            .ToDictionary(x => x, object (x) => new SatVariable(x));
 
-        return SatEncoding.Create(clauses, new VariableMap(variableMap));
+        return (SatEncoding.Create(clauses), new VariableMap(variableMap));
     }
 
-    internal override Solution InterpretSolution(IReadOnlyList<int> assignment, VariableMap variableMap)
+    internal override Solution InterpretSolution(IReadOnlyList<int> assignment)
     {
-        var assignments = assignment.Select(i => new SatVariableAssignment(
-                new SatVariable(int.Parse(variableMap.Entries[Math.Abs(i)])),
+        VariableMap variableMap = ReduceToSat().VariableMap;
+
+        List<SatVariableAssignment> satVariableAssignments = assignment.Select(i => new SatVariableAssignment(
+                (SatVariable)variableMap.Entries[Math.Abs(i)],
                 i > 0
             )
         ).ToList();
 
-        return new BooleanSatisfiabilitySolution(assignments);
+        return new BooleanSatisfiabilitySolution(satVariableAssignments);
     }
 }
