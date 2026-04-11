@@ -11,4 +11,6 @@ public interface ISatRunRepository
   public Task Add(SatRun satRun, Guid problemId, CancellationToken cancellationToken);
 
   public Task Update(SatRun satRun, CancellationToken cancellationToken);
+
+  public Task<SatRun?> GetOldestPendingWithLock(CancellationToken cancellationToken);
 }

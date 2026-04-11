@@ -46,6 +46,26 @@ public class SatRunRepository(CombinatoricsServiceDbContext dbContext) : ISatRun
         existingModel.CompletedAt = satRun.CompletedAt;
     }
 
+    public async Task<SatRun?> GetOldestPendingWithLock(CancellationToken cancellationToken)
+    {
+        var pending = nameof(SatRunStatus.Pending);
+
+        var model = await dbContext.SatRuns
+            .FromSql(
+                $"""
+                SELECT * FROM "SatRuns"
+                WHERE "Status" = {pending}
+                ORDER BY "CreatedAt" ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED
+                """)
+            .Include(s => s.SatEncoding)
+            .ThenInclude(e => e.Clauses)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return model is null ? null : ToDomain(model);
+    }
+
     private static SatRunModel ToModel(SatRun satRun, Guid problemId) => new()
     {
         Id = satRun.Id,

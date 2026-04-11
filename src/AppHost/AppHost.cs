@@ -37,7 +37,8 @@ IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
 
 IResourceBuilder<ProjectResource> satSolverWorker = builder
     .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-service-sat-solver")
-    .WithEnvironment("CRYPTOMINISAT_FILE_NAME", "cryptominisat5.exe")
+    .WithEnvironment("MAX_JOBS_COUNT", "3")
+    .WithEnvironment("MAX_REFIRE_COUNT", "3")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
     .WaitForCompletion(combinatoricsServiceMigrationWorker)
