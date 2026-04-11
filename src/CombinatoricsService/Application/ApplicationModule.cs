@@ -16,26 +16,20 @@ public static class ApplicationModule
     public static Assembly Assembly => typeof(ApplicationModule).Assembly;
 
     public static IServiceCollection AddApplication(this IServiceCollection services) => services
-        .AddCommandHandlers()
-        .AddPipelineBehaviors()
+        .AddMessaging()
         .AddApplicationServices()
-        .AddValidatorsFromAssembly(Assembly)
-        .AddInstanceFactories();
-
-    private static IServiceCollection AddInstanceFactories(this IServiceCollection services) => services
-        .AddScoped<IInstanceFactory, BooleanSatisfiabilityInstanceFactory>();
+        .AddValidatorsFromAssembly(Assembly);
 
     private static IServiceCollection AddApplicationServices(this IServiceCollection services) => services
         .AddSingleton<BoolExprParser>()
         .AddSingleton<IBoolExprParser>(sp => sp.GetRequiredService<BoolExprParser>())
         .AddSingleton<IParser<BoolExpr>>(sp => sp.GetRequiredService<BoolExprParser>())
-        .AddSingleton<IReduction<BoolExpr, TseitinResult>, TseitinReduction>();
+        .AddSingleton<IReduction<BoolExpr, TseitinResult>, TseitinReduction>()
+        .AddScoped<IInstanceFactory, BooleanSatisfiabilityInstanceFactory>();
 
-    private static IServiceCollection AddCommandHandlers(this IServiceCollection services) => services
+    private static IServiceCollection AddMessaging(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
-        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
-
-    private static IServiceCollection AddPipelineBehaviors(this IServiceCollection services) => services
+        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>))
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
         .AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
         .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))

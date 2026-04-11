@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Contracts\Raijin.Application.Contracts.csproj" />
     <ProjectReference Include="..\Domain\Raijin.CombinatoricsService.Domain.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
+﻿namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
 
 internal class SatEncodingModel
 {
@@ -9,6 +7,4 @@ internal class SatEncodingModel
     public Guid ProblemId { get; set; }
 
     public ICollection<ClauseModel> Clauses { get; set; } = null!;
-
-    public JsonDocument VariableMap { get; set; }
 }

@@ -2,11 +2,12 @@
 
 public sealed class Problem
 {
-    private Problem(Guid id, string name, string description)
+    private Problem(Guid id, string name, string description, DateTime createdAt)
     {
         Id = id;
         Name = name;
         Description = description;
+        CreatedAt = createdAt;
     }
 
     public Guid Id { get; }
@@ -17,11 +18,21 @@ public sealed class Problem
 
     public Instance? Instance { get; private set; }
 
+    public Solution? Solution { get; private set; }
+
     public SatEncoding? SatEncoding { get; private set; }
 
-    public SatRun? SatRun { get; private set; }
+    public SolvingStatus SolvingStatus { get; private set; } = SolvingStatus.NoSatEncoding;
 
-    public Solution? Solution { get; private set; }
+    public Satisfiability Satisfiability { get; private set; } = Satisfiability.Unknown;
+
+    public IReadOnlyList<int> Assignment { get; private set; } = [];
+
+    public DateTime CreatedAt { get; }
+
+    public DateTime UpdatedAt { get; private set; }
+
+    public DateTime? CompletedAt { get; private set; }
 
     public static Problem Create(Guid id, string name, string description)
     {
@@ -31,23 +42,37 @@ public sealed class Problem
         if (name.Length > 100)
             throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
         if (description.Length > 5000)
-            throw new ArgumentException("Description cannot exceed 1000 characters", nameof(description));
+            throw new ArgumentException("Description cannot exceed 5000 characters", nameof(description));
 
-        return new Problem(id, name, description);
+        DateTime now = DateTime.UtcNow;
+
+        return new Problem(id, name, description, now)
+        {
+            UpdatedAt = now
+        };
     }
 
     public static Problem Rehydrate(Guid id,
         string name,
         string description,
+        DateTime createdAt,
+        DateTime updatedAt,
         Instance? instance,
         SatEncoding? satEncoding,
-        SatRun? satRun,
+        SolvingStatus solvingStatus,
+        Satisfiability satisfiability,
+        IReadOnlyList<int> assignment,
+        DateTime? completedAt,
         Solution? solution
-    ) => new(id, name, description)
+    ) => new(id, name, description, createdAt)
     {
+        UpdatedAt = updatedAt,
         Instance = instance,
         SatEncoding = satEncoding,
-        SatRun = satRun,
+        SolvingStatus = solvingStatus,
+        Satisfiability = satisfiability,
+        Assignment = assignment,
+        CompletedAt = completedAt,
         Solution = solution
     };
 
@@ -59,6 +84,7 @@ public sealed class Problem
             throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
 
         Name = name;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void UpdateDescription(string description)
@@ -66,117 +92,98 @@ public sealed class Problem
         ArgumentNullException.ThrowIfNull(description);
 
         if (description.Length > 5000)
-            throw new ArgumentException("Description cannot exceed 1000 characters", nameof(description));
+            throw new ArgumentException("Description cannot exceed 5000 characters", nameof(description));
 
         Description = description;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void SetInstance(Instance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
 
+        if (SolvingStatus is SolvingStatus.Running)
+            throw new InvalidOperationException("Cannot change instance while solving is in progress.");
+
         Instance = instance;
-        SatEncoding = null!;
-        SatRun = null!;
-        Solution = null!;
+        Solution = null;
+        SatEncoding = null;
+        SolvingStatus = SolvingStatus.Pending;
+        Satisfiability = Satisfiability.Unknown;
+        Assignment = [];
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void ReduceToSat()
     {
-        if (SatEncoding is not null)
-            throw new InvalidOperationException("SAT encoding already exists for this instance");
+        if (SolvingStatus is SolvingStatus.Running)
+            throw new InvalidOperationException("Cannot re-encode to SAT while solving is in progress.");
 
         Instance instance = GetInstanceOrThrow();
 
-        SatEncoding = instance.ReduceToSat();
+        SatEncoding = instance.ReduceToSat().SatEncoding;
+        SolvingStatus = SolvingStatus.Pending;
+        UpdatedAt = DateTime.UtcNow;
     }
 
-    public void StartSatRun()
+    public void MarkAsRunning()
     {
+        if (Instance is null)
+            throw new InvalidOperationException("Cannot mark a problem as running without an instance.");
+        
         if (SatEncoding is null)
-            throw new InvalidOperationException("Cannot start a SAT run without SAT encoding");
+            throw new InvalidOperationException("Cannot mark a problem as running without a SAT encoding.");
 
-        if (SatRun is not null)
-            throw new InvalidOperationException("A SAT run already exists for this reduction");
+        if (SolvingStatus != SolvingStatus.Pending)
+            throw new InvalidOperationException($"Cannot mark a problem as running in '{SolvingStatus}' status.");
 
-        SatRun = SatRun.Create();
+        SolvingStatus = SolvingStatus.Running;
+        UpdatedAt = DateTime.UtcNow;
     }
 
-    public void MarkSatRunAsRunning()
-    {
-        SatRun satRun = GetSatRunOrThrow();
-
-        satRun.MarkAsRunning();
-    }
-
-    public void CompleteSatRun(Satisfiability satisfiability, IReadOnlyList<int> assignment)
+    public void Complete(Satisfiability satisfiability, IReadOnlyList<int> assignment)
     {
         ArgumentNullException.ThrowIfNull(assignment);
+        EnsureActiveStatus("complete");
 
-        SatRun satRun = GetSatRunOrThrow();
+        if (satisfiability == Satisfiability.Satisfiable)
+            Solution = Instance!.InterpretSolution(assignment);
 
-        satRun.Complete(satisfiability, assignment);
+        Satisfiability = satisfiability;
+        Assignment = assignment;
+        SolvingStatus = SolvingStatus.Completed;
+        CompletedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
-    public void FailSatRun(Guid snapshotId)
+    public void Fail()
     {
-        SatRun satRun = GetSatRunOrThrow();
+        EnsureActiveStatus("fail");
 
-        satRun.Fail();
+        SolvingStatus = SolvingStatus.Failed;
+        CompletedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
-    public void TimeOutSatRun(Guid snapshotId)
+    public void TimeOut()
     {
-        SatRun satRun = GetSatRunOrThrow();
+        EnsureActiveStatus("time out");
 
-        satRun.TimeOut();
+        SolvingStatus = SolvingStatus.TimedOut;
+        CompletedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
-    public void InterpretSolution()
+    private void EnsureActiveStatus(string action)
     {
-        Instance instance = GetInstanceOrThrow();
-        SatEncoding satEncoding = GetSatEncodingOrThrow();
-        SatRun satRun = GetSatRunOrThrow();
-
-        if (satRun.Status != SatRunStatus.Completed)
-            throw new InvalidOperationException(
-                $"Cannot interpret solution from a SAT run in '{satRun.Status}' status");
-
-        if (satRun.Satisfiability != Satisfiability.Satisfiable)
-            throw new InvalidOperationException(
-                "Cannot interpret solution from an unsatisfiable or unknown SAT result");
-
-        if (Solution is not null)
-            throw new InvalidOperationException("Solution already interpreted for this instance");
-
-        Solution = instance.InterpretSolution(satRun.Assignment, satEncoding.VariableMap);
+        if (SolvingStatus is not SolvingStatus.Pending and not SolvingStatus.Running)
+            throw new InvalidOperationException($"Cannot {action} a problem in '{SolvingStatus}' status.");
     }
 
     private Instance GetInstanceOrThrow()
     {
         if (Instance is null)
-            throw new InvalidOperationException("Problem instance is not set");
+            throw new InvalidOperationException("Problem instance is not set.");
         return Instance;
-    }
-
-    private SatEncoding GetSatEncodingOrThrow()
-    {
-        if (SatEncoding is null)
-            throw new InvalidOperationException("SAT encoding is not set");
-        return SatEncoding;
-    }
-
-    private SatRun GetSatRunOrThrow()
-    {
-        if (SatRun is null)
-            throw new InvalidOperationException("SAT run is not set");
-        return SatRun;
-    }
-
-    private Solution GetSolutionOrThrow()
-    {
-        if (Solution is null)
-            throw new InvalidOperationException("Problem solution is not set");
-        return Solution;
     }
 }

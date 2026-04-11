@@ -6,5 +6,7 @@ namespace Raijin.CombinatoricsService.Application.Persistence;
 /// </summary>
 public interface IUnitOfWork
 {
+    public Task BeginTransaction(CancellationToken cancellationToken);
+
     public Task Commit(CancellationToken cancellationToken);
 }

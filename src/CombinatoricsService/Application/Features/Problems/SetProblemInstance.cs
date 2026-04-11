@@ -13,10 +13,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
 public sealed class SetProblemInstanceCommandHandler(
     IEnumerable<IInstanceFactory> problemInstanceFactories,
-    IServiceProvider serviceProvider,
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork,
-    IMessageBus messageBus
+    IUnitOfWork unitOfWork
 ) : IRequestHandler<SetProblemInstanceCommand>
 {
     public async Task<Result> Handle(SetProblemInstanceCommand request, CancellationToken cancellationToken)
@@ -25,6 +23,9 @@ public sealed class SetProblemInstanceCommandHandler(
 
         if (problem is null)
             return new NotFoundError(nameof(Problem), request.ProblemId);
+
+        if (problem.SolvingStatus == SolvingStatus.Running)
+            return new ConflictError("Cannot change instance while solving is in progress.");
 
         IInstanceFactory? instanceFactory = problemInstanceFactories
             .FirstOrDefault(factory => factory.ProblemType == request.Instance.ProblemType);

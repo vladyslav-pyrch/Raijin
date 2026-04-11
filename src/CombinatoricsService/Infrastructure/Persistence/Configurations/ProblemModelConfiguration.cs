@@ -24,6 +24,22 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
         builder.Property(problem => problem.Solution)
             .HasColumnType("jsonb");
 
+        builder.Property(problem => problem.SolvingStatus)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.Property(problem => problem.Satisfiability)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.PrimitiveCollection(problem => problem.Assignment);
+
+        builder.Property(problem => problem.CreatedAt)
+            .IsRequired();
+
+        builder.Property(problem => problem.UpdatedAt)
+            .IsRequired();
+
         builder.OwnsOne(problem => problem.SatEncoding, satEncoding =>
         {
             satEncoding.ToTable("SatEncodings");
@@ -35,10 +51,6 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
 
             satEncoding.Property(encoding => encoding.Id)
                 .ValueGeneratedOnAdd();
-
-            satEncoding.Property(encoding => encoding.VariableMap)
-                .HasColumnType("jsonb")
-                .IsRequired();
 
             satEncoding.OwnsMany(encoding => encoding.Clauses, clause =>
             {
@@ -55,32 +67,6 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
                 clause.PrimitiveCollection(c => c.Literals)
                     .IsRequired();
             });
-        });
-
-        builder.OwnsOne(problem => problem.SatRun, satRun =>
-        {
-            satRun.ToTable("SatRuns");
-
-            satRun.HasKey(run => run.Id);
-
-            satRun.WithOwner()
-                .HasForeignKey(run => run.ProblemId);
-
-            satRun.Property(run => run.Id)
-                .ValueGeneratedOnAdd();
-
-            satRun.Property(run => run.Satisfiability)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            satRun.Property(run => run.Status)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            satRun.PrimitiveCollection(run => run.Assignment);
-
-            satRun.Property(run => run.CreatedAt)
-                .IsRequired();
         });
     }
 }

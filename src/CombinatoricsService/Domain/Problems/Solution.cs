@@ -4,5 +4,5 @@ using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 namespace Raijin.CombinatoricsService.Domain.Problems;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(BooleanSatisfiabilitySolution), "sat")]
+[JsonDerivedType(typeof(BooleanSatisfiabilitySolution), ProblemTypes.BooleanSatisfiabilityProblem)]
 public abstract record Solution;
