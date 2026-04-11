@@ -26,6 +26,14 @@ public static class ResultExtensions
             Extensions = conflictError.Metadata
         });
 
+    public static UnprocessableEntity<ProblemDetails> ToUnprocessableEntityResult(this DomainError domainError)
+        => TypedResults.UnprocessableEntity(new ProblemDetails
+        {
+            Title = "Unprocessable Entity",
+            Status = StatusCodes.Status422UnprocessableEntity,
+            Detail = domainError.Message
+        });
+
     public static ValidationProblem ToValidationProblemResult(this IReadOnlyList<ValidationError> validationErrors)
         => TypedResults.ValidationProblem(
             validationErrors.GroupBy(error => error.PropertyName).ToDictionary(

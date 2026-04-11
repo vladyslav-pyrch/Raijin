@@ -23,10 +23,50 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
 
         builder.Property(problem => problem.Solution)
             .HasColumnType("jsonb");
-        
-        builder.HasOne<SatRunModel>()
-            .WithOne()
-            .HasForeignKey<ProblemModel>(problem => problem.SatRunId)
-            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Property(problem => problem.SolvingStatus)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.Property(problem => problem.Satisfiability)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.PrimitiveCollection(problem => problem.Assignment);
+
+        builder.Property(problem => problem.CreatedAt)
+            .IsRequired();
+
+        builder.Property(problem => problem.UpdatedAt)
+            .IsRequired();
+
+        builder.OwnsOne(problem => problem.SatEncoding, satEncoding =>
+        {
+            satEncoding.ToTable("SatEncodings");
+
+            satEncoding.HasKey(encoding => encoding.Id);
+
+            satEncoding.WithOwner()
+                .HasForeignKey(encoding => encoding.ProblemId);
+
+            satEncoding.Property(encoding => encoding.Id)
+                .ValueGeneratedOnAdd();
+
+            satEncoding.OwnsMany(encoding => encoding.Clauses, clause =>
+            {
+                clause.ToTable("Clauses");
+
+                clause.HasKey(c => c.Id);
+
+                clause.WithOwner()
+                    .HasForeignKey(c => c.SatEncodingId);
+
+                clause.Property(c => c.Id)
+                    .ValueGeneratedOnAdd();
+
+                clause.PrimitiveCollection(c => c.Literals)
+                    .IsRequired();
+            });
+        });
     }
 }

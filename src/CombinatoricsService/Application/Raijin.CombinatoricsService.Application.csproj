@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\SatRuns\" />
     <Folder Include="Features\Problems\Boolean\" />
     <Folder Include="Features\Problems\ConstraintSatisfiability\" />
     <Folder Include="Features\Problems\EdgeColoring\" />

@@ -9,7 +9,6 @@ using Raijin.CombinatoricsService.Domain.Problems;
 namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
 public sealed class UpdateProblemHandler(
-    IEnumerable<IInstanceFactory> InstanceFactories,
     IProblemRepository problemRepository,
     IUnitOfWork unitOfWork
 ) : IRequestHandler<UpdateProblemCommand>

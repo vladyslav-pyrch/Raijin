@@ -29,41 +29,6 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(5000)
-                        .HasColumnType("character varying(5000)");
-
-                    b.Property<JsonDocument>("Instance")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid?>("SatRunId")
-                        .HasColumnType("uuid");
-
-                    b.Property<JsonDocument>("Solution")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SatRunId")
-                        .IsUnique();
-
-                    b.ToTable("Problems");
-                });
-
-            modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatRunModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
                     b.PrimitiveCollection<int[]>("Assignment")
                         .IsRequired()
                         .HasColumnType("integer[]");
@@ -74,43 +39,42 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("ProblemId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<JsonDocument>("Instance")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Satisfiability")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("Status")
+                    b.Property<JsonDocument>("Solution")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("SolvingStatus")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ProblemId")
-                        .IsUnique();
-
-                    b.ToTable("SatRuns", (string)null);
+                    b.ToTable("Problems");
                 });
 
             modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ProblemModel", b =>
                 {
-                    b.HasOne("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatRunModel", null)
-                        .WithOne()
-                        .HasForeignKey("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ProblemModel", "SatRunId")
-                        .OnDelete(DeleteBehavior.SetNull);
-                });
-
-            modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatRunModel", b =>
-                {
-                    b.HasOne("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ProblemModel", null)
-                        .WithOne()
-                        .HasForeignKey("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatRunModel", "ProblemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.OwnsOne("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatEncodingModel", "SatEncoding", b1 =>
                         {
                             b1.Property<Guid>("Id")
@@ -156,8 +120,7 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                             b1.Navigation("Clauses");
                         });
 
-                    b.Navigation("SatEncoding")
-                        .IsRequired();
+                    b.Navigation("SatEncoding");
                 });
 #pragma warning restore 612, 618
         }

@@ -6,7 +6,7 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 
 IResourceBuilder<PostgresServerResource> applicationDbServer = builder
     .AddPostgres("raijin-db-server")
-    .WithLifetime(ContainerLifetime.Persistent)
+    .WithLifetime(ContainerLifetime.Session)
     //.WithDataVolume("raijin-db-data")
     .WithPgWeb()
     .PublishAsContainer();
@@ -35,7 +35,7 @@ IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb);
 
-IResourceBuilder<ProjectResource> satSolverWorker = builder
+IResourceBuilder<ProjectResource> combinatoricsServiceSatSolver = builder
     .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-service-sat-solver")
     .WithEnvironment("MAX_JOBS_COUNT", "3")
     .WithEnvironment("MAX_REFIRE_COUNT", "3")

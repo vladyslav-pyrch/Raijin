@@ -7,8 +7,6 @@ public class CombinatoricsServiceDbContext(DbContextOptions<CombinatoricsService
 {
   internal DbSet<ProblemModel> Problems { get; set; } = null!;
 
-  internal DbSet<SatRunModel> SatRuns { get; set; } = null!;
-
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
     base.OnModelCreating(modelBuilder);

@@ -1,4 +1,4 @@
-namespace Raijin.CombinatoricsService.Domain.SatRuns;
+namespace Raijin.CombinatoricsService.Domain.Problems;
 
 public enum Satisfiability
 {

@@ -1,6 +1,6 @@
 ﻿using FluentResults;
 using Quartz;
-using Raijin.CombinatoricsService.Application.Features.SatRuns;
+using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.SatSolver.Jobs;
@@ -51,7 +51,7 @@ public sealed class SolvePendingProblemsJob(
 
             IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-            Result result = await mediator.Send(new SolveNextPendingSatRunCommand(), cancellationToken);
+            Result result = await mediator.Send(new SolveNextPendingProblemCommand(), cancellationToken);
 
             if (result.IsFailed)
                 logger.LogWarning("Solve pending SAT run returned failure: {Errors}", result.Errors);

@@ -13,8 +13,8 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence;
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CombinatoricsServiceDbContext))]
-    [Migration("20260329204002_ProblemTracking")]
-    partial class ProblemTracking
+    [Migration("20260411203646_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,13 +32,22 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.PrimitiveCollection<int[]>("Assignment")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(5000)
                         .HasColumnType("character varying(5000)");
 
                     b.Property<JsonDocument>("Instance")
-                        .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<string>("Name")
@@ -46,14 +55,21 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("ProblemKind")
+                    b.Property<string>("Satisfiability")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<JsonDocument>("Solution")
-                        .IsRequired()
                         .HasColumnType("jsonb");
+
+                    b.Property<string>("SolvingStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -68,16 +84,8 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid");
 
-                            b1.Property<string>("Dimacs")
-                                .IsRequired()
-                                .HasColumnType("text");
-
                             b1.Property<Guid>("ProblemId")
                                 .HasColumnType("uuid");
-
-                            b1.Property<JsonDocument>("VariableMap")
-                                .IsRequired()
-                                .HasColumnType("jsonb");
 
                             b1.HasKey("Id");
 
@@ -88,51 +96,34 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("ProblemId");
-                        });
 
-                    b.OwnsOne("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatRunModel", "SatRun", b1 =>
-                        {
-                            b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uuid");
+                            b1.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ClauseModel", "Clauses", b2 =>
+                                {
+                                    b2.Property<Guid>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("uuid");
 
-                            b1.PrimitiveCollection<int[]>("Assignment")
-                                .IsRequired()
-                                .HasColumnType("integer[]");
+                                    b2.PrimitiveCollection<int[]>("Literals")
+                                        .IsRequired()
+                                        .HasColumnType("integer[]");
 
-                            b1.Property<DateTime?>("CompletedAt")
-                                .HasColumnType("timestamp with time zone");
+                                    b2.Property<Guid>("SatEncodingId")
+                                        .HasColumnType("uuid");
 
-                            b1.Property<DateTime>("CreatedAt")
-                                .HasColumnType("timestamp with time zone");
+                                    b2.HasKey("Id");
 
-                            b1.Property<Guid>("ProblemId")
-                                .HasColumnType("uuid");
+                                    b2.HasIndex("SatEncodingId");
 
-                            b1.Property<string>("Satisfiability")
-                                .IsRequired()
-                                .HasMaxLength(50)
-                                .HasColumnType("character varying(50)");
+                                    b2.ToTable("Clauses", (string)null);
 
-                            b1.Property<string>("Status")
-                                .IsRequired()
-                                .HasMaxLength(50)
-                                .HasColumnType("character varying(50)");
+                                    b2.WithOwner()
+                                        .HasForeignKey("SatEncodingId");
+                                });
 
-                            b1.HasKey("Id");
-
-                            b1.HasIndex("ProblemId")
-                                .IsUnique();
-
-                            b1.ToTable("SatRuns", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("ProblemId");
+                            b1.Navigation("Clauses");
                         });
 
                     b.Navigation("SatEncoding");
-
-                    b.Navigation("SatRun");
                 });
 #pragma warning restore 612, 618
         }

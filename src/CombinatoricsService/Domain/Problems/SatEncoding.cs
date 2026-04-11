@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Raijin.CombinatoricsService.Domain.Shared;
+namespace Raijin.CombinatoricsService.Domain.Problems;
 
 public sealed record SatEncoding
 {

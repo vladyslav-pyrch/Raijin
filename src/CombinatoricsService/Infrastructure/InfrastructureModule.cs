@@ -23,8 +23,6 @@ public static class InfrastructureModule
         Action<IServiceCollectionQuartzConfigurator>? quartzConfiguration = null
     )
     {
-        ArgumentNullException.ThrowIfNull(quartzConfiguration);
-
         services.AddMessaging();
         services.AddPersistence();
         services.AddSolvers();
@@ -51,7 +49,6 @@ public static class InfrastructureModule
         });
         services.AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>();
         services.AddScoped<IProblemRepository, ProblemRepository>();
-        services.AddScoped<ISatRunRepository, SatRunRepository>();
 
         return services;
     }

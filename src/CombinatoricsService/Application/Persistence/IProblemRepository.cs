@@ -9,4 +9,6 @@ public interface IProblemRepository
     public Task Add(Problem problem, CancellationToken cancellationToken);
 
     public Task Update(Problem problem, CancellationToken cancellationToken);
+
+    public Task<Problem?> GetOldestPendingWithLock(CancellationToken cancellationToken);
 }

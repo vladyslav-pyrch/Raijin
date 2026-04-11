@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Persistence\Migrations\" />
     <Folder Include="Solvers\Cryptominisat\" />
     <Folder Include="Solvers\Verisat\" />
   </ItemGroup>
