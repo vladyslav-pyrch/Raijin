@@ -1,6 +1,6 @@
 namespace Raijin.CombinatoricsService.Infrastructure.Solvers.Cryptominisat;
 
-public sealed class CryptominisatSolveOptions
+internal sealed class CryptominisatSolveOptions
 {
     public const string SectionName = "Cryptominisat";
 

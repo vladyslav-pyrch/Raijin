@@ -25,12 +25,13 @@ public sealed class ReduceToSatEndpoint : IEndpoint
         ValidationProblem,
         InternalServerError>> Execute(
         [FromRoute] Guid id,
+        [FromBody] ReduceToSatRequest request,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken
     )
     {
         Result<ReduceToSatResult> result = await mediator.Send(
-            new ReduceToSatCommand(id), cancellationToken);
+            new ReduceToSatCommand(id, request.Solver), cancellationToken);
 
         if (result.IsSuccess)
             return TypedResults.Created($"/problems/{result.Value.ProblemId}");
@@ -49,4 +50,9 @@ public sealed class ReduceToSatEndpoint : IEndpoint
 
         return TypedResults.InternalServerError();
     }
+}
+
+public sealed class ReduceToSatRequest
+{
+    public string Solver { get; set; } = null!;
 }

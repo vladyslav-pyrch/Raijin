@@ -16,6 +16,8 @@ public sealed class Problem
 
     public string Description { get; private set; }
 
+    public string? Solver { get; private set; }
+
     public Instance? Instance { get; private set; }
 
     public Solution? Solution { get; private set; }
@@ -57,6 +59,7 @@ public sealed class Problem
         string description,
         DateTime createdAt,
         DateTime updatedAt,
+        string? solver,
         Instance? instance,
         SatEncoding? satEncoding,
         SolvingStatus solvingStatus,
@@ -67,6 +70,7 @@ public sealed class Problem
     ) => new(id, name, description, createdAt)
     {
         UpdatedAt = updatedAt,
+        Solver = solver,
         Instance = instance,
         SatEncoding = satEncoding,
         SolvingStatus = solvingStatus,
@@ -98,6 +102,22 @@ public sealed class Problem
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void SetSolver(string? solver)
+    {
+        if (Solver == solver)
+            return;
+
+        if (SolvingStatus is SolvingStatus.Running)
+            throw new InvalidOperationException("Cannot change solver while solving is in progress.");
+
+        Solver = solver;
+        Solution = null;
+        Satisfiability = Satisfiability.Unknown;
+        Assignment = [];
+        SolvingStatus = SatEncoding is not null ? SolvingStatus.Pending : SolvingStatus.NoSatEncoding;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void SetInstance(Instance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -118,6 +138,9 @@ public sealed class Problem
     {
         if (SolvingStatus is SolvingStatus.Running)
             throw new InvalidOperationException("Cannot re-encode to SAT while solving is in progress.");
+
+        if (Solver is null)
+            throw new InvalidOperationException("Cannot reduce to SAT: no solver has been set.");
 
         Instance instance = GetInstanceOrThrow();
 

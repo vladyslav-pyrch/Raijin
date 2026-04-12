@@ -5,16 +5,16 @@ using Microsoft.Extensions.Options;
 using Raijin.CombinatoricsService.Application.Solvers;
 using Raijin.CombinatoricsService.Domain.Problems;
 
-namespace Raijin.CombinatoricsService.Infrastructure.Solvers.Cryptominisat;
+namespace Raijin.CombinatoricsService.Infrastructure.Solvers.Cadical;
 
-internal sealed class CryptominisatSolver(
-    ICryptominisatCli cli,
-    IOptions<CryptominisatSolveOptions> options,
-    ILogger<CryptominisatSolver> logger) : ISatSolver
+internal sealed class CadicalSolver(
+    ICadicalCli cli,
+    IOptions<CadicalSolveOptions> options,
+    ILogger<CadicalSolver> logger) : ISatSolver
 {
-    private readonly CryptominisatSolveOptions _options = options.Value;
+    private readonly CadicalSolveOptions _options = options.Value;
 
-    public string Name => "cryptominisat";
+    public string Name => "cadical";
 
     public async Task<Result<SolveResult>> Solve(
         SatEncoding satEncoding,
@@ -28,7 +28,16 @@ internal sealed class CryptominisatSolver(
             satEncoding.NumberOfVariables,
             satEncoding.NumberOfClauses);
 
-        Result<string> filePathResult = await WriteCnfFileAsync(satEncoding, cancellationToken);
+        using CancellationTokenSource? timeoutCts = _options.TimeoutSeconds.HasValue
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : null;
+
+        if (timeoutCts is not null)
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds!.Value));
+
+        CancellationToken effectiveToken = timeoutCts?.Token ?? cancellationToken;
+
+        Result<string> filePathResult = await WriteCnfFileAsync(satEncoding, effectiveToken);
         if (filePathResult.IsFailed)
             return Result.Fail<SolveResult>(filePathResult.Errors);
 
@@ -36,25 +45,36 @@ internal sealed class CryptominisatSolver(
 
         try
         {
-            var arguments = new CryptominisatArgumentsBuilder().WithVerbosity(0);
-
-            if (_options.TimeoutSeconds.HasValue)
-                arguments = arguments.WithMaxTime(_options.TimeoutSeconds.Value);
+            var arguments = new CadicalArgumentsBuilder()
+                .WithNoColors()
+                .WithQuiet();
 
             Result<string> executionResult = await cli.ExecuteAsync(
                 filePath,
                 arguments,
-                cancellationToken);
+                effectiveToken);
 
             if (executionResult.IsFailed)
             {
-                logger.LogWarning("CryptoMiniSat execution failed: {Errors}", executionResult.Errors);
+                bool wasTimeout = timeoutCts?.IsCancellationRequested == true
+                                  && !cancellationToken.IsCancellationRequested;
+
+                if (wasTimeout)
+                {
+                    logger.LogWarning(
+                        "CaDiCaL timed out after {TimeoutSeconds}s for file: {FilePath}",
+                        _options.TimeoutSeconds,
+                        filePath);
+                    return Result.Fail<SolveResult>(new SolverTimeoutError(_options.TimeoutSeconds!.Value));
+                }
+
+                logger.LogWarning("CaDiCaL execution failed: {Errors}", executionResult.Errors);
                 return Result.Fail<SolveResult>(executionResult.Errors);
             }
 
             Result<SolveResult> parseResult = ParseSolution(executionResult.Value);
             if (parseResult.IsFailed)
-                logger.LogError("Failed to parse CryptoMiniSat output: {Errors}", parseResult.Errors);
+                logger.LogError("Failed to parse CaDiCaL output: {Errors}", parseResult.Errors);
             else
                 logger.LogInformation("SAT solving completed successfully");
 
@@ -62,6 +82,7 @@ internal sealed class CryptominisatSolver(
         }
         finally
         {
+            timeoutCts?.CancelAfter(Timeout.InfiniteTimeSpan);
             CleanupCnfFile(filePath);
         }
     }
@@ -111,7 +132,7 @@ internal sealed class CryptominisatSolver(
     private Result<SolveResult> ParseSolution(string output)
     {
         if (string.IsNullOrWhiteSpace(output))
-            return Result.Fail<SolveResult>("Empty output from CryptoMiniSat");
+            return Result.Fail<SolveResult>("Empty output from CaDiCaL");
 
         string[] lines = output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 

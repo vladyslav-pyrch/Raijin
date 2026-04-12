@@ -30,6 +30,7 @@ public sealed class ReduceToSatHandler(
         if (problem.SolvingStatus is SolvingStatus.Completed)
             return new DomainError("Problem is already solved. Reset the instance to reduce to SAT again.");
 
+        problem.SetSolver(request.Solver);
         problem.ReduceToSat();
 
         await problemRepository.Update(problem, cancellationToken);
@@ -40,7 +41,8 @@ public sealed class ReduceToSatHandler(
 }
 
 public sealed record ReduceToSatCommand(
-    Guid ProblemId
+    Guid ProblemId,
+    string Solver
 ) : IRequest<ReduceToSatResult>;
 
 public sealed record ReduceToSatResult(
@@ -53,5 +55,8 @@ public sealed class ReduceToSatValidator : AbstractValidator<ReduceToSatCommand>
     {
         RuleFor(command => command.ProblemId)
             .NotEmpty();
+        RuleFor(command => command.Solver)
+            .NotEmpty()
+            .MaximumLength(100);
     }
 }

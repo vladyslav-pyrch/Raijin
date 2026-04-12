@@ -25,7 +25,7 @@
   <ItemGroup>
     <Folder Include="Persistence\Migrations\" />
     <Folder Include="Solvers\Cryptominisat\" />
-    <Folder Include="Solvers\Verisat\" />
+    <Folder Include="Solvers\Cadical\" />
   </ItemGroup>
 
 </Project>

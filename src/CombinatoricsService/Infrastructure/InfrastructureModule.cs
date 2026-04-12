@@ -10,6 +10,7 @@ using Raijin.CombinatoricsService.Application.Solvers;
 using Raijin.CombinatoricsService.Infrastructure.Messaging;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Persistence.Repositories;
+using Raijin.CombinatoricsService.Infrastructure.Solvers.Cadical;
 using Raijin.CombinatoricsService.Infrastructure.Solvers.Cryptominisat;
 
 namespace Raijin.CombinatoricsService.Infrastructure;
@@ -68,6 +69,20 @@ public static class InfrastructureModule
             });
         services.AddTransient<ICryptominisatCli, CryptominisatCli>();
         services.AddTransient<ISatSolver, CryptominisatSolver>();
+
+        services.AddOptions<CadicalSolveOptions>()
+            .Configure((CadicalSolveOptions options, IConfiguration configuration) =>
+            {
+                IConfigurationSection section = configuration.GetSection(CadicalSolveOptions.SectionName);
+                if (section[nameof(CadicalSolveOptions.FileName)] is { } fileName)
+                    options.FileName = fileName;
+                if (int.TryParse(section[nameof(CadicalSolveOptions.TimeoutSeconds)], out int timeout))
+                    options.TimeoutSeconds = timeout;
+                if (section[nameof(CadicalSolveOptions.CnfDirectory)] is { } dir)
+                    options.CnfDirectory = dir;
+            });
+        services.AddTransient<ICadicalCli, CadicalCli>();
+        services.AddTransient<ISatSolver, CadicalSolver>();
 
         return services;
     }

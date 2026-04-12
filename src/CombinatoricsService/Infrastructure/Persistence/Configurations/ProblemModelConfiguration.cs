@@ -18,6 +18,9 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
             .IsRequired()
             .HasMaxLength(5000);
 
+        builder.Property(problem => problem.Solver)
+            .HasMaxLength(100);
+
         builder.Property(problem => problem.Instance)
             .HasColumnType("jsonb");
 

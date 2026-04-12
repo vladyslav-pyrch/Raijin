@@ -11,11 +11,13 @@ public sealed record SolveNextPendingProblemCommand : IRequest;
 
 public sealed class SolveNextPendingProblemHandler(
     IProblemRepository problemRepository,
-    ISatSolver satSolver,
+    IEnumerable<ISatSolver> satSolvers,
     IUnitOfWork unitOfWork,
     ILogger<SolveNextPendingProblemHandler> logger
 ) : IRequestHandler<SolveNextPendingProblemCommand>
 {
+    private readonly IReadOnlyList<ISatSolver> _satSolvers = satSolvers.ToList();
+
     public async Task<Result> Handle(SolveNextPendingProblemCommand request, CancellationToken cancellationToken)
     {
         await unitOfWork.BeginTransaction(cancellationToken);
@@ -45,6 +47,27 @@ public sealed class SolveNextPendingProblemHandler(
             return Result.Fail($"Problem {problem.Id} has no SAT encoding and cannot be solved.");
         }
 
+        ISatSolver? satSolver = problem.Solver is not null
+            ? _satSolvers.FirstOrDefault(s => s.Name.Equals(problem.Solver, StringComparison.OrdinalIgnoreCase))
+            : _satSolvers.FirstOrDefault();
+
+        if (satSolver is null)
+        {
+            logger.LogError(
+                "Problem {ProblemId} specifies solver '{Solver}' which is not registered.",
+                problem.Id,
+                problem.Solver);
+            problem.Fail();
+            await problemRepository.Update(problem, cancellationToken);
+            await unitOfWork.Commit(cancellationToken);
+            return Result.Fail($"SAT solver '{problem.Solver}' is not registered.");
+        }
+
+        logger.LogInformation(
+            "Using solver '{Solver}' for problem {ProblemId}.",
+            satSolver.Name,
+            problem.Id);
+
         try
         {
             Result<SolveResult> solveResult = await satSolver.Solve(problem.SatEncoding, cancellationToken);
@@ -53,6 +76,11 @@ public sealed class SolveNextPendingProblemHandler(
             {
                 problem.Complete(solveResult.Value.Satisfiability, solveResult.Value.Assignment);
                 logger.LogInformation("Problem {ProblemId} completed successfully.", problem.Id);
+            }
+            else if (solveResult.HasError<SolverTimeoutError>())
+            {
+                problem.TimeOut();
+                logger.LogWarning("Problem {ProblemId} timed out.", problem.Id);
             }
             else
             {
