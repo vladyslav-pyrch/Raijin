@@ -128,7 +128,7 @@ public sealed class Problem
         Instance = instance;
         Solution = null;
         SatEncoding = null;
-        SolvingStatus = SolvingStatus.Pending;
+        SolvingStatus = SolvingStatus.NoSatEncoding;
         Satisfiability = Satisfiability.Unknown;
         Assignment = [];
         UpdatedAt = DateTime.UtcNow;

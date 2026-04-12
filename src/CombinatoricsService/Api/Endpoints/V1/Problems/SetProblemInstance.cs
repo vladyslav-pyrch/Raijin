@@ -12,7 +12,7 @@ public sealed class SetProblemInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapPut("problems/{id:Guid}/instance", Execute)
+        endpoint.MapPost("problems/{id:Guid}/instance", Execute)
             .WithName("set problem instance")
             .WithTags("problems");
     }
