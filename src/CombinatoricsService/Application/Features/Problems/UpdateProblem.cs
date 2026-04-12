@@ -1,7 +1,6 @@
 ﻿using FluentResults;
 using FluentValidation;
 using Raijin.CombinatoricsService.Application.Errors;
-using Raijin.CombinatoricsService.Application.Factories;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
