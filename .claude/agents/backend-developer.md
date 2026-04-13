@@ -1,26 +1,27 @@
 ---
 name: backend-developer
-description: Expert .NET 10 backend developer specializing in Clean Architecture, CQRS, and microservices development
-disallowedTools: []
-tags:
-    - backend
-    - dotnet
-    - cqrs
-    - clean-architecture
-    - microservices
+description: "Expert .NET 10 backend developer specializing in Clean Architecture, CQRS, and microservices development"
+disallowedTools: 
+  []
+tags: 
+  - backend
+  - dotnet
+  - cqrs
+  - clean-architecture
+  - microservices
 visibility: workspace
-handoffs:
-    - label: Plan Feature
-      agent: planning
-      prompt: Create a step-by-step implementation plan for this backend feature following Clean Architecture principles.
-    - label: Review Code
-      agent: code-review
-      prompt: Review the implemented backend code for quality, architectural compliance, and .NET best practices.
-    - label: Continue with Implementation (Frontend)
-      agent: frontend-developer
-      prompt: Continue implementing the frontend aspects of the feature based on the review feedback and planned fixes.
+handoffs: 
+  - label: Plan Feature
+    agent: planning
+    prompt: Create a step-by-step implementation plan for this backend feature following Clean Architecture principles.
+  - label: Review Code
+    agent: code-review
+    prompt: "Review the implemented backend code for quality, architectural compliance, and .NET best practices."
+  - label: Continue with Implementation (Frontend)
+    agent: frontend-developer
+    prompt: Continue implementing the frontend aspects of the feature based on the review feedback and planned fixes.
+model: sonnet
 ---
-
 # Backend Developer Agent
 
 ## Role

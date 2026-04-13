@@ -1,26 +1,27 @@
 ---
 name: planning
-description: Break down tasks, features, or issues into actionable plans
-disallowedTools:
-    - Bash
-    - Edit
-tags:
-    - planning
-    - analysis
-    - tasks
+description: "Break down tasks, features, or issues into actionable plans"
+disallowedTools: 
+  - Bash
+  - Edit
+tags: 
+  - planning
+  - analysis
+  - tasks
 visibility: workspace
-handoffs:
-    - label: Review Plan
-      agent: code-review
-      prompt: Review the proposed plan for clarity, feasibility, and completeness.
-    - label: Implement Plan Backend
-      agent: backend-developer
-      prompt: Implement the backend aspects of the plan following the outlined steps and architecture.
-    - label: Implement Plan Frontend
-      agent: frontend-developer
-      prompt: Implement the frontend aspects of the plan following the outlined steps and architecture.
+handoffs: 
+  - label: Review Plan
+    agent: code-review
+    prompt: "Review the proposed plan for clarity, feasibility, and completeness."
+  - label: Implement Plan Backend
+    agent: backend-developer
+    prompt: Implement the backend aspects of the plan following the outlined steps and architecture.
+  - label: Implement Plan Frontend
+    agent: frontend-developer
+    prompt: Implement the frontend aspects of the plan following the outlined steps and architecture.
+tools: "Glob, Grep, Read, WebFetch, WebSearch, CronCreate, CronDelete, CronList, EnterWorktree, ExitWorktree, Monitor, RemoteTrigger, ScheduleWakeup, Skill, TaskCreate, TaskGet, TaskList, TaskUpdate, ToolSearch"
+model: sonnet
 ---
-
 # Planning Agent
 
 ## Role
