@@ -27,9 +27,12 @@ public class BooleanSatisfiabilityInstanceFactory(
             return result;
 
         IEnumerable<List<Literal>> literals = booleanSatisfiabilityInstanceDto.Clauses.Select(clause => clause
-            .Select(literal =>
-                new Literal(new SatVariable(Math.Abs(literal)), literal < 0)
-            ).ToList());
+            .Select(literalStr =>
+            {
+                bool negated = literalStr.StartsWith('-');
+                string name = negated ? literalStr[1..] : literalStr;
+                return new Literal(new SatVariable(name), negated);
+            }).ToList());
 
         var clauses = literals.Select(clauseLiterals => new Clause(clauseLiterals)).ToList();
         return new BooleanSatisfiabilityInstance(clauses);

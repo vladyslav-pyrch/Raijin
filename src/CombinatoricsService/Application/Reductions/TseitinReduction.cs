@@ -181,14 +181,21 @@ public sealed class TseitinReduction : IReduction<BoolExpr, TseitinResult>
         Dictionary<BoolVar, int> symbolTable,
         int totalVariables)
     {
-        var satVariables = new SatVariable[totalVariables];
-        for (var i = 0; i < totalVariables; i++)
-            satVariables[i] = new SatVariable(i + 1);
+        // Build a reverse map: DIMACS index → name (user variable or synthetic auxiliary)
+        var indexToName = new Dictionary<int, string>(totalVariables);
+        foreach (var kvp in symbolTable)
+            indexToName[kvp.Value] = kvp.Key.Name;
+        for (var i = 1; i <= totalVariables; i++)
+            indexToName.TryAdd(i, $"_aux{i}");
+
+        var satVariables = new SatVariable[totalVariables + 1]; // 1-indexed
+        for (var i = 1; i <= totalVariables; i++)
+            satVariables[i] = new SatVariable(indexToName[i]);
 
         IReadOnlyList<Clause> typedClauses = rawClauses
             .Select(raw => new Clause(
                 raw.Select(lit => new Literal(
-                    satVariables[Math.Abs(lit) - 1],
+                    satVariables[Math.Abs(lit)],
                     lit < 0
                 )).ToList()))
             .ToList();
@@ -196,7 +203,7 @@ public sealed class TseitinReduction : IReduction<BoolExpr, TseitinResult>
         IReadOnlyDictionary<BoolVar, SatVariable> variableMap = symbolTable
             .ToDictionary(
                 kvp => kvp.Key,
-                kvp => satVariables[kvp.Value - 1]);
+                kvp => satVariables[kvp.Value]);
 
         return new TseitinResult(new BooleanSatisfiabilityInstance(typedClauses), variableMap);
     }

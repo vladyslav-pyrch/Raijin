@@ -1,10 +1,10 @@
-
-
 namespace Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses) : Instance
 {
-    public int GetVariableCount() => GetClauseCount() > 0 ? Clauses.Max(c => c.GetMaxVariableId()) : 0;
+    public int GetVariableCount() => Clauses.SelectMany(clause => clause.Literals)
+        .DistinctBy(literal => literal.Variable.Name, StringComparer.Ordinal)
+        .Count();
 
     public int GetClauseCount() => Clauses.Count;
 
@@ -12,15 +12,32 @@ public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses
 
     internal override (SatEncoding SatEncoding, VariableMap VariableMap) ReduceToSat()
     {
-        IEnumerable<IEnumerable<int>> clauses = Clauses
-            .Select(clause =>
-                clause.Literals.Select(literal => literal.Variable.Id * (literal.Negated ? -1 : 1)).ToArray()
-            ).ToArray();
+        var sortedVariables = Clauses.SelectMany(clause => clause.Literals)
+            .Select(literal => literal.Variable)
+            .DistinctBy(variable => variable.Name, StringComparer.Ordinal)
+            .OrderBy(variable => variable.Name, StringComparer.Ordinal)
+            .ToList();
+        
+        var variableToIndex = sortedVariables
+            .Select((variable, index) => (variable, index: index + 1))
+            .ToDictionary(x => x.variable, x => x.index);
 
-        Dictionary<int, object> variableMap = Enumerable.Range(1, GetVariableCount())
-            .ToDictionary(x => x, object (x) => new SatVariable(x));
+        var variableMap = sortedVariables.ToDictionary<SatVariable, int, object>(
+            variable => variableToIndex[variable],
+            variable => variable
+        );
 
-        return (SatEncoding.Create(clauses), new VariableMap(variableMap));
+        IEnumerable<IEnumerable<int>> dimacs = Clauses
+            .Select(clause => clause.Literals
+                .Select(lit =>
+                {
+                    int idx = variableToIndex[lit.Variable];
+                    return lit.Negated ? -idx : idx;
+                })
+                .ToArray())
+            .ToArray();
+
+        return (SatEncoding.Create(dimacs), new VariableMap(variableMap));
     }
 
     internal override Solution InterpretSolution(IReadOnlyList<int> assignment)
