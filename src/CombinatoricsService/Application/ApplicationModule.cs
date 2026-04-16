@@ -2,12 +2,12 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Raijin.CombinatoricsService.Application.Factories;
+using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Messaging.Behaviors;
 using Raijin.CombinatoricsService.Application.Parsing;
 using Raijin.CombinatoricsService.Application.Reductions;
-using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
 namespace Raijin.CombinatoricsService.Application;
 
@@ -21,11 +21,9 @@ public static class ApplicationModule
         .AddValidatorsFromAssembly(Assembly);
 
     private static IServiceCollection AddApplicationServices(this IServiceCollection services) => services
-        .AddSingleton<BoolExprParser>()
-        .AddSingleton<IBoolExprParser>(sp => sp.GetRequiredService<BoolExprParser>())
-        .AddSingleton<IParser<BoolExpr>>(sp => sp.GetRequiredService<BoolExprParser>())
-        .AddSingleton<IReduction<BoolExpr, TseitinResult>, TseitinReduction>()
-        .AddScoped<IInstanceFactory, BooleanSatisfiabilityInstanceFactory>();
+        .AddSingleton<IBoolExprParser, BoolExprParser>()
+        .AddScoped<IInstanceFactory, BooleanSatisfiabilityInstanceFactory>()
+        .AddScoped<IInstanceFactory, BooleanProblemInstanceFactory>();
 
     private static IServiceCollection AddMessaging(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))

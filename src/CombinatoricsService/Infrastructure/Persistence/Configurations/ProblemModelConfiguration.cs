@@ -22,10 +22,10 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
             .HasMaxLength(100);
 
         builder.Property(problem => problem.Instance)
-            .HasColumnType("jsonb");
+            .HasColumnType("json");
 
         builder.Property(problem => problem.Solution)
-            .HasColumnType("jsonb");
+            .HasColumnType("json");
 
         builder.Property(problem => problem.SolvingStatus)
             .IsRequired()

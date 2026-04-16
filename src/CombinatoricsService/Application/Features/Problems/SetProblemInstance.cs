@@ -4,6 +4,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Factories;
+using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -62,6 +63,7 @@ public sealed record SetProblemInstanceCommand(
 
 [JsonPolymorphic]
 [JsonDerivedType(typeof(BooleanSatisfiabilityInstanceDto), ProblemTypes.BooleanSatisfiabilityProblem)]
+[JsonDerivedType(typeof(BooleanProblemInstanceDto), ProblemTypes.BooleanProblem)]
 public abstract record InstanceDto
 {
     public abstract string ProblemType { get; }

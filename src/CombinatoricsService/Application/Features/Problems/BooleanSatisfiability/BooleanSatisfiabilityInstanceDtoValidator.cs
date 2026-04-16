@@ -17,7 +17,7 @@ public class BooleanSatisfiabilityInstanceDtoValidator : AbstractValidator<Boole
             .Must(clause => clause.All(lit => lit is not null && SatVariable.IsValidLiteralString(lit)))
             .WithMessage(
                 "Every literal must be a valid named variable literal. " +
-                "Format: optional leading '-' for negation, followed by a variable name. " +
+                "Format: optional leading '~' for negation, followed by a variable name. " +
                 "Names must start with alphanumeric or a dash/underscore run followed by alphanumeric. " +
                 "Separator types ('-', '_', ':') cannot be mixed within a single run. " +
                 "Names must end with an alphanumeric character.");

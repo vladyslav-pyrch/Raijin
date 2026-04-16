@@ -29,7 +29,7 @@ public class BooleanSatisfiabilityInstanceFactory(
         IEnumerable<List<Literal>> literals = booleanSatisfiabilityInstanceDto.Clauses.Select(clause => clause
             .Select(literalStr =>
             {
-                bool negated = literalStr.StartsWith('-');
+                bool negated = literalStr.StartsWith('~');
                 string name = negated ? literalStr[1..] : literalStr;
                 return new Literal(new SatVariable(name), negated);
             }).ToList());

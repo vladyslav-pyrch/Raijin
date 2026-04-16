@@ -12,7 +12,7 @@ internal static class BoolExprLexer
     private static readonly string FalsePattern = @"(?<false>\s*false\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    private static readonly string VariablePattern = @"(?<var>\s*[a-zA-Z][a-zA-Z0-9-_]*\s*)";
+    private static readonly string VariablePattern = @"(?<var>\s*(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
     private static readonly string LeftBracketPattern = @"(?<l_bracket>\s*\(\s*)";

@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
 public sealed record Not(BoolExpr Node) : BoolExpr
 {
+    [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [Node];
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) =>

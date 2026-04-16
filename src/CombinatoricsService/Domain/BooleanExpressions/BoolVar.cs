@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Raijin.CombinatoricsService.Domain.BooleanExpressions;
@@ -10,7 +11,10 @@ public partial record BoolVar : BoolExpr
 
         if (!VariableNameRegex().IsMatch(name))
             throw new ArgumentException(
-                "Variable name must start with a letter and can only contain letters, digits, underscore and hyphens.",
+                "Invalid variable name format. " +
+                "Names must start with alphanumeric or a dash/underscore run followed by alphanumeric. " +
+                "Separator types ('-', '_', ':') cannot be mixed within a single run. " +
+                "Names must end with an alphanumeric character.",
                 nameof(name));
 
         Name = name;
@@ -18,6 +22,7 @@ public partial record BoolVar : BoolExpr
 
     public string Name { get; }
 
+    [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [];
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) => this;
@@ -29,6 +34,6 @@ public partial record BoolVar : BoolExpr
 
     public override string ToString() => Name;
 
-    [GeneratedRegex("^[a-zA-Z][a-zA-Z0-9-_]*$")]
+    [GeneratedRegex("^(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*$")]
     private static partial Regex VariableNameRegex();
 }

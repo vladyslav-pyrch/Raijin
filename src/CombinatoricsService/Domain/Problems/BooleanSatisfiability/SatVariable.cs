@@ -10,7 +10,7 @@ public sealed record SatVariable
         matchTimeout: TimeSpan.FromMilliseconds(100));
 
     public static readonly Regex LiteralRegex = new(
-        @"^-?(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*$",
+        @"^~?(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
         matchTimeout: TimeSpan.FromMilliseconds(100));
 
