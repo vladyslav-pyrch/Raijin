@@ -34,7 +34,7 @@ public sealed class BooleanProblemInstanceFactory(
 
         if (parseResult.IsFailed)
             return parseResult
-                .MapErrors(e => (IError)new ValidationError(nameof(BooleanProblemInstanceDto.Formula), e.Message))
+                .MapErrors(e => new ValidationError(nameof(BooleanProblemInstanceDto.Formula), e.Message))
                 .ToResult<Instance>();
 
         return Result.Ok<Instance>(new BooleanProblemInstance(parseResult.Value));
