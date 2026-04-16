@@ -1,16 +1,17 @@
 using System.Text.RegularExpressions;
+using Raijin.CombinatoricsService.Domain.Patterns;
 
 namespace Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 public sealed record SatVariable
 {
     private static readonly Regex NameOnlyRegex = new(
-        @"^(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*$",
+        VariableNamePatterns.VariableNameFull,
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
         matchTimeout: TimeSpan.FromMilliseconds(100));
 
     public static readonly Regex LiteralRegex = new(
-        @"^~?(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*$",
+        VariableNamePatterns.LiteralFull,
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
         matchTimeout: TimeSpan.FromMilliseconds(100));
 

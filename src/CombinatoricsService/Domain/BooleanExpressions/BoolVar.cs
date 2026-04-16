@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Raijin.CombinatoricsService.Domain.Patterns;
 
 namespace Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
@@ -34,6 +35,6 @@ public partial record BoolVar : BoolExpr
 
     public override string ToString() => Name;
 
-    [GeneratedRegex("^(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*$")]
+    [GeneratedRegex(VariableNamePatterns.VariableNameFull)]
     private static partial Regex VariableNameRegex();
 }

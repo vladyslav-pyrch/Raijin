@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using Raijin.CombinatoricsService.Domain.Patterns;
 
 namespace Raijin.CombinatoricsService.Application.Parsing;
 
@@ -12,7 +13,7 @@ internal static class BoolExprLexer
     private static readonly string FalsePattern = @"(?<false>\s*false\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    private static readonly string VariablePattern = @"(?<var>\s*(?:[a-zA-Z0-9]+|[-_]+[a-zA-Z0-9]+)(?:(?:-+|_+|:+)[a-zA-Z0-9]+)*\s*)";
+    private static readonly string VariablePattern = $@"(?<var>\s*{VariableNamePatterns.VariableNameCore}\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
     private static readonly string LeftBracketPattern = @"(?<l_bracket>\s*\(\s*)";
