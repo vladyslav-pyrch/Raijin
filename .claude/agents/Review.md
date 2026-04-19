@@ -1,24 +1,24 @@
 ---
 name: code-review
 description: "Perform structured, high-quality code reviews"
-disallowedTools: 
+disallowedTools:
   - Bash
   - Edit
   - Write
-tags: 
+tags:
   - code-review
   - quality
   - analysis
 visibility: workspace
-handoffs: 
+handoffs:
   - label: Plan Fixes
-    agent: planning
+    agent: Plan
     prompt: Create a step-by-step plan to address the issues identified in the review.
   - label: Continue with Implementation (Backend)
-    agent: backend-developer
+    agent: BackDev
     prompt: Continue implementing the backend aspects of the feature based on the review feedback and planned fixes.
   - label: Continue with Implementation (Frontend)
-    agent: frontend-developer
+    agent: FrontDev
     prompt: Continue implementing the frontend aspects of the feature based on the review feedback and planned fixes.
 tools: "Glob, Grep, Read, WebFetch, WebSearch, CronCreate, CronDelete, CronList, EnterWorktree, ExitWorktree, Monitor, RemoteTrigger, ScheduleWakeup, Skill, TaskCreate, TaskGet, TaskList, TaskUpdate, ToolSearch"
 ---

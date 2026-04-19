@@ -1,7 +1,7 @@
+using System.Text.Json.Serialization;
 using FluentResults;
 using FluentValidation;
 using Raijin.CombinatoricsService.Application.Errors;
-using Raijin.CombinatoricsService.Application.Factories;
 using Raijin.CombinatoricsService.Application.Parsing;
 using Raijin.CombinatoricsService.Application.Validation;
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
@@ -10,10 +10,10 @@ using Raijin.CombinatoricsService.Domain.Problems.Boolean;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 
-public sealed class BooleanProblemInstanceFactory(
+public sealed class BooleanProblemSetProblemInstance(
     IBoolExprParser parser,
     IValidator<BooleanProblemInstanceDto>? validator = null
-) : IInstanceFactory
+) : ISetProblemInstanceExtension
 {
     public string ProblemType => ProblemTypes.BooleanProblem;
 
@@ -38,5 +38,19 @@ public sealed class BooleanProblemInstanceFactory(
                 .ToResult<Instance>();
 
         return Result.Ok<Instance>(new BooleanProblemInstance(parseResult.Value));
+    }
+}
+
+public record BooleanProblemInstanceDto(string Formula) : InstanceDto
+{
+    [JsonIgnore] public override string ProblemType => ProblemTypes.BooleanProblem;
+}
+
+
+public sealed class BooleanProblemInstanceDtoValidator : AbstractValidator<BooleanProblemInstanceDto>
+{
+    public BooleanProblemInstanceDtoValidator()
+    {
+        RuleFor(dto => dto.Formula).NotEmpty();
     }
 }

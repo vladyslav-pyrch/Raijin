@@ -1,13 +1,13 @@
 ﻿using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using Raijin.CombinatoricsService.Application.Factories;
+using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
+using Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Messaging.Behaviors;
 using Raijin.CombinatoricsService.Application.Parsing;
-using Raijin.CombinatoricsService.Application.Reductions;
 
 namespace Raijin.CombinatoricsService.Application;
 
@@ -22,8 +22,9 @@ public static class ApplicationModule
 
     private static IServiceCollection AddApplicationServices(this IServiceCollection services) => services
         .AddSingleton<IBoolExprParser, BoolExprParser>()
-        .AddScoped<IInstanceFactory, BooleanSatisfiabilityInstanceFactory>()
-        .AddScoped<IInstanceFactory, BooleanProblemInstanceFactory>();
+        .AddScoped<ISetProblemInstanceExtension, SatSetProblemInstance>()
+        .AddScoped<ISetProblemInstanceExtension, BooleanProblemSetProblemInstance>()
+        .AddScoped<ISetProblemInstanceExtension, CspSetProblemInstance>();
 
     private static IServiceCollection AddMessaging(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))

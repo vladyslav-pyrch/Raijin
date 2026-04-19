@@ -21,7 +21,6 @@
     <Folder Include="Features\Problems\ConstraintSatisfiability\" />
     <Folder Include="Features\Problems\EdgeColoring\" />
     <Folder Include="Features\Problems\IndependetSet\" />
-    <Folder Include="Features\Problems\NowhereZeroFlow\" />
     <Folder Include="Features\Problems\Scheduling\" />
     <Folder Include="Features\Problems\VertexColouring\" />
   </ItemGroup>

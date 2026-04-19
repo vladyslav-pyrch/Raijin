@@ -114,7 +114,7 @@ public sealed class Problem
         Solution = null;
         Satisfiability = Satisfiability.Unknown;
         Assignment = [];
-        SolvingStatus = SatEncoding is not null ? SolvingStatus.Pending : SolvingStatus.NoSatEncoding;
+        SolvingStatus = SolvingStatus.NoSatEncoding;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -144,7 +144,7 @@ public sealed class Problem
 
         Instance instance = GetInstanceOrThrow();
 
-        SatEncoding = instance.ReduceToSat().SatEncoding;
+        SatEncoding = instance.ReduceToSat();
         SolvingStatus = SolvingStatus.Pending;
         UpdatedAt = DateTime.UtcNow;
     }

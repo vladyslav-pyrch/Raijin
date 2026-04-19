@@ -14,7 +14,7 @@ public partial record BoolVar : BoolExpr
             throw new ArgumentException(
                 "Invalid variable name format. " +
                 "Names must start with alphanumeric or a dash/underscore run followed by alphanumeric. " +
-                "Separator types ('-', '_', ':') cannot be mixed within a single run. " +
+                "Separator types ('-', '_', ':', '::', ':::') cannot be mixed within a single run. " +
                 "Names must end with an alphanumeric character.",
                 nameof(name));
 

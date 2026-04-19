@@ -231,7 +231,7 @@ public sealed class BoolExprParser : IBoolExprParser
 
             if (stack.Count != 1)
                 return Result.Fail(new Error(
-                    "The expression could not be parsed into a single boolean expression; leftover operands after parsing"));
+                    $"The expression could not be parsed into a single boolean expression; leftover operands after parsing. Make sure to not use spaces between variables"));
 
             return Result.Ok(stack.Pop());
         }

@@ -11,10 +11,10 @@ tags:
 visibility: workspace
 handoffs:
     - label: Plan Feature
-      agent: planning
+      agent: Plan
       prompt: Create a step-by-step implementation plan for this frontend feature with component structure and state management.
     - label: Review Code
-      agent: code-review
+      agent: Review
       prompt: Review the implemented frontend code for quality, React best practices, and TypeScript type safety.
 ---
 
