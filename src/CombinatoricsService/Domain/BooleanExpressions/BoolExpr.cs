@@ -13,6 +13,7 @@ namespace Raijin.CombinatoricsService.Domain.BooleanExpressions;
 [JsonDerivedType(typeof(Equal), "equal")]
 public abstract record BoolExpr
 {
+    [JsonIgnore]
     public abstract IReadOnlyList<BoolExpr> Children { get; }
 
     public abstract IEnumerable<BoolVar> GetVariables();

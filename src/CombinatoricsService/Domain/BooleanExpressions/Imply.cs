@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
 public sealed record Imply(BoolExpr Premise, BoolExpr Conclusion) : BoolExpr
 {
+    [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [Premise, Conclusion];
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) =>

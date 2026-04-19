@@ -27,9 +27,6 @@ public sealed class ReduceToSatHandler(
         if (problem.Instance is null)
             return new DomainError("Problem has no instance set. Set an instance via PUT /problems/{id}/instance first.");
 
-        if (problem.SolvingStatus is SolvingStatus.Completed)
-            return new DomainError("Problem is already solved. Reset the instance to reduce to SAT again.");
-
         problem.SetSolver(request.Solver);
         problem.ReduceToSat();
 

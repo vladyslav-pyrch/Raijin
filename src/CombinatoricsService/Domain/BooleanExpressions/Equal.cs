@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
 public sealed record Equal(BoolExpr LeftNode, BoolExpr RightNode) : BoolExpr
 {
+    [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [LeftNode, RightNode];
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) =>

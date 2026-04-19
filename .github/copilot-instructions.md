@@ -1,13 +1,15 @@
 # Claude Agent Configuration for Raijin
 
-.NET 10 microservices platform for solving combinatorial optimization problems.
+This directory contains the Claude AI agent configuration for the **Raijin project** — a .NET 10 microservices platform for solving combinatorial optimization problems.
 
 ## Overview
 
-Raijin uses Claude as AI pair-programmer for:
+The Raijin project uses Claude as an AI pair-programming assistant configured for:
 - **.NET 10 microservices** with Clean Architecture
 - **React 19 + TypeScript** frontend
 - **.NET Aspire** orchestration
+
+This configuration is a modular, Claude-native transformation of the project Copilot instructions.
 
 ## Configuration Structure
 
@@ -26,52 +28,62 @@ Raijin uses Claude as AI pair-programmer for:
 
 ### instructions.md - Core System Prompt
 
-Foundation for all Claude interactions. Defines:
+The foundation for all Claude interactions. Defines:
 - **Identity**: Expert .NET and React developer
 - **Core Principles**: Clean Architecture, CQRS, Result pattern
 - **Technology Stack**: .NET 10, React 19, PostgreSQL
 - **Coding Standards**: Async/await, null safety, error handling
 - **Forbidden Behaviors**: Architecture violations
 
-Always active — baseline behavior for every interaction.
+**Always active** — provides baseline behavior for every interaction.
 
 ### agents/ - Specialized Roles
 
-**Backend Developer** (`backend-developer.md`)
-- .NET 10 backend specialist
+**Backend Developer** (backend-developer.md)
+- **.NET 10 backend specialist**
 - Triggers: Domain, Application, Infrastructure, API, repositories, handlers, EF Core
 - Creates: Entities, CQRS commands/queries, repositories, endpoints
 - Follows: Clean Architecture, layer-specific patterns
 
-**Frontend Developer** (`frontend-developer.md`)
-- React 19 + TypeScript specialist
+**Frontend Developer** (frontend-developer.md)
+- **React 19 + TypeScript specialist**
 - Triggers: React, components, hooks, UI, state, Vite
 - Creates: Functional components, custom hooks, API clients, types
 - Follows: React patterns, TypeScript best practices
 
 ### skills/ - Reusable Capabilities
 
-**Clean Architecture** (`clean-architecture.md`)
-- Enforces layer separation + dependency rules
+**Clean Architecture** (clean-architecture.md)
+- Enforces layer separation and dependency rules
 - Decision framework for layer placement
 - Violation detection and correction
 
 ## How It Works
 
-Claude activates agents based on request context.
+Claude intelligently activates agents based on your request context:
 
-**Backend Feature** — "Add a CreateProblem command"
-- Activation: Backend Agent + Clean Architecture
+### Example 1: Backend Feature
+
+**Request**: "Add a CreateProblem command"
+
+**Activation**: Backend Agent + Clean Architecture
+
+**Process**:
 1. Create Problem entity with factory method
 2. Implement handler + validator
 3. Create endpoint
 4. Verify build succeeds
 
-**Frontend Component** — "Create a ProblemList component"
-- Activation: Frontend Agent
+### Example 2: Frontend Component
+
+**Request**: "Create a ProblemList component"
+
+**Activation**: Frontend Agent
+
+**Process**:
 1. Define TypeScript interface for Problem
 2. Create functional component with props
-3. Add custom `useProblem()` hook
+3. Add custom useProblem() hook
 4. Integrate with API client
 5. Style with CSS module
 
@@ -89,7 +101,7 @@ Infrastructure← Database, external services
 Domain        ← Business rules (zero dependencies)
 ```
 
-Dependencies point inward. Domain is pure business logic.
+**Rule**: Dependencies point inward. Domain is pure business logic.
 
 ### CQRS Pattern
 
@@ -132,8 +144,8 @@ Features/Problems/CreateProblem.cs
 - .NET Aspire (orchestration)
 - ASP.NET Core Minimal APIs
 - Entity Framework Core + PostgreSQL
-- FluentValidation
-- FluentResults
+- FluentValidation (validation)
+- FluentResults (error handling)
 - Quartz.NET (background jobs)
 
 ### Frontend
@@ -152,40 +164,66 @@ Features/Problems/CreateProblem.cs
 
 ## Activation Triggers
 
-**Backend Agent**: Domain, Application, Infrastructure, API, repository, handler, entity, command, query, mediator, EF Core, migration
+### Backend Agent
+Keywords: Domain, Application, Infrastructure, API, repository, handler, entity, command, query, mediator, EF Core, migration
 
-**Frontend Agent**: React, component, hook, TypeScript, UI, state, Vite, frontend, SPA
+### Frontend Agent
+Keywords: React, component, hook, TypeScript, UI, state, Vite, frontend, SPA
 
-**Clean Architecture Skill**: Clean Architecture, layers, dependencies, violation, boundary
+### Clean Architecture Skill
+Keywords: Clean Architecture, layers, dependencies, violation, boundary
 
 ## Best Practices
 
-DO:
+### Using the Configuration
+
+✅ **DO**:
 - Mention layer names ("working on Domain layer")
 - Reference patterns ("use Clean Architecture")
 - Be specific about technology
-- Keep `instructions.md` focused on core behavior
-- Put detailed patterns in agents
-- Extract reusable processes into skills
 
-DON'T:
+❌ **DON'T**:
 - Skip architectural layers
 - Violate dependency rules
+
+### Maintaining Files
+
+✅ **DO**:
+- Keep instructions.md focused on core behavior
+- Put detailed patterns in agents
+- Extract reusable processes into skills
+- Include code examples
+
+❌ **DON'T**:
 - Duplicate content
-- Add tech details to `instructions.md`
+- Add tech details to instructions.md
 - Create overlapping agents
+- Write role-specific skills
 
 ## Troubleshooting
 
-**Claude violates dependency rules** → "Follow Clean Architecture strictly"
+**Claude violates dependency rules**
+→ Say: "Follow Clean Architecture strictly"
 
-**Claude uses outdated patterns** → Check `instructions.md` mentions .NET 10
+**Claude uses outdated patterns**
+→ Check instructions.md mentions .NET 10
 
 ## Extending
 
-**Add Agent**: Create `.claude/agents/my-agent.md`, define role/triggers/workflows, include examples.
+### Add New Agent
 
-**Add Skill**: Create `.claude/skills/my-skill.md`, describe capability, add step-by-step guidance + code samples.
+1. Create .claude/agents/my-agent.md
+2. Define role and triggers
+3. Document workflows
+4. Include examples
+
+### Add New Skill
+
+1. Create .claude/skills/my-skill.md
+2. Describe capability
+3. Provide step-by-step guidance
+4. Add code samples
+
 
 ## Resources
 
@@ -193,4 +231,6 @@ DON'T:
 
 ---
 
-**Version**: 1.0 | **Created**: 2025 | **Maintained by**: Raijin Development Team
+**Version**: 1.0  
+**Created**: 2025  
+**Maintained by**: Raijin Development Team

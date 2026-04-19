@@ -36,17 +36,6 @@ public sealed class SolveNextPendingProblemHandler(
 
         logger.LogInformation("Claimed problem {ProblemId} for solving.", problem.Id);
 
-        if (problem.SatEncoding is null)
-        {
-            logger.LogError(
-                "Problem {ProblemId} is Pending but has no SAT encoding — marking as Failed.",
-                problem.Id);
-            problem.Fail();
-            await problemRepository.Update(problem, cancellationToken);
-            await unitOfWork.Commit(cancellationToken);
-            return Result.Fail($"Problem {problem.Id} has no SAT encoding and cannot be solved.");
-        }
-
         ISatSolver? satSolver = problem.Solver is not null
             ? _satSolvers.FirstOrDefault(s => s.Name.Equals(problem.Solver, StringComparison.OrdinalIgnoreCase))
             : _satSolvers.FirstOrDefault();
@@ -93,7 +82,7 @@ public sealed class SolveNextPendingProblemHandler(
             problem.Fail();
             logger.LogError(ex, "Problem {ProblemId} failed with exception.", problem.Id);
         }
-
+        
         await problemRepository.Update(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
 

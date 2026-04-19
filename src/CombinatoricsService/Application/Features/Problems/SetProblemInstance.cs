@@ -3,16 +3,24 @@ using FluentResults;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Raijin.CombinatoricsService.Application.Errors;
-using Raijin.CombinatoricsService.Application.Factories;
+using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
+using Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
+public interface ISetProblemInstanceExtension
+{
+    public string ProblemType { get; }
+
+    public Result<Instance> CreateInstance(InstanceDto instanceDto);
+}
+
 public sealed class SetProblemInstanceCommandHandler(
-    IEnumerable<IInstanceFactory> problemInstanceFactories,
+    IEnumerable<ISetProblemInstanceExtension> problemInstanceFactories,
     IProblemRepository problemRepository,
     IUnitOfWork unitOfWork
 ) : IRequestHandler<SetProblemInstanceCommand>
@@ -27,12 +35,12 @@ public sealed class SetProblemInstanceCommandHandler(
         if (problem.SolvingStatus == SolvingStatus.Running)
             return new ConflictError("Cannot change instance while solving is in progress.");
 
-        IInstanceFactory? instanceFactory = problemInstanceFactories
+        ISetProblemInstanceExtension? instanceFactory = problemInstanceFactories
             .FirstOrDefault(factory => factory.ProblemType == request.Instance.ProblemType);
 
         if (instanceFactory is null)
             throw new InvalidOperationException(
-                $"No instance factory found for problem type {request.Instance.ProblemType}");
+                $"Unsupported problem type: {request.Instance.ProblemType}");
 
         Result<Instance> instanceResult = instanceFactory.CreateInstance(request.Instance);
 
@@ -62,6 +70,8 @@ public sealed record SetProblemInstanceCommand(
 
 [JsonPolymorphic]
 [JsonDerivedType(typeof(BooleanSatisfiabilityInstanceDto), ProblemTypes.BooleanSatisfiabilityProblem)]
+[JsonDerivedType(typeof(BooleanProblemInstanceDto), ProblemTypes.BooleanProblem)]
+[JsonDerivedType(typeof(CspInstanceDto), ProblemTypes.ConstraintSatisfiabilityProblem)]
 public abstract record InstanceDto
 {
     public abstract string ProblemType { get; }

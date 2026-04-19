@@ -12,13 +12,13 @@ tags:
 visibility: workspace
 handoffs: 
   - label: Plan Feature
-    agent: planning
+    agent: Plan
     prompt: Create a step-by-step implementation plan for this backend feature following Clean Architecture principles.
   - label: Review Code
-    agent: code-review
+    agent: Review
     prompt: "Review the implemented backend code for quality, architectural compliance, and .NET best practices."
   - label: Continue with Implementation (Frontend)
-    agent: frontend-developer
+    agent: FrontDev
     prompt: Continue implementing the frontend aspects of the feature based on the review feedback and planned fixes.
 model: sonnet
 ---
