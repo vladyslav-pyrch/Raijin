@@ -10,17 +10,18 @@ internal static class CspToBooleanReduction
         ArgumentNullException.ThrowIfNull(csp);
 
         var allClauses = new List<BoolExpr>();
-        var symbolTable = new Dictionary<DecisionVariableAssignment, BoolVar>();
+        var symbolTable = new Dictionary<DecisionVariableStateAssignment, BoolVar>();
         var auxiliaryVariables = new HashSet<BoolVar>();
         var decisionVariablesBoolVars = new HashSet<BoolVar>();
 
         foreach (DecisionVariable variable in csp.Variables)
         {
             BoolVar[] boolVars = variable.ToBoolVars();
-
+            
+            foreach (DecisionVariableStateAssignment stateAssignment in variable.States.Select(state => new DecisionVariableStateAssignment(variable.Name, state)))
+                symbolTable[stateAssignment] = stateAssignment.ToBoolVar();
+            
             decisionVariablesBoolVars.UnionWith(boolVars);
-            foreach (string state in variable.States)
-                symbolTable[new DecisionVariableAssignment(variable.Name, state)] = variable.ToBoolVar(state);
 
             BoolExpr atLeastOneCondition = boolVars.Aggregate<BoolExpr>((acc, v) => acc.Or(v));
             BoolExpr atMostOneCondition = boolVars.Select<BoolVar, BoolExpr>(boolVar => boolVar.Imply(

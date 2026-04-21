@@ -5,6 +5,8 @@ using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
+using Raijin.CombinatoricsService.Application.Features.Problems.EdgeColoring;
+using Raijin.CombinatoricsService.Application.Features.Problems.VertexColouring;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Messaging.Behaviors;
 using Raijin.CombinatoricsService.Application.Parsing;
@@ -24,7 +26,9 @@ public static class ApplicationModule
         .AddSingleton<IBoolExprParser, BoolExprParser>()
         .AddScoped<ISetProblemInstanceExtension, SatSetProblemInstance>()
         .AddScoped<ISetProblemInstanceExtension, BooleanProblemSetProblemInstance>()
-        .AddScoped<ISetProblemInstanceExtension, CspSetProblemInstance>();
+        .AddScoped<ISetProblemInstanceExtension, CspSetProblemInstance>()
+        .AddScoped<ISetProblemInstanceExtension, EdgeColoringSetProblemInstance>()
+        .AddScoped<ISetProblemInstanceExtension, VertexColoringSetProblemInstance>();
 
     private static IServiceCollection AddMessaging(this IServiceCollection services) => services
         .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))

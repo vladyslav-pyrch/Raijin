@@ -6,6 +6,8 @@ using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
+using Raijin.CombinatoricsService.Application.Features.Problems.EdgeColoring;
+using Raijin.CombinatoricsService.Application.Features.Problems.VertexColouring;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -72,6 +74,8 @@ public sealed record SetProblemInstanceCommand(
 [JsonDerivedType(typeof(BooleanSatisfiabilityInstanceDto), ProblemTypes.BooleanSatisfiabilityProblem)]
 [JsonDerivedType(typeof(BooleanProblemInstanceDto), ProblemTypes.BooleanProblem)]
 [JsonDerivedType(typeof(CspInstanceDto), ProblemTypes.ConstraintSatisfiabilityProblem)]
+[JsonDerivedType(typeof(EdgeColoringInstanceDto), ProblemTypes.EdgeColoringProblem)]
+[JsonDerivedType(typeof(VertexColoringInstanceDto), ProblemTypes.VertexColoringProblem)]
 public abstract record InstanceDto
 {
     public abstract string ProblemType { get; }

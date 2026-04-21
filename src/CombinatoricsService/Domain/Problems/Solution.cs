@@ -2,6 +2,8 @@
 using Raijin.CombinatoricsService.Domain.Problems.Boolean;
 using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Domain.Problems.ConstraintSatisfiability;
+using Raijin.CombinatoricsService.Domain.Problems.EdgeColouring;
+using Raijin.CombinatoricsService.Domain.Problems.VertexColouring;
 
 namespace Raijin.CombinatoricsService.Domain.Problems;
 
@@ -9,4 +11,6 @@ namespace Raijin.CombinatoricsService.Domain.Problems;
 [JsonDerivedType(typeof(BooleanSatisfiabilitySolution), ProblemTypes.BooleanSatisfiabilityProblem)]
 [JsonDerivedType(typeof(BooleanProblemSolution), ProblemTypes.BooleanProblem)]
 [JsonDerivedType(typeof(CspSolution), ProblemTypes.ConstraintSatisfiabilityProblem)]
+[JsonDerivedType(typeof(EdgeColoringSolution), ProblemTypes.EdgeColoringProblem)]
+[JsonDerivedType(typeof(VertexColouringSolution), ProblemTypes.VertexColoringProblem)]
 public abstract record Solution;

@@ -37,6 +37,12 @@ public sealed record Graph(IReadOnlyList<Vertex> Vertices, IReadOnlyList<Edge> E
         };
 
     /// <summary>
+    /// Returns all edges incident to <paramref name="v"/>.
+    /// </summary>
+    public IReadOnlyList<Edge> EdgesOf(Vertex v) =>
+        Edges.Where(e => e.U == v || e.V == v).ToList();
+
+    /// <summary>
     /// Creates an empty graph with no vertices or edges.
     /// </summary>
     public static Graph Empty => new([], []);

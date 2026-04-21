@@ -5,6 +5,6 @@ namespace Raijin.CombinatoricsService.Domain.Problems.ConstraintSatisfiability;
 
 internal record CspToBooleanReductionResult(
     BooleanProblemInstance Instance,
-    IReadOnlyDictionary<DecisionVariableAssignment, BoolVar> SymbolTable,
+    IReadOnlyDictionary<DecisionVariableStateAssignment, BoolVar> SymbolTable,
     IReadOnlyList<BoolVar> AuxiliaryVariables
     );

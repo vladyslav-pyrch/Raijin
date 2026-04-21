@@ -76,13 +76,13 @@ public sealed record CspInstance(
         TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspToBoolResult.Instance);
         DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
         
-        Dictionary<int, DecisionVariableAssignment> invertedSymbolTable = cspToBoolResult.SymbolTable
+        Dictionary<int, DecisionVariableStateAssignment> invertedSymbolTable = cspToBoolResult.SymbolTable
             .ToDictionary(kvp => kvp.Key, kvp => dimacsResult.SymbolTable[tseitinResult.SymbolTable[kvp.Value]])
             .Invert();
         Dictionary<int, BoolVar> invertedAuxSymbolTable = cspToBoolResult.AuxiliaryVariables
             .ToDictionary(boolVar => dimacsResult.SymbolTable[tseitinResult.SymbolTable[boolVar]]);
 
-        List<DecisionVariableAssignment> configuration = processedAssignments
+        List<DecisionVariableStateAssignment> configuration = processedAssignments
             .Where(assignment => assignment.Value)
             .Where(assignment => invertedSymbolTable.ContainsKey(assignment.Index))
             .Select(assignment => invertedSymbolTable[assignment.Index])
