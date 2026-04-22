@@ -1,10 +1,10 @@
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using FluentResults;
 using FluentValidation;
 using Raijin.CombinatoricsService.Application.Errors;
+using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Parsing;
-using Raijin.CombinatoricsService.Application.Validation;
+using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 using Raijin.CombinatoricsService.Domain.Patterns;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -12,62 +12,57 @@ using Raijin.CombinatoricsService.Domain.Problems.ConstraintSatisfiability;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
 
-public sealed class CspSetProblemInstance(
+public sealed record SetCspProblemInstanceCommand(
+    Guid ProblemId,
+    CspInstanceDto Instance
+) : IRequest;
+
+public sealed class SetCspProblemInstanceHandler(
     IBoolExprParser parser,
-    IValidator<CspInstanceDto>? validator = null
-) : ISetProblemInstanceExtension
+    IProblemRepository problemRepository,
+    IUnitOfWork unitOfWork
+) : IRequestHandler<SetCspProblemInstanceCommand>
 {
-    public string ProblemType => ProblemTypes.ConstraintSatisfiabilityProblem;
-
-    public Result<Instance> CreateInstance(InstanceDto instanceDto)
+    public async Task<Result> Handle(
+        SetCspProblemInstanceCommand request,
+        CancellationToken cancellationToken)
     {
-        if (instanceDto is not CspInstanceDto cspDto)
-            throw new ArgumentException(
-                $"Invalid instance DTO type. Expected {typeof(CspInstanceDto)}, got {instanceDto.GetType()}");
+        Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
-        var validationResult = Result.FailIfNotEmpty(
-            validator?.Validate(cspDto).ToValidationErrors() ?? []
-        );
+        if (problem is null)
+            return new NotFoundError(nameof(Problem), request.ProblemId);
 
-        if (validationResult.IsFailed)
-            return validationResult;
+        if (problem.SolvingStatus == SolvingStatus.Running)
+            return new ConflictError("Cannot change instance while solving is in progress.");
 
-        // Check for duplicate variable names
-        List<string> variableNames = cspDto.Variables.Select(v => v.Name).ToList();
-        IEnumerable<string> duplicates = variableNames
+        List<string> variableNames = request.Instance.Variables.Select(v => v.Name).ToList();
+        List<ValidationError> duplicateErrors = variableNames
             .GroupBy(name => name, StringComparer.Ordinal)
             .Where(g => g.Count() > 1)
-            .Select(g => g.Key);
-
-        List<ValidationError> duplicateErrors = duplicates
-            .Select(name => new ValidationError(
-                nameof(CspInstanceDto.Variables),
-                $"Duplicate variable name: '{name}'."))
+            .Select(g => new ValidationError(
+                $"{nameof(request.Instance)}.{nameof(CspInstanceDto.Variables)}",
+                $"Duplicate variable name: '{g.Key}'."))
             .ToList();
 
         if (duplicateErrors.Count > 0)
             return Result.Fail(duplicateErrors);
 
-        // Build domain variables
-        List<DecisionVariable> variables = cspDto.Variables
+        List<DecisionVariable> variables = request.Instance.Variables
             .Select(v => new DecisionVariable(v.Name, v.States.ToList()))
             .ToList();
 
-        // Parse constraint formulas
         List<BoolExpr> constraints = [];
         List<IError> parseErrors = [];
 
         int constraintIndex = 0;
-        foreach (string constraintFormula in cspDto.Constraints)
+        foreach (string constraintFormula in request.Instance.Constraints)
         {
             Result<BoolExpr> parseResult = parser.Parse(constraintFormula);
             if (parseResult.IsFailed)
                 parseErrors.AddRange(parseResult.Errors.Select(e =>
                     new ValidationError(
-                        $"{nameof(CspInstanceDto.Constraints)}[{constraintIndex}]",
-                        e.Message)
-                    )
-                );
+                        $"{nameof(request.Instance)}.{nameof(CspInstanceDto.Constraints)}[{constraintIndex}]",
+                        e.Message)));
             else
                 constraints.Add(parseResult.Value);
 
@@ -77,20 +72,21 @@ public sealed class CspSetProblemInstance(
         if (parseErrors.Count > 0)
             return Result.Fail(parseErrors);
 
-        var cspInstance = new CspInstance(variables, constraints);
-        return Result.Ok<Instance>(cspInstance);
+        problem.SetInstance(new CspInstance(variables, constraints));
+
+        await problemRepository.Update(problem, cancellationToken);
+        await unitOfWork.Commit(cancellationToken);
+
+        return Result.Ok();
     }
 }
 
-public record CspInstanceDto(
+public sealed record CspInstanceDto(
     IEnumerable<DecisionVariableDto> Variables,
     IEnumerable<string> Constraints
-) : InstanceDto
-{
-    [JsonIgnore] public override string ProblemType => ProblemTypes.ConstraintSatisfiabilityProblem;
-}
+);
 
-public record DecisionVariableDto(string Name, IEnumerable<string> States);
+public sealed record DecisionVariableDto(string Name, IEnumerable<string> States);
 
 public sealed class CspInstanceDtoValidator : AbstractValidator<CspInstanceDto>
 {
@@ -139,5 +135,16 @@ public sealed class CspInstanceDtoValidator : AbstractValidator<CspInstanceDto>
                     .Must(state => state != null && SimpleIdentifierRegex.IsMatch(state))
                     .WithMessage("State names must be simple alphanumeric identifiers (letters and digits only).");
             });
+    }
+}
+
+public sealed class SetCspProblemInstanceValidator : AbstractValidator<SetCspProblemInstanceCommand>
+{
+    public SetCspProblemInstanceValidator()
+    {
+        RuleFor(c => c.ProblemId).NotEmpty();
+        RuleFor(c => c.Instance)
+            .NotNull()
+            .SetValidator(new CspInstanceDtoValidator());
     }
 }

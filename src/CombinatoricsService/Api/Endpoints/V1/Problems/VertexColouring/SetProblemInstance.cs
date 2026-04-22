@@ -1,31 +1,33 @@
-﻿using FluentResults;
+using FluentResults;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
 using Raijin.CombinatoricsService.Application.Errors;
-using Raijin.CombinatoricsService.Application.Features.Problems;
+using Raijin.CombinatoricsService.Application.Features.Problems.VertexColouring;
 using Raijin.CombinatoricsService.Application.Messaging;
 
-namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems;
+namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems.VertexColouring;
 
-public sealed class SetProblemInstanceEndpoint : IEndpoint
+public sealed class SetVertexColoringProblemInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapPost("problems/{id:Guid}/instance", Execute)
-            .WithName("set problem instance")
-            .WithTags("problems");
+        endpoint.MapPost("problems/{id:Guid}/instance/vertex-coloring", Execute)
+            .WithName("set vertex coloring problem instance")
+            .WithTags("problems", "vertex-coloring");
     }
 
     public static async Task<Results<NoContent, NotFound<ProblemDetails>, Conflict<ProblemDetails>, ValidationProblem, InternalServerError>>
         Execute(
             [FromRoute] Guid id,
-            [FromBody] SetProblemInstanceRequest request,
+            [FromBody] SetVertexColoringProblemInstanceRequest request,
             [FromServices] IMediator mediator,
             CancellationToken cancellationToken
         )
     {
-        Result result = await mediator.Send(new SetProblemInstanceCommand(id, request.Instance), cancellationToken);
+        Result result = await mediator.Send(
+            new SetVertexColoringProblemInstanceCommand(id, request.Instance),
+            cancellationToken);
 
         if (result.IsSuccess)
             return TypedResults.NoContent();
@@ -43,7 +45,7 @@ public sealed class SetProblemInstanceEndpoint : IEndpoint
     }
 }
 
-public sealed class SetProblemInstanceRequest
+public sealed class SetVertexColoringProblemInstanceRequest
 {
-    public InstanceDto Instance { get; set; } = null!;
+    public VertexColoringInstanceDto Instance { get; set; } = null!;
 }

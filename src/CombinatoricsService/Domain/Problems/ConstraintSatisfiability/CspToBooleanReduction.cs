@@ -24,7 +24,7 @@ internal static class CspToBooleanReduction
             decisionVariablesBoolVars.UnionWith(boolVars);
 
             BoolExpr atLeastOneCondition = boolVars.Aggregate<BoolExpr>((acc, v) => acc.Or(v));
-            BoolExpr atMostOneCondition = boolVars.Select<BoolVar, BoolExpr>(boolVar => boolVar.Imply(
+            BoolExpr atMostOneCondition = boolVars.Length == 1 ? new ConstExpr(true) : boolVars.Select<BoolVar, BoolExpr>(boolVar => boolVar.Imply(
                     boolVars.Where(bv => bv != boolVar).Aggregate<BoolExpr>((acc, bv) => acc.Or(bv)).Negated()
                 )
             ).Aggregate((acc, v) => acc.And(v));

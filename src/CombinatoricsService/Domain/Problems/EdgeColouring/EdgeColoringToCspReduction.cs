@@ -69,11 +69,12 @@ internal static class EdgeColoringToCspReduction
 
 internal static partial class InternalExtensions
 {
-    public static DecisionVariable ToDecisionVariable(this Edge edge, List<string> colorStates) => 
-        new($"{edge.U.Id}-{edge.V.Id}", colorStates);
-    
-    public static EdgeColorAssignment ToEdgeColorAssignment(this Edge edge, int colorState) => new(edge, colorState);
-    
+    public static DecisionVariable ToDecisionVariable(this Edge edge, List<string> colorStates) =>
+        new(edge.Label, colorStates);
+
+    public static EdgeColorAssignment ToEdgeColorAssignment(this Edge edge, int colorState) =>
+        new(edge.Label, colorState);
+
     public static DecisionVariableStateAssignment ToDecisionVariableStateAssignment(this EdgeColorAssignment edgeColorAssignment) =>
-        new($"{edgeColorAssignment.Edge.U.Id}-{edgeColorAssignment.Edge.V.Id}", edgeColorAssignment.Color.ToString());
+        new(edgeColorAssignment.EdgeLabel, edgeColorAssignment.Color.ToString());
 }

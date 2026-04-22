@@ -3,37 +3,36 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
 using Raijin.CombinatoricsService.Application.Errors;
-using Raijin.CombinatoricsService.Application.Features.Problems;
+using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Domain.Problems;
 
-namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems;
+namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems.Boolean;
 
-public sealed class GetSolutionEndpoint : IEndpoint
+public sealed class GetBooleanSolutionEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("/problems/{id:Guid}/solution", Execute)
-            .WithName("get solution")
-            .WithTags("problems");
+        endpoint.MapGet("problems/{id:Guid}/solution/bool", Execute)
+            .WithName("get boolean solution")
+            .WithTags("problems", "bool");
     }
 
     public static async Task<Results<
-        Ok<GetSolutionResponse>,
+        Ok<GetBooleanSolutionResponse>,
         NotFound<ProblemDetails>,
         UnprocessableEntity<ProblemDetails>,
         ValidationProblem,
         InternalServerError>> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
-        Result<GetSolutionResult> result = await mediator.Send(
-            new GetSolutionQuery(id), cancellationToken);
+        Result<GetBooleanSolutionResult> result = await mediator.Send(
+            new GetBooleanSolutionQuery(id), cancellationToken);
 
         if (result.IsSuccess)
-            return TypedResults.Ok(new GetSolutionResponse(
+            return TypedResults.Ok(new GetBooleanSolutionResponse(
                 result.Value.Solution,
                 result.Value.Satisfiability));
 
@@ -50,4 +49,7 @@ public sealed class GetSolutionEndpoint : IEndpoint
     }
 }
 
-public sealed record GetSolutionResponse(Solution? Solution, Satisfiability Satisfiability);
+public sealed record GetBooleanSolutionResponse(
+    BooleanSolutionDto? Solution,
+    Satisfiability Satisfiability
+);

@@ -48,9 +48,9 @@ internal static partial class InternalExtensions
         new(vertex.Id, colourStates);
 
     public static VertexColorAssignment ToVertexColorAssignment(this Vertex vertex, int colour) =>
-        new(vertex, colour);
+        new(vertex.Id, colour);
 
     public static DecisionVariableStateAssignment ToDecisionVariableStateAssignment(this VertexColorAssignment assignment) =>
-        new(assignment.Vertex.Id, assignment.Color.ToString());
+        new(assignment.VertexId, assignment.Color.ToString());
 }
 
