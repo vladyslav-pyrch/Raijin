@@ -1,6 +1,0 @@
-@Raijin.ApiGateway_HostAddress = http://localhost:5072
-
-GET {{Raijin.ApiGateway_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

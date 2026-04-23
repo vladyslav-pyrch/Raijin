@@ -14,11 +14,20 @@ builder.Services.AddProblemDetails();
 // Logging
 builder.Services.AddHttpLogging();
 
+// Edge policies
+builder.Services.AddCors();
+builder.Services.AddRateLimiter();
+
 // Security
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
-// OpenAPI (optional but useful for internal tooling)
+// Response optimization
+builder.Services.AddResponseCompression();
+builder.Services.AddResponseCaching();
+
+
+// Api endpoints
 builder.Services.AddOpenApi();
 builder.Services.AddEndpoints();
 
@@ -34,9 +43,21 @@ app.UseExceptionHandler();
 // Logging
 app.UseHttpLogging();
 
+// Edge security
+app.UseHsts();
+app.UseHttpsRedirection();
+
+// Policies
+app.UseRateLimiter();
+app.UseCors();
+
 // Zero-trust verification
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Response handling
+app.UseResponseCompression();
+app.UseResponseCaching();
 
 // Service endpoints
 app.MapDefaultEndpoints();

@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/ApiGateway/Raijin.ApiGateway.csproj" />
     <Project Path="src/AppHost/Raijin.AppHost.csproj" />
     <Project Path="src/ServiceDefaults/Raijin.ServiceDefaults.csproj" />
     <Project Path="src/Spa/spa.esproj">
@@ -15,12 +14,5 @@
     <Project Path="src/CombinatoricsService/Infrastructure/Raijin.CombinatoricsService.Infrastructure.csproj" />
     <Project Path="src/CombinatoricsService/MigrationWorker/Raijin.CombinatoricsService.MigrationWorker.csproj" />
     <Project Path="src/CombinatoricsService/SatSolver/Raijin.CombinatoricsService.SatSolver.csproj" />
-  </Folder>
-  <Folder Name="/src/IdentityService/">
-    <Project Path="src/IdentityService/Api/Raijin.IdentityService.Api.csproj" />
-    <Project Path="src/IdentityService/Application/Raijin.IdentityService.Application.csproj" />
-    <Project Path="src/IdentityService/Domain/Raijin.IdentityService.Domain.csproj" />
-    <Project Path="src/IdentityService/Infrastructure/Raijin.IdentityService.Infrastructure.csproj" />
-    <Project Path="src/IdentityService/MigrationWorker/Raijin.IdentityService.MigrationWorker.csproj" />
   </Folder>
 </Solution>
