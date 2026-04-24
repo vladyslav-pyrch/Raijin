@@ -1,12 +1,20 @@
 import type {
+  BooleanProblemInstanceDto,
   CreateProblemRequest,
   CreateProblemResponse,
+  CspInstanceDto,
+  EdgeColoringInstanceDto,
   GetBooleanSatisfiabilitySolutionResponse,
   GetBooleanSolutionResponse,
   GetCspSolutionResponse,
   GetEdgeColoringSolutionResponse,
+  GetProblemResponse,
+  GetSatEncodingResponse,
+  GetSatEncodingVariableMapResponse,
+  GetSatInstanceResponse,
   GetVertexColoringSolutionResponse,
   HttpValidationProblemDetails,
+  ListProblemsResponse,
   ProblemDetails,
   ReduceToSatRequest,
   SetBooleanProblemInstanceRequest,
@@ -15,6 +23,7 @@ import type {
   SetEdgeColoringProblemInstanceRequest,
   SetVertexColoringProblemInstanceRequest,
   UpdateProblemRequest,
+  VertexColoringInstanceDto,
 } from './types';
 
 // ─── Error ───────────────────────────────────────────────────────────────────
@@ -60,7 +69,7 @@ export class CombinatoricsApiService {
 
     const url = `${this.baseUrl.replace(/\/$/, '')}${path}`;
 
-    const init: RequestInit = { method, headers };
+    const init: RequestInit = { method: method, headers: headers };
     if (body !== undefined) {
       init.body = JSON.stringify(body);
     }
@@ -87,6 +96,31 @@ export class CombinatoricsApiService {
 
   // ── Problems ───────────────────────────────────────────────────────────────
 
+  getProblem(id: string): Promise<GetProblemResponse> {
+    return this.request<GetProblemResponse>('GET', `/problems/${id}`);
+  }
+
+  listProblems(page = 1, pageSize = 20): Promise<ListProblemsResponse> {
+    return this.request<ListProblemsResponse>(
+      'GET',
+      `/problems?page=${page}&pageSize=${pageSize}`,
+    );
+  }
+
+  getSatEncoding(id: string): Promise<GetSatEncodingResponse> {
+    return this.request<GetSatEncodingResponse>(
+      'GET',
+      `/problems/${id}/sat-encoding`,
+    );
+  }
+
+  getSatEncodingVariableMap(id: string): Promise<GetSatEncodingVariableMapResponse> {
+    return this.request<GetSatEncodingVariableMapResponse>(
+      'GET',
+      `/problems/${id}/sat-encoding/variable-map`,
+    );
+  }
+
   createProblem(request: CreateProblemRequest): Promise<CreateProblemResponse> {
     return this.request<CreateProblemResponse>('POST', '/problems', request);
   }
@@ -100,6 +134,13 @@ export class CombinatoricsApiService {
   }
 
   // ── Vertex Coloring ────────────────────────────────────────────────────────
+
+  getVertexColoringInstance(id: string): Promise<VertexColoringInstanceDto> {
+    return this.request<VertexColoringInstanceDto>(
+      'GET',
+      `/problems/${id}/instance/vertex-coloring`,
+    );
+  }
 
   getVertexColoringSolution(
     id: string,
@@ -123,6 +164,13 @@ export class CombinatoricsApiService {
 
   // ── Edge Coloring ──────────────────────────────────────────────────────────
 
+  getEdgeColoringInstance(id: string): Promise<EdgeColoringInstanceDto> {
+    return this.request<EdgeColoringInstanceDto>(
+      'GET',
+      `/problems/${id}/instance/edge-coloring`,
+    );
+  }
+
   getEdgeColoringSolution(
     id: string,
   ): Promise<GetEdgeColoringSolutionResponse> {
@@ -145,6 +193,10 @@ export class CombinatoricsApiService {
 
   // ── CSP ────────────────────────────────────────────────────────────────────
 
+  getCspInstance(id: string): Promise<CspInstanceDto> {
+    return this.request<CspInstanceDto>('GET', `/problems/${id}/instance/csp`);
+  }
+
   getCspSolution(id: string): Promise<GetCspSolutionResponse> {
     return this.request<GetCspSolutionResponse>(
       'GET',
@@ -165,6 +217,13 @@ export class CombinatoricsApiService {
 
   // ── Boolean ────────────────────────────────────────────────────────────────
 
+  getBooleanInstance(id: string): Promise<BooleanProblemInstanceDto> {
+    return this.request<BooleanProblemInstanceDto>(
+      'GET',
+      `/problems/${id}/instance/bool`,
+    );
+  }
+
   getBooleanSolution(id: string): Promise<GetBooleanSolutionResponse> {
     return this.request<GetBooleanSolutionResponse>(
       'GET',
@@ -184,6 +243,13 @@ export class CombinatoricsApiService {
   }
 
   // ── Boolean Satisfiability (SAT) ───────────────────────────────────────────
+
+  getSatInstance(id: string): Promise<GetSatInstanceResponse> {
+    return this.request<GetSatInstanceResponse>(
+      'GET',
+      `/problems/${id}/instance/sat`,
+    );
+  }
 
   getSatSolution(id: string): Promise<GetBooleanSatisfiabilitySolutionResponse> {
     return this.request<GetBooleanSatisfiabilitySolutionResponse>(

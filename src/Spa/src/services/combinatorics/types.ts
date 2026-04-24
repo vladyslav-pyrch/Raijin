@@ -27,6 +27,51 @@ export interface HttpValidationProblemDetails extends ProblemDetails {
 
 // ─── Problem ─────────────────────────────────────────────────────────────────
 
+export interface GetProblemResponse {
+  id: string;
+  name: string;
+  description: string;
+  solver: string | null;
+  instanceType: string | null;
+  solvingStatus: string;
+  satisfiability: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+}
+
+export interface ProblemSummaryResponse {
+  id: string;
+  name: string;
+  instanceType: string | null;
+  solvingStatus: string;
+  satisfiability: string;
+  createdAt: string;
+}
+
+export interface ListProblemsResponse {
+  items: ProblemSummaryResponse[];
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+export interface GetSatEncodingResponse {
+  numberOfVariables: number;
+  numberOfClauses: number;
+  clauses: number[][];
+}
+
+export interface VariableMapEntryResponse {
+  name: string;
+  index: number;
+}
+
+export interface GetSatEncodingVariableMapResponse {
+  variables: VariableMapEntryResponse[];
+}
+
 export interface CreateProblemRequest {
   name?: string;
   description?: string | null;
@@ -172,8 +217,13 @@ export interface SetBooleanProblemInstanceRequest {
 // ─── Boolean Satisfiability (SAT) ────────────────────────────────────────────
 
 export interface BooleanSatisfiabilityInstanceDto {
-  /** Each inner array is a clause; each integer is a signed literal. */
-  clauses: number[][];
+  /** Each inner array is a clause; each string is a literal name, e.g. "x1" or "~y2" (negated). */
+  clauses: string[][];
+}
+
+/** GET /problems/{id}/instance/sat — clauses as literal strings, e.g. ["x1", "~y2"] */
+export interface GetSatInstanceResponse {
+  clauses: string[][];
 }
 
 export interface SatVariableAssignmentDto {

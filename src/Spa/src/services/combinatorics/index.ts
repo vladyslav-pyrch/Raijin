@@ -1,6 +1,13 @@
 export { ApiError, CombinatoricsApiService } from './CombinatoricsApiService';
 export type {
   BooleanProblemInstanceDto,
+  GetProblemResponse,
+  GetSatEncodingResponse,
+  GetSatEncodingVariableMapResponse,
+  GetSatInstanceResponse,
+  ListProblemsResponse,
+  ProblemSummaryResponse,
+  VariableMapEntryResponse,
   BooleanSatisfiabilityInstanceDto,
   BooleanSatisfiabilitySolutionDto,
   BooleanSolutionDto,
