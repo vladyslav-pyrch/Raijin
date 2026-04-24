@@ -12,10 +12,21 @@ builder.AddServiceDefaults();
 builder.Services.AddProblemDetails();
 
 // Logging
-builder.Services.AddHttpLogging();
+builder.Services.AddHttpLogging(options =>
+{
+    options.CombineLogs = true;
+});
 
 // Edge policies
-builder.Services.AddCors();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(cors =>
+    {
+        cors.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddRateLimiter();
 
 // Security

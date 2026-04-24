@@ -11,4 +11,6 @@ public interface IProblemRepository
     public Task Update(Problem problem, CancellationToken cancellationToken);
 
     public Task<Problem?> GetOldestPendingWithLock(CancellationToken cancellationToken);
+
+    public Task<(IReadOnlyList<Problem> Items, int TotalCount)> GetPage(int page, int pageSize, CancellationToken cancellationToken);
 }

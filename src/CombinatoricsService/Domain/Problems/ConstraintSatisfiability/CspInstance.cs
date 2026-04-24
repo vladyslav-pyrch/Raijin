@@ -64,6 +64,14 @@ public sealed record CspInstance(
     internal override SatEncoding ReduceToSat() =>
         CspToBooleanReduction.Apply(this).Instance.ReduceToSat();
 
+    internal override IReadOnlyDictionary<string, int> GetVariableMap()
+    {
+        CspToBooleanReductionResult cspResult = CspToBooleanReduction.Apply(this);
+        TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspResult.Instance);
+        DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
+        return dimacsResult.SymbolTable.ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
+    }
+
     internal override Solution InterpretSolution(IReadOnlyList<int> assignments)
     {
         var processedAssignments = assignments.Select(i => new

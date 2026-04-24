@@ -134,6 +134,8 @@ public sealed class Problem
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public IReadOnlyDictionary<string, int>? ComputeVariableMap() => Instance?.GetVariableMap();
+
     public void ReduceToSat()
     {
         if (SolvingStatus is SolvingStatus.Running)

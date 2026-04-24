@@ -58,6 +58,20 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
         }
     }
 
+    public async Task<(IReadOnlyList<Problem> Items, int TotalCount)> GetPage(int page, int pageSize, CancellationToken cancellationToken)
+    {
+        int totalCount = await dbContext.Problems.CountAsync(cancellationToken);
+
+        var models = await dbContext.Problems
+            .AsNoTracking()
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (models.Select(ToDomain).ToList(), totalCount);
+    }
+
     public async Task<Problem?> GetOldestPendingWithLock(CancellationToken cancellationToken)
     {
         var model = await dbContext.Problems

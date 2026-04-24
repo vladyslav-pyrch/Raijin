@@ -20,4 +20,6 @@ public abstract record Instance
     internal abstract SatEncoding ReduceToSat();
 
     internal abstract Solution InterpretSolution(IReadOnlyList<int> assignments);
+
+    internal abstract IReadOnlyDictionary<string, int> GetVariableMap();
 }

@@ -24,6 +24,15 @@ public sealed record VertexColoringInstance(Graph Graph, int ColourCount) : Inst
     internal override SatEncoding ReduceToSat() =>
         VertexColouringToCspReduction.Apply(this).CspInstance.ReduceToSat();
 
+    internal override IReadOnlyDictionary<string, int> GetVariableMap()
+    {
+        VertexColouringToCspReductionResult vertexResult = VertexColouringToCspReduction.Apply(this);
+        CspToBooleanReductionResult cspResult = CspToBooleanReduction.Apply(vertexResult.CspInstance);
+        TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspResult.Instance);
+        DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
+        return dimacsResult.SymbolTable.ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
+    }
+
     internal override Solution InterpretSolution(IReadOnlyList<int> assignments)
     {
         var processedAssignments = assignments.Select(i => new

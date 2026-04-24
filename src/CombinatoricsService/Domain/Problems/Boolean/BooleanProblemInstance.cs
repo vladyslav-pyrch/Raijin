@@ -21,6 +21,13 @@ public sealed record BooleanProblemInstance(BoolExpr Root) : Instance
 
     internal override SatEncoding ReduceToSat() => TseitinTransform.Apply(this).Instance.ReduceToSat();
 
+    internal override IReadOnlyDictionary<string, int> GetVariableMap()
+    {
+        TseitinTransformResult tseitinResult = TseitinTransform.Apply(this);
+        DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
+        return dimacsResult.SymbolTable.ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
+    }
+
     internal override Solution InterpretSolution(IReadOnlyList<int> assignments)
     {
         var processedAssignments = assignments.Select(i => new

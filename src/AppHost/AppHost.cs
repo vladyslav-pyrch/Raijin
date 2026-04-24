@@ -38,9 +38,12 @@ IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
 
 IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
     .AddViteApp("spa-frontend", "../Spa")
-    .WithReference(combinatoricsServiceApi)
+    .WithReference(combinatoricsServiceApi) 
     .WaitFor(combinatoricsServiceApi)
+    .WithEnvironment("VITE_COMBINATORICS_API_URL", combinatoricsServiceApi.GetEndpoint("https"))
     .PublishAsDockerFile();
+
+combinatoricsServiceApi.WithEnvironment("Cors__AllowedOrigins__0", spaFrontend.GetEndpoint("http"));
 
 IResourceBuilder<ScalarResource> scalar = builder
     .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)

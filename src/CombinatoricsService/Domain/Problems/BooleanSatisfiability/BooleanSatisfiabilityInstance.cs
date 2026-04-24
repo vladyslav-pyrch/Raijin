@@ -15,6 +15,10 @@ public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses
 
     internal override SatEncoding ReduceToSat() => DimacsReduction.Apply(this).SatEncoding;
 
+    internal override IReadOnlyDictionary<string, int> GetVariableMap() =>
+        DimacsReduction.Apply(this).SymbolTable
+            .ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
+
     internal override Solution InterpretSolution(IReadOnlyList<int> assignments)
     {
         var processedAssignments = assignments.Select(i => new

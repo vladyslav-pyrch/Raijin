@@ -16,6 +16,15 @@ public sealed record EdgeColoringInstance(Graph Graph, int ColourCount) : Instan
     internal override SatEncoding ReduceToSat() => EdgeColoringToCspReduction.Apply(this)
         .CspInstance.ReduceToSat();
 
+    internal override IReadOnlyDictionary<string, int> GetVariableMap()
+    {
+        EdgeColoringToCspReductionResult edgeResult = EdgeColoringToCspReduction.Apply(this);
+        CspToBooleanReductionResult cspResult = CspToBooleanReduction.Apply(edgeResult.CspInstance);
+        TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspResult.Instance);
+        DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
+        return dimacsResult.SymbolTable.ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
+    }
+
     internal override Solution InterpretSolution(IReadOnlyList<int> assignments)
     {
         var processedAssignments = assignments.Select(i => new

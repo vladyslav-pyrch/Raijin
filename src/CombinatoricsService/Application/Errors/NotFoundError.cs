@@ -11,6 +11,12 @@ public sealed class NotFoundError : Error
         Metadata["key"] = id;
     }
 
+    public NotFoundError(string message) : base(message)
+    {
+        EntityName = string.Empty;
+        Id = Guid.Empty;
+    }
+
     public string EntityName { get; }
 
     public Guid Id { get; }
