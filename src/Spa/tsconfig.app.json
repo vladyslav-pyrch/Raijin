@@ -30,7 +30,6 @@
     "noImplicitReturns": true,
     "useUnknownInCatchVariables": true,
     "forceConsistentCasingInFileNames": true,
-    "importsNotUsedAsValues": "error",
     "resolveJsonModule": true,
     "isolatedModules": true,
   },
