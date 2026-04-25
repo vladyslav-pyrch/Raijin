@@ -1,0 +1,236 @@
+import {useState} from 'react';
+import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
+import {useProblems} from './hooks/useProblems';
+import {api} from './lib/api';
+import {Button} from './components/Button';
+import {Modal} from './components/Modal';
+import {Spinner} from './components/Spinner';
+import {ProblemCard} from './components/ProblemCard';
+import {WelcomePage} from './pages/WelcomePage';
+import {ProblemDetailPage} from './pages/ProblemDetailPage';
+
+function SidebarCardList({
+  problems,
+  onCardClick,
+}: {
+  problems: ReturnType<typeof useProblems>['problems'];
+  onCardClick: (id: string) => void;
+}) {
+  const params = useParams<{ id: string }>();
+  return (
+    <>
+      {problems.map((p) => (
+        <ProblemCard
+          key={p.id}
+          problem={p}
+          active={params.id === p.id}
+          onClick={() => onCardClick(p.id)}
+        />
+      ))}
+    </>
+  );
+}
+
+function AppLayout() {
+  const navigate = useNavigate();
+  const { problems, loading, error, totalPages, page, loadPage, refresh } = useProblems();
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const openCreate = () => {
+    setNewName('');
+    setNewDesc('');
+    setCreateError(null);
+    setCreateOpen(true);
+  };
+
+  const handleCreate = async () => {
+    if (!newName.trim()) {
+      setCreateError('Name is required');
+      return;
+    }
+    setCreateLoading(true);
+    setCreateError(null);
+    try {
+      const res = await api.createProblem({ name: newName.trim(), description: newDesc || null });
+      setCreateOpen(false);
+      await refresh();
+      navigate(`/problems/${res.problemId}`);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'Failed to create problem');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen" style={{ background: '#f2f3f3' }}>
+      {/* ── Top navigation bar ──────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-10 flex items-center shrink-0 min-h-[48px] px-4 gap-4"
+        style={{ background: '#232f3e' }}
+      >
+        <span className="text-base font-bold tracking-tight" style={{ color: '#ff9900' }}>
+          ⚡ Raijin
+        </span>
+        <span className="text-xs" style={{ color: '#d5dbdb', opacity: 0.6 }}>
+          Combinatorics Solver
+        </span>
+      </header>
+
+      {/* ── Body ────────────────────────────────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── Sidebar ─────────────────────────────────────────────────── */}
+        <aside
+          className="w-64 shrink-0 flex flex-col overflow-hidden border-r"
+          style={{ background: '#ffffff', borderColor: '#d5dbdb' }}
+        >
+          {/* Sidebar header */}
+          <div
+            className="px-3 py-2 border-b flex items-center justify-between shrink-0"
+            style={{ borderColor: '#d5dbdb', background: '#fafafa' }}
+          >
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#545b64' }}>
+              Problems
+            </span>
+            <button
+              onClick={openCreate}
+              className="text-xs font-semibold px-2 py-1 rounded cursor-pointer transition-colors"
+              style={{
+                background: '#ff9900',
+                color: '#16191f',
+                border: '1px solid #e88b00',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#e88b00')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#ff9900')}
+            >
+              + Create
+            </button>
+          </div>
+
+          {/* Problem list */}
+          <div className="flex-1 overflow-y-auto">
+            {loading && (
+              <div className="flex justify-center py-8">
+                <Spinner />
+              </div>
+            )}
+            {error && (
+              <p className="text-xs px-3 py-2" style={{ color: '#d13212' }}>
+                {error}
+              </p>
+            )}
+            {!loading && problems.length === 0 && (
+              <p className="text-xs text-center py-8" style={{ color: '#879596' }}>
+                No problems yet
+              </p>
+            )}
+            <Routes>
+              <Route
+                path="*"
+                element={
+                  <SidebarCardList
+                    problems={problems}
+                    onCardClick={(id) => navigate(`/problems/${id}`)}
+                  />
+                }
+              />
+            </Routes>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div
+              className="flex items-center justify-between px-3 py-2 border-t text-xs shrink-0"
+              style={{ borderColor: '#d5dbdb' }}
+            >
+              <Button size="sm" variant="ghost" onClick={() => loadPage(page - 1)} disabled={page <= 1}>
+                ‹ Prev
+              </Button>
+              <span style={{ color: '#879596' }}>
+                {page} / {totalPages}
+              </span>
+              <Button size="sm" variant="ghost" onClick={() => loadPage(page + 1)} disabled={page >= totalPages}>
+                Next ›
+              </Button>
+            </div>
+          )}
+        </aside>
+
+        {/* ── Main content ─────────────────────────────────────────────── */}
+        <main className="flex-1 overflow-y-auto" style={{ background: '#f2f3f3' }}>
+          <Routes>
+            <Route path="/" element={<WelcomePage />} />
+            <Route
+              path="/problems/:id"
+              element={<ProblemDetailPage onProblemChanged={refresh} />}
+            />
+          </Routes>
+        </main>
+      </div>
+
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      <footer
+        className="shrink-0 min-h-[36px] border-t flex items-center px-4"
+        style={{ background: '#fafafa', borderColor: '#d5dbdb' }}
+      />
+
+      {/* ── Create Problem modal ─────────────────────────────────────────── */}
+      <Modal open={createOpen} title="Create Problem" onClose={() => setCreateOpen(false)}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
+              Name <span style={{ color: '#d13212' }}>*</span>
+            </label>
+            <input
+              className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+              style={{
+                borderColor: '#aab7b8',
+                color: '#16191f',
+              }}
+              placeholder="My combinatorics problem"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              disabled={createLoading}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
+              Description
+            </label>
+            <textarea
+              className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+              style={{ borderColor: '#aab7b8', color: '#16191f' }}
+              rows={3}
+              placeholder="Optional description…"
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+              disabled={createLoading}
+            />
+          </div>
+          {createError && (
+            <p className="text-xs" style={{ color: '#d13212' }}>
+              {createError}
+            </p>
+          )}
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="secondary" onClick={() => setCreateOpen(false)} disabled={createLoading}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleCreate} disabled={createLoading}>
+              {createLoading && <Spinner size="sm" />}
+              Create problem
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+export default AppLayout;

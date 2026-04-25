@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  /* AWS-style color palette */
+  --color-brand-navy:    #232f3e;
+  --color-brand-squid:   #16191f;
+  --color-brand-orange:  #ff9900;
+  --color-brand-orange-dark: #e88b00;
+
+  --color-page-bg:       #f2f3f3;
+  --color-panel-bg:      #ffffff;
+  --color-border:        #d5dbdb;
+  --color-border-light:  #eaeded;
+
+  --color-text:          #16191f;
+  --color-text-secondary:#545b64;
+  --color-text-muted:    #879596;
+  --color-text-link:     #0073bb;
+
+  /* Status semantic colors */
+  --color-status-none:   #879596;
+  --color-status-pending:#ff9900;
+  --color-status-running:#0073bb;
+  --color-status-done:   #1d8348;
+  --color-status-fail:   #d13212;
+  --color-status-timeout:#f5a623;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Amazon Ember", "Helvetica Neue", Roboto, Arial, sans-serif;
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-page-bg);
+}

@@ -1,27 +1,59 @@
+using Aspire.Hosting.JavaScript;
 using Projects;
+using Scalar.Aspire;
 
-var builder = DistributedApplication.CreateBuilder(args);
+IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-var tests = builder.AddExecutable(
-    "tests",
-    "dotnet",
-    "../../",
-    "test"
+IResourceBuilder<PostgresServerResource> applicationDbServer = builder
+    .AddPostgres("raijin-db-server")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume("raijin-db-data")
+    .WithPgWeb()
+    .PublishAsContainer();
 
-);
+IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = applicationDbServer
+    .AddDatabase("combinatorics-service-db");
 
-var problemSolvingServiceApi = builder.AddProject<Njinx_ProblemSolvingService_Api>(
-        "problem-solving-service-api"
-    ).WithHttpHealthCheck("/health")
-    .WithExternalHttpEndpoints()
-    .WaitForCompletion(tests);
+IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
+    .AddProject<Raijin_CombinatoricsService_MigrationWorker>("combinatorics-service-migration-worker")
+    .WithReference(combinatoricsServiceDb)
+    .WaitFor(combinatoricsServiceDb);
 
-
-builder.AddNpmApp("angular-spa", "../Spa")
-    .WithReference(problemSolvingServiceApi)
-    .WaitFor(problemSolvingServiceApi)
-    .WithHttpEndpoint(env: "PORT")
-    .WithExternalHttpEndpoints()
+IResourceBuilder<ProjectResource> combinatoricsServiceSatSolver = builder
+    .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-service-sat-solver")
+    .WithEnvironment("MAX_JOBS_COUNT", "3")
+    .WithEnvironment("MAX_REFIRE_COUNT", "3")
+    .WithReference(combinatoricsServiceDb)
+    .WaitFor(combinatoricsServiceDb)
+    .WaitForCompletion(combinatoricsServiceMigrationWorker)
     .PublishAsDockerFile();
+
+IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
+    .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-service-api")
+    .WithHttpHealthCheck("/health")
+    .WithReference(combinatoricsServiceDb)
+    .WaitFor(combinatoricsServiceDb)
+    .WaitForCompletion(combinatoricsServiceMigrationWorker)
+    .PublishAsDockerFile();
+
+IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
+    .AddViteApp("spa-frontend", "../Spa")
+    .WithReference(combinatoricsServiceApi) 
+    .WaitFor(combinatoricsServiceApi)
+    .WithEnvironment("VITE_COMBINATORICS_API_URL", combinatoricsServiceApi.GetEndpoint("https"))
+    .PublishAsDockerFile();
+
+combinatoricsServiceApi.WithEnvironment("Cors__AllowedOrigins__0", spaFrontend.GetEndpoint("http"));
+
+IResourceBuilder<ScalarResource> scalar = builder
+    .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
+    .WithApiReference(combinatoricsServiceApi, (options, _) =>
+    {
+        options.AddDocument("v1");
+        return Task.CompletedTask;
+    })
+    .WaitFor(combinatoricsServiceApi)
+    .WithLifetime(ContainerLifetime.Persistent)
+    .PublishAsContainer();
 
 builder.Build().Run();

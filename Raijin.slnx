@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AppHost/Raijin.AppHost.csproj" />
+    <Project Path="src/ServiceDefaults/Raijin.ServiceDefaults.csproj" />
+    <Project Path="src/Spa/spa.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
+  <Folder Name="/src/CombinatoricsService/">
+    <Project Path="src/CombinatoricsService/Api/Raijin.CombinatoricsService.Api.csproj" />
+    <Project Path="src/CombinatoricsService/Application/Raijin.CombinatoricsService.Application.csproj" />
+    <Project Path="src/CombinatoricsService/Domain/Raijin.CombinatoricsService.Domain.csproj" />
+    <Project Path="src/CombinatoricsService/Infrastructure/Raijin.CombinatoricsService.Infrastructure.csproj" />
+    <Project Path="src/CombinatoricsService/MigrationWorker/Raijin.CombinatoricsService.MigrationWorker.csproj" />
+    <Project Path="src/CombinatoricsService/SatSolver/Raijin.CombinatoricsService.SatSolver.csproj" />
+  </Folder>
+</Solution>
