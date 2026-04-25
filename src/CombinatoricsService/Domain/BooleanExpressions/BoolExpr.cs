@@ -15,6 +15,9 @@ public abstract record BoolExpr
 {
     [JsonIgnore]
     public abstract IReadOnlyList<BoolExpr> Children { get; }
+    
+    [JsonIgnore]
+    public abstract int Precedence { get; }
 
     public abstract IEnumerable<BoolVar> GetVariables();
 

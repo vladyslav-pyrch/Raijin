@@ -7,6 +7,9 @@ public sealed record Equal(BoolExpr LeftNode, BoolExpr RightNode) : BoolExpr
     [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [LeftNode, RightNode];
 
+    [JsonIgnore]
+    public override int Precedence => 0;
+
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) =>
         new Equal(children[0], children[1]);
 
@@ -18,7 +21,7 @@ public sealed record Equal(BoolExpr LeftNode, BoolExpr RightNode) : BoolExpr
             $"{nameof(Equal)} accepts {nameof(ChildSelector.Left)} or {nameof(ChildSelector.Right)}.")
     };
 
-    public override string ToString() => $"({LeftNode} <-> {RightNode})";
+    public override string ToString() => $"{LeftNode.BracketedIfLowerPrecedenceThan(this)} <-> {RightNode.BracketedIfLowerPrecedenceThan(this)}";
 
     public override IEnumerable<BoolVar> GetVariables() => [..LeftNode.GetVariables(), ..RightNode.GetVariables()];
 }

@@ -6,6 +6,9 @@ public sealed record And(BoolExpr LeftNode, BoolExpr RightNode) : BoolExpr
 {
     [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [LeftNode, RightNode];
+    
+    [JsonIgnore]
+    public override int Precedence => 40;
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) =>
         new And(children[0], children[1]);
@@ -18,7 +21,8 @@ public sealed record And(BoolExpr LeftNode, BoolExpr RightNode) : BoolExpr
             $"{nameof(And)} accepts {nameof(ChildSelector.Left)} or {nameof(ChildSelector.Right)}.")
     };
 
-    public override string ToString() => $"({LeftNode} & {RightNode})";
+    public override string ToString() 
+        => $"{LeftNode.BracketedIfLowerPrecedenceThan(this)} * {RightNode.BracketedIfLowerPrecedenceThan(this)}";
 
     public override IEnumerable<BoolVar> GetVariables() => [..LeftNode.GetVariables(), ..RightNode.GetVariables()];
 }

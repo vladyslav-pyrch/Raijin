@@ -31,13 +31,13 @@ internal static class BoolExprLexer
     private static readonly string NotPattern = @"(?<not>\s*!\s*|\s*~\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    private static readonly string ImplicationPattern = @"(?<imply>\s*->\s*)";
+    private static readonly string ImplicationPattern = @"(?<imply>\s*=>\s*|\s*->\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    private static readonly string ImplicationBackwardPattern = @"(?<imply_backward>\s*<-\s*)";
+    private static readonly string ImplicationBackwardPattern = @"(?<imply_backward>\s*<=\s*|\s*<-\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    private static readonly string EquivalencePattern = @"(?<equal>\s*<->\s*|\s*=\s*)";
+    private static readonly string EquivalencePattern = @"(?<equal>\s*<=>\s*|\s*=\s*|\s*<->\s*)";
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
     private static readonly string XorPattern = @"(?<xor>\s*\^\s*)";
@@ -46,8 +46,7 @@ internal static class BoolExprLexer
     private static readonly string UnknownPattern = @"(?<unknown>\s*.+\s*)";
 
     private static readonly Regex ExpressionRegex = new(string.Join('|', TruePattern, FalsePattern, VariablePattern,
-        LeftBracketPattern,
-        RightBracketPattern, AndPattern, OrPattern, NotPattern, ImplicationPattern, XorPattern,
+        LeftBracketPattern, RightBracketPattern, AndPattern, OrPattern, NotPattern, ImplicationPattern, XorPattern,
         EquivalencePattern, ImplicationBackwardPattern, UnknownPattern));
 
     public static IEnumerable<Token> Tokenize(string booleanExpression)

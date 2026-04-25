@@ -25,6 +25,9 @@ public partial record BoolVar : BoolExpr
 
     [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [];
+    
+    [JsonIgnore]
+    public override int Precedence => 60;
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) => this;
 
