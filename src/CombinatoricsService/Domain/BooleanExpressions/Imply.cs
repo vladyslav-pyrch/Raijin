@@ -6,6 +6,8 @@ public sealed record Imply(BoolExpr Premise, BoolExpr Conclusion) : BoolExpr
 {
     [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [Premise, Conclusion];
+    [JsonIgnore]
+    public override int Precedence => 10;
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) =>
         new Imply(children[0], children[1]);
@@ -18,7 +20,8 @@ public sealed record Imply(BoolExpr Premise, BoolExpr Conclusion) : BoolExpr
             $"{nameof(Imply)} accepts {nameof(ChildSelector.Left)} or {nameof(ChildSelector.Right)}.")
     };
 
-    public override string ToString() => $"({Premise} -> {Conclusion})";
+    public override string ToString() 
+        => $"{Premise.BracketedIfLowerPrecedenceThan(this)} -> {Conclusion.BracketedIfLowerPrecedenceThan(this)}";
 
     public override IEnumerable<BoolVar> GetVariables() => [..Premise.GetVariables(), ..Conclusion.GetVariables()];
 }

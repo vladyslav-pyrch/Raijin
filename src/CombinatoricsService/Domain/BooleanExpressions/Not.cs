@@ -6,6 +6,9 @@ public sealed record Not(BoolExpr Node) : BoolExpr
 {
     [JsonIgnore]
     public override IReadOnlyList<BoolExpr> Children => [Node];
+    
+    [JsonIgnore]
+    public override int Precedence => 50;
 
     protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) =>
         new Not(children[0]);
@@ -17,7 +20,7 @@ public sealed record Not(BoolExpr Node) : BoolExpr
             $"{nameof(Not)} accepts only {nameof(ChildSelector.Operand)}.")
     };
 
-    public override string ToString() => $"!{Node}";
+    public override string ToString() => $"~{Node.BracketedIfLowerPrecedenceThan(this)}";
 
     public override IEnumerable<BoolVar> GetVariables() => Node.GetVariables();
 }
