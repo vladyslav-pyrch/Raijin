@@ -24,21 +24,18 @@ public sealed class GetCspSolutionHandler(
         if (problem is null)
             return new NotFoundError(nameof(Problem), request.ProblemId);
 
-        if (problem.SolvingStatus is SolvingStatus.Pending or SolvingStatus.Running)
-            return new DomainError("Solving is not yet complete — solution is not available.");
-
         if (problem.SolvingStatus is SolvingStatus.Failed)
-            return new DomainError("Solving failed — no solution is available.");
+            return new NotFoundError("Solving failed — no solution is available.");
 
         if (problem.SolvingStatus is SolvingStatus.TimedOut)
-            return new DomainError("Solving timed out — no solution is available.");
+            return new NotFoundError("Solving timed out — no solution is available.");
 
         if (problem.SolvingStatus is not SolvingStatus.Completed)
-            return new DomainError($"Problem is in an unhandled status '{problem.SolvingStatus}'.");
+            return new NotFoundError("Solving is not complete — no solution is available.");
 
         if (problem.Solution is not null && problem.Solution is not CspSolution)
-            return new DomainError(
-                $"Solution type mismatch: this problem has a '{problem.Solution.GetType().Name}' solution, not a '{ProblemTypes.ConstraintSatisfiabilityProblem}' solution.");
+            return new NotFoundError(
+                $"Solution type mismatch: this problem has a {problem.Instance.ProblemType()} solution, not a '{ProblemTypes.ConstraintSatisfiabilityProblem}' solution.");
 
         CspSolutionDto? solutionDto = problem.Solution is CspSolution csp
             ? new CspSolutionDto(

@@ -19,27 +19,21 @@ public static class InfrastructureModule
 {
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        Action<IServiceCollectionQuartzConfigurator>? quartzConfiguration = null
-    )
+    public static void AddInfrastructure(this IServiceCollection services,
+        Action<IServiceCollectionQuartzConfigurator>? quartzConfiguration = null)
     {
         services.AddMessaging();
         services.AddPersistence();
         services.AddSolvers();
         services.AddQuartz(quartzConfiguration);
-
-        return services;
     }
 
-    private static IServiceCollection AddMessaging(this IServiceCollection services)
+    private static void AddMessaging(this IServiceCollection services)
     {
         services.AddScoped<IMediator, ServiceProviderMediator>();
-
-        return services;
     }
 
-    public static IServiceCollection AddPersistence(this IServiceCollection services)
+    public static void AddPersistence(this IServiceCollection services)
     {
         services.AddDbContextPool<CombinatoricsServiceDbContext>((provider, builder) =>
         {
@@ -50,11 +44,9 @@ public static class InfrastructureModule
         });
         services.AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>();
         services.AddScoped<IProblemRepository, ProblemRepository>();
-
-        return services;
     }
 
-    private static IServiceCollection AddSolvers(this IServiceCollection services)
+    private static void AddSolvers(this IServiceCollection services)
     {
         services.AddOptions<CryptominisatSolveOptions>()
             .Configure((CryptominisatSolveOptions options, IConfiguration configuration) =>
@@ -83,8 +75,6 @@ public static class InfrastructureModule
             });
         services.AddTransient<ICadicalCli, CadicalCli>();
         services.AddTransient<ISatSolver, CadicalSolver>();
-
-        return services;
     }
 
     private static string GetDatabaseConnectionString(IServiceProvider provider) =>

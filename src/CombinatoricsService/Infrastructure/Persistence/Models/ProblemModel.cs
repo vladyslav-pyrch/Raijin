@@ -12,7 +12,7 @@ internal class ProblemModel
 
     public string? Solver { get; set; }
 
-    public JsonDocument? Instance { get; set; }
+    public required JsonDocument Instance { get; set; }
 
     public JsonDocument? Solution { get; set; }
 

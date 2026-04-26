@@ -8,33 +8,33 @@ using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems;
 
-public sealed class ReduceToSatEndpoint : IEndpoint
+public sealed class SolveProblemEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapPost("/problems/{id:Guid}/solution", Execute)
+        endpoint.MapPost("/problems/{id:Guid}/solve", Execute)
             .WithName("reduce to sat")
             .WithTags("problems");
     }
 
     public static async Task<Results<
-        Created,
+        NoContent,
         NotFound<ProblemDetails>,
         Conflict<ProblemDetails>,
-        UnprocessableEntity<ProblemDetails>,
         ValidationProblem,
-        InternalServerError>> Execute(
+        InternalServerError
+    >> Execute(
         [FromRoute] Guid id,
-        [FromBody] ReduceToSatRequest request,
+        [FromQuery] string solver,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken
     )
     {
-        Result<ReduceToSatResult> result = await mediator.Send(
-            new ReduceToSatCommand(id, request.Solver), cancellationToken);
+        Result<SolveProblemResult> result = await mediator.Send(
+            new SolveProblemCommand(id, solver), cancellationToken);
 
         if (result.IsSuccess)
-            return TypedResults.Created($"/problems/{result.Value.ProblemId}");
+            return TypedResults.NoContent();
 
         if (result.Has(out NotFoundError? notFoundError))
             return notFoundError.ToNotFoundResult();
@@ -42,17 +42,9 @@ public sealed class ReduceToSatEndpoint : IEndpoint
         if (result.Has(out ConflictError? conflictError))
             return conflictError.ToConflictResult();
 
-        if (result.Has(out DomainError? domainError))
-            return domainError.ToUnprocessableEntityResult();
-
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();
 
         return TypedResults.InternalServerError();
     }
-}
-
-public sealed class ReduceToSatRequest
-{
-    public string Solver { get; set; } = null!;
 }

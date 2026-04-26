@@ -13,15 +13,14 @@ public sealed class GetBooleanSatisfiabilitySolutionEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/solution/sat", Execute)
+        endpoint.MapGet("problems/{id:Guid}/sat/solution", Execute)
             .WithName("get boolean satisfiability solution")
-            .WithTags("problems", "sat");
+            .WithTags("sat");
     }
 
     public static async Task<Results<
         Ok<GetBooleanSatisfiabilitySolutionResponse>,
         NotFound<ProblemDetails>,
-        UnprocessableEntity<ProblemDetails>,
         ValidationProblem,
         InternalServerError>> Execute(
         [FromRoute] Guid id,
@@ -38,9 +37,6 @@ public sealed class GetBooleanSatisfiabilitySolutionEndpoint : IEndpoint
 
         if (result.Has(out NotFoundError? notFoundError))
             return notFoundError.ToNotFoundResult();
-
-        if (result.Has(out DomainError? domainError))
-            return domainError.ToUnprocessableEntityResult();
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();

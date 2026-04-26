@@ -7,13 +7,13 @@ using Raijin.CombinatoricsService.Domain.Problems;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
-public sealed class ReduceToSatHandler(
+public sealed class SolveProblemHandler(
     IProblemRepository problemRepository,
     IUnitOfWork unitOfWork
-) : IRequestHandler<ReduceToSatCommand, ReduceToSatResult>
+) : IRequestHandler<SolveProblemCommand, SolveProblemResult>
 {
-    public async Task<Result<ReduceToSatResult>> Handle(
-        ReduceToSatCommand request,
+    public async Task<Result<SolveProblemResult>> Handle(
+        SolveProblemCommand request,
         CancellationToken cancellationToken)
     {
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
@@ -24,31 +24,27 @@ public sealed class ReduceToSatHandler(
         if (problem.SolvingStatus is SolvingStatus.Running)
             return new ConflictError("Cannot reduce to SAT while solving is in progress.");
 
-        if (problem.Instance is null)
-            return new DomainError("Problem has no instance set. Set an instance via PUT /problems/{id}/instance first.");
-
-        problem.SetSolver(request.Solver);
-        problem.ReduceToSat();
+        problem.Solve(request.Solver);
 
         await problemRepository.Update(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
 
-        return new ReduceToSatResult(problem.Id);
+        return new SolveProblemResult(problem.Id);
     }
 }
 
-public sealed record ReduceToSatCommand(
+public sealed record SolveProblemCommand(
     Guid ProblemId,
     string Solver
-) : IRequest<ReduceToSatResult>;
+) : IRequest<SolveProblemResult>;
 
-public sealed record ReduceToSatResult(
+public sealed record SolveProblemResult(
     Guid ProblemId
 );
 
-public sealed class ReduceToSatValidator : AbstractValidator<ReduceToSatCommand>
+public sealed class SolveProblemValidator : AbstractValidator<SolveProblemCommand>
 {
-    public ReduceToSatValidator()
+    public SolveProblemValidator()
     {
         RuleFor(command => command.ProblemId)
             .NotEmpty();

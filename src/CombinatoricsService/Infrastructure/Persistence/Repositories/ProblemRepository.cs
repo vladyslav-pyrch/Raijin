@@ -34,7 +34,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
         existingModel.Name = problem.Name;
         existingModel.Description = problem.Description;
         existingModel.Solver = problem.Solver;
-        existingModel.Instance = problem.Instance is null ? null : JsonSerializer.SerializeToDocument(problem.Instance);
+        existingModel.Instance = JsonSerializer.SerializeToDocument(problem.Instance);
         existingModel.Solution = problem.Solution is null ? null : JsonSerializer.SerializeToDocument(problem.Solution);
         existingModel.SolvingStatus = problem.SolvingStatus.ToString();
         existingModel.Satisfiability = problem.Satisfiability.ToString();
@@ -94,7 +94,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
         Id = problem.Id,
         Name = problem.Name,
         Description = problem.Description,
-        Instance = problem.Instance is null ? null : JsonSerializer.SerializeToDocument(problem.Instance),
+        Instance = JsonSerializer.SerializeToDocument(problem.Instance),
         Solution = problem.Solution is null ? null : JsonSerializer.SerializeToDocument(problem.Solution),
         Solver = problem.Solver,
         SolvingStatus = problem.SolvingStatus.ToString(),
@@ -121,7 +121,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext) : IProbl
         model.CreatedAt,
         model.UpdatedAt,
         model.Solver,
-        model.Instance?.Deserialize<Instance>(),
+        model.Instance.Deserialize<Instance>() ?? throw new InvalidOperationException($"Failed to deserialize instance for problem {model.Id}."),
         model.SatEncoding is null ? null : SatEncoding.Rehydrate(model.SatEncoding.Clauses.Select(c => (IEnumerable<int>)c.Literals)),
         Enum.Parse<SolvingStatus>(model.SolvingStatus),
         Enum.Parse<Satisfiability>(model.Satisfiability),

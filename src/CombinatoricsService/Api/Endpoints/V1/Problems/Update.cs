@@ -17,8 +17,12 @@ public sealed class UpdateProblemEndpoint : IEndpoint
             .WithTags("problems");
     }
 
-    public static async Task<Results<NoContent, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>>
-        Execute(
+    public static async Task<Results<
+            NoContent,
+            NotFound<ProblemDetails>,
+            ValidationProblem,
+            InternalServerError
+        >> Execute(
             [FromRoute] Guid id,
             [FromBody] UpdateProblemRequest request,
             [FromServices] IMediator mediator,

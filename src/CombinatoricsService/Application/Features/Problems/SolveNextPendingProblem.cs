@@ -59,7 +59,7 @@ public sealed class SolveNextPendingProblemHandler(
 
         try
         {
-            Result<SolveResult> solveResult = await satSolver.Solve(problem.SatEncoding, cancellationToken);
+            Result<SatSolverResult> solveResult = await satSolver.Solve(problem.SatEncoding!, cancellationToken);
 
             if (solveResult.IsSuccess)
             {

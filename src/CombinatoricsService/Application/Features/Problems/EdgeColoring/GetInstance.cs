@@ -1,6 +1,7 @@
 using FluentResults;
 using FluentValidation;
 using Raijin.CombinatoricsService.Application.Errors;
+using Raijin.CombinatoricsService.Application.Features.Problems.Graphs;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -27,22 +28,22 @@ public sealed class GetEdgeColoringInstanceHandler(
         if (problem.Instance is not EdgeColoringInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have an edge coloring instance.");
 
-        IReadOnlyList<string> vertices = instance.Graph.Vertices.Select(v => v.Id).ToList();
-        IReadOnlyList<EdgeResult> edges = instance.Graph.Edges
-            .Select(e => new EdgeResult(e.Label, e.U.Id, e.V.Id))
+        IReadOnlyList<VertexDto> vertices = instance.Graph.Vertices
+            .Select(v => new VertexDto(v.Id))
             .ToList();
+        IReadOnlyList<EdgeDto> edges = instance.Graph.Edges
+            .Select(e => new EdgeDto(e.Label, e.U.Id, e.V.Id))
+            .ToList();
+        
+        var graph = new GraphDto(vertices, edges);
 
-        return new GetEdgeColoringInstanceResult(vertices, edges, instance.ColourCount);
+        return new GetEdgeColoringInstanceResult(
+            new EdgeColoringInstanceDto(graph, instance.ColourCount)
+        );
     }
 }
 
-public sealed record GetEdgeColoringInstanceResult(
-    IReadOnlyList<string> Vertices,
-    IReadOnlyList<EdgeResult> Edges,
-    int ColorCount
-);
-
-public sealed record EdgeResult(string Label, string U, string V);
+public sealed record GetEdgeColoringInstanceResult(EdgeColoringInstanceDto Instance);
 
 public sealed class GetEdgeColoringInstanceValidator : AbstractValidator<GetEdgeColoringInstanceQuery>
 {

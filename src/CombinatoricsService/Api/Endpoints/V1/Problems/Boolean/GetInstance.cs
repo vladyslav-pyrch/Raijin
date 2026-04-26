@@ -12,12 +12,17 @@ public sealed class GetBooleanInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/instance/bool", Execute)
+        endpoint.MapGet("problems/{id:Guid}/bool/instance", Execute)
             .WithName("get boolean instance")
-            .WithTags("problems", "bool");
+            .WithTags("bool");
     }
 
-    public static async Task<Results<Ok<GetBooleanInstanceResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
+    public static async Task<Results<
+        Ok<GetBooleanInstanceResponse>,
+        NotFound<ProblemDetails>,
+        ValidationProblem,
+        InternalServerError
+    >> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -26,7 +31,7 @@ public sealed class GetBooleanInstanceEndpoint : IEndpoint
             await mediator.Send(new GetBooleanInstanceQuery(id), cancellationToken);
 
         if (result.IsSuccess)
-            return TypedResults.Ok(new GetBooleanInstanceResponse(result.Value.Formula));
+            return TypedResults.Ok(new GetBooleanInstanceResponse(result.Value.Instance));
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();
@@ -38,4 +43,4 @@ public sealed class GetBooleanInstanceEndpoint : IEndpoint
     }
 }
 
-public sealed record GetBooleanInstanceResponse(string Formula);
+public sealed record GetBooleanInstanceResponse(BooleanProblemInstanceDto Instance);

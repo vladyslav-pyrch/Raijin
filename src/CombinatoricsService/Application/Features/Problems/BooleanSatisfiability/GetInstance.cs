@@ -8,9 +8,6 @@ using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 
-public sealed record GetBooleanSatisfiabilityInstanceQuery(Guid ProblemId)
-    : IRequest<GetBooleanSatisfiabilityInstanceResult>;
-
 public sealed class GetBooleanSatisfiabilityInstanceHandler(
     IProblemRepository problemRepository
 ) : IRequestHandler<GetBooleanSatisfiabilityInstanceQuery, GetBooleanSatisfiabilityInstanceResult>
@@ -34,11 +31,14 @@ public sealed class GetBooleanSatisfiabilityInstanceHandler(
                 .ToList())
             .ToList();
 
-        return new GetBooleanSatisfiabilityInstanceResult(clauses);
+        return new GetBooleanSatisfiabilityInstanceResult(new SatInstanceDto(clauses));
     }
 }
 
-public sealed record GetBooleanSatisfiabilityInstanceResult(IReadOnlyList<IReadOnlyList<string>> Clauses);
+public sealed record GetBooleanSatisfiabilityInstanceQuery(Guid ProblemId)
+    : IRequest<GetBooleanSatisfiabilityInstanceResult>;
+
+public sealed record GetBooleanSatisfiabilityInstanceResult(SatInstanceDto Instance );
 
 public sealed class GetBooleanSatisfiabilityInstanceValidator
     : AbstractValidator<GetBooleanSatisfiabilityInstanceQuery>

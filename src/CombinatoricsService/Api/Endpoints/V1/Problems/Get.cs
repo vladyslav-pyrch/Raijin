@@ -17,10 +17,15 @@ public sealed class GetProblemEndpoint : IEndpoint
             .WithTags("problems");
     }
 
-    public static async Task<Results<Ok<GetProblemResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
-        [FromRoute] Guid id,
-        [FromServices] IMediator mediator,
-        CancellationToken cancellationToken)
+    public static async Task<Results<
+            Ok<GetProblemResponse>,
+            NotFound<ProblemDetails>,
+            ValidationProblem,
+            InternalServerError>>
+        Execute(
+            [FromRoute] Guid id,
+            [FromServices] IMediator mediator,
+            CancellationToken cancellationToken)
     {
         Result<GetProblemResult> result = await mediator.Send(new GetProblemQuery(id), cancellationToken);
 
@@ -53,7 +58,7 @@ public sealed record GetProblemResponse(
     string Name,
     string Description,
     string? Solver,
-    string? InstanceType,
+    string InstanceType,
     string SolvingStatus,
     string Satisfiability,
     DateTime CreatedAt,

@@ -11,11 +11,13 @@ interface Variable {
 interface CspInstanceFormProps {
   onSubmit: (instance: CspInstanceDto) => Promise<void>;
   loading: boolean;
+  initialVariables?: Variable[];
+  initialConstraints?: string[];
 }
 
-export function CspInstanceForm({ onSubmit, loading }: CspInstanceFormProps) {
-  const [variables, setVariables] = useState<Variable[]>([{ name: '', states: '' }]);
-  const [constraints, setConstraints] = useState<string[]>(['']);
+export function CspInstanceForm({ onSubmit, loading, initialVariables, initialConstraints }: CspInstanceFormProps) {
+  const [variables, setVariables] = useState<Variable[]>(initialVariables ?? [{ name: '', states: '' }]);
+  const [constraints, setConstraints] = useState<string[]>(initialConstraints ?? ['']);
   const [error, setError] = useState<string | null>(null);
 
   const updateVariable = (index: number, field: keyof Variable, value: string) => {

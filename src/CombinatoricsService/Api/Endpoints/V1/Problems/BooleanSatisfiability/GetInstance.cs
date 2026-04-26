@@ -12,9 +12,9 @@ public sealed class GetBooleanSatisfiabilityInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/instance/sat", Execute)
+        endpoint.MapGet("problems/{id:Guid}/sat/instance", Execute)
             .WithName("get boolean satisfiability instance")
-            .WithTags("problems", "sat");
+            .WithTags("sat");
     }
 
     public static async Task<Results<Ok<GetBooleanSatisfiabilityInstanceResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
@@ -26,7 +26,7 @@ public sealed class GetBooleanSatisfiabilityInstanceEndpoint : IEndpoint
             await mediator.Send(new GetBooleanSatisfiabilityInstanceQuery(id), cancellationToken);
 
         if (result.IsSuccess)
-            return TypedResults.Ok(new GetBooleanSatisfiabilityInstanceResponse(result.Value.Clauses));
+            return TypedResults.Ok(new GetBooleanSatisfiabilityInstanceResponse(result.Value.Instance));
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();
@@ -38,4 +38,4 @@ public sealed class GetBooleanSatisfiabilityInstanceEndpoint : IEndpoint
     }
 }
 
-public sealed record GetBooleanSatisfiabilityInstanceResponse(IReadOnlyList<IReadOnlyList<string>> Clauses);
+public sealed record GetBooleanSatisfiabilityInstanceResponse(SatInstanceDto Instance);

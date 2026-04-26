@@ -29,7 +29,7 @@ public sealed class ListProblemsHandler(
             .Select(p => new ProblemSummary(
                 p.Id,
                 p.Name,
-                p.Instance?.ProblemType(),
+                p.Instance.ProblemType(),
                 p.SolvingStatus,
                 p.Satisfiability,
                 p.CreatedAt))

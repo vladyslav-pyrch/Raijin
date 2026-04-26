@@ -1,12 +1,13 @@
 using FluentResults;
 using FluentValidation;
 using Raijin.CombinatoricsService.Application.Errors;
+using Raijin.CombinatoricsService.Application.Features.Problems.Graphs;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
 using Raijin.CombinatoricsService.Domain.Problems.VertexColouring;
 
-namespace Raijin.CombinatoricsService.Application.Features.Problems.VertexColouring;
+namespace Raijin.CombinatoricsService.Application.Features.Problems.VertexColoring;
 
 public sealed record GetVertexColoringInstanceQuery(Guid ProblemId)
     : IRequest<GetVertexColoringInstanceResult>;
@@ -27,22 +28,19 @@ public sealed class GetVertexColoringInstanceHandler(
         if (problem.Instance is not VertexColoringInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a vertex coloring instance.");
 
-        IReadOnlyList<string> vertices = instance.Graph.Vertices.Select(v => v.Id).ToList();
-        IReadOnlyList<VertexEdgeResult> edges = instance.Graph.Edges
-            .Select(e => new VertexEdgeResult(e.Label, e.U.Id, e.V.Id))
+        IReadOnlyList<VertexDto> vertices = instance.Graph.Vertices
+            .Select(v => new VertexDto(v.Id))
             .ToList();
-
-        return new GetVertexColoringInstanceResult(vertices, edges, instance.ColourCount);
+        IReadOnlyList<EdgeDto> edges = instance.Graph.Edges
+            .Select(e => new EdgeDto(e.Label, e.U.Id, e.V.Id))
+            .ToList();
+        
+        var graph = new GraphDto(vertices, edges);
+        return new GetVertexColoringInstanceResult(new VertexColoringInstanceDto(graph, instance.ColourCount));
     }
 }
 
-public sealed record GetVertexColoringInstanceResult(
-    IReadOnlyList<string> Vertices,
-    IReadOnlyList<VertexEdgeResult> Edges,
-    int ColorCount
-);
-
-public sealed record VertexEdgeResult(string Label, string U, string V);
+public sealed record GetVertexColoringInstanceResult(VertexColoringInstanceDto Instance );
 
 public sealed class GetVertexColoringInstanceValidator : AbstractValidator<GetVertexColoringInstanceQuery>
 {

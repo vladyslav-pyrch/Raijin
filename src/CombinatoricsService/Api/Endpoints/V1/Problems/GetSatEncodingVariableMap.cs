@@ -17,7 +17,12 @@ public sealed class GetSatEncodingVariableMapEndpoint : IEndpoint
             .WithTags("problems", "sat-encoding");
     }
 
-    public static async Task<Results<Ok<GetSatEncodingVariableMapResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
+    public static async Task<Results<
+        Ok<GetSatEncodingVariableMapResponse>,
+        NotFound<ProblemDetails>,
+        ValidationProblem,
+        InternalServerError
+    >> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)

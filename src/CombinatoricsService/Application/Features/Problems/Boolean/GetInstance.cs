@@ -8,8 +8,6 @@ using Raijin.CombinatoricsService.Domain.Problems.Boolean;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 
-public sealed record GetBooleanInstanceQuery(Guid ProblemId) : IRequest<GetBooleanInstanceResult>;
-
 public sealed class GetBooleanInstanceHandler(
     IProblemRepository problemRepository
 ) : IRequestHandler<GetBooleanInstanceQuery, GetBooleanInstanceResult>
@@ -26,11 +24,15 @@ public sealed class GetBooleanInstanceHandler(
         if (problem.Instance is not BooleanProblemInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a boolean instance.");
 
-        return new GetBooleanInstanceResult(instance.Root.ToString());
+        return new GetBooleanInstanceResult(
+            new BooleanProblemInstanceDto(instance.Root.ToString())
+        );
     }
 }
 
-public sealed record GetBooleanInstanceResult(string Formula);
+public sealed record GetBooleanInstanceQuery(Guid ProblemId) : IRequest<GetBooleanInstanceResult>;
+
+public sealed record GetBooleanInstanceResult(BooleanProblemInstanceDto Instance);
 
 public sealed class GetBooleanInstanceValidator : AbstractValidator<GetBooleanInstanceQuery>
 {
