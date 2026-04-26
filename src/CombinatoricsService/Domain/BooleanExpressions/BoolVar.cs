@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Raijin.CombinatoricsService.Domain.Patterns;
 
@@ -22,8 +21,7 @@ public partial record BoolVar : BoolExpr
     }
 
     public string Name { get; }
-    
-    [JsonIgnore]
+
     public override int Precedence => 60;
 
     public override IEnumerable<BoolVar> GetVariables() => [this];

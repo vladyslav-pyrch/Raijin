@@ -17,23 +17,12 @@ public sealed class GetProblemHandler(
         GetProblemQuery request,
         CancellationToken cancellationToken)
     {
-        Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
+        GetProblemResult? problem = await problemRepository.GetSummaryById(request.ProblemId, cancellationToken);
 
         if (problem is null)
             return new NotFoundError(nameof(Problem), request.ProblemId);
 
-        return new GetProblemResult(
-            problem.Id,
-            problem.Name,
-            problem.Description,
-            problem.Solver,
-            problem.Instance.ProblemType(),
-            problem.SolvingStatus,
-            problem.Satisfiability,
-            problem.CreatedAt,
-            problem.UpdatedAt,
-            problem.CompletedAt
-        );
+        return problem;
     }
 }
 

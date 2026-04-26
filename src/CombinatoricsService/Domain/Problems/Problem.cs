@@ -105,17 +105,28 @@ public sealed class Problem
 
     public IReadOnlyDictionary<string, int> ComputeVariableMap() => Instance.GetVariableMap();
 
-    public void Solve(string solver)
+    public void ReduceToSat()
     {
-        ArgumentNullException.ThrowIfNull(solver);
-        
         if (SolvingStatus is SolvingStatus.Running)
             throw new InvalidOperationException("Cannot re-encode to SAT while solving is in progress.");
 
         Instance instance = GetInstanceOrThrow();
 
-        Solver = solver;
         SatEncoding ??= instance.ReduceToSat();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void MarkAsPending(string solver)
+    {
+        ArgumentNullException.ThrowIfNull(solver);
+        
+        if (Instance is null)
+            throw new InvalidOperationException("Cannot mark a problem as pending without an instance.");
+        
+        if (SolvingStatus == SolvingStatus.Running)
+            throw new InvalidOperationException($"Cannot mark a problem as pending in '{SolvingStatus}' status.");
+        
+        Solver = solver;
         SolvingStatus = SolvingStatus.Pending;
         UpdatedAt = DateTime.UtcNow;
     }

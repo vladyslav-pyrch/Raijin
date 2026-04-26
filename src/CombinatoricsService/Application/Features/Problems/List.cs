@@ -7,7 +7,6 @@ using Raijin.CombinatoricsService.Domain.Problems;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
-public sealed record ListProblemsQuery(int Page, int PageSize) : IRequest<ListProblemsResult>;
 
 public sealed class ListProblemsHandler(
     IProblemRepository problemRepository
@@ -15,29 +14,19 @@ public sealed class ListProblemsHandler(
 {
     public async Task<Result<ListProblemsResult>> Handle(
         ListProblemsQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        (IReadOnlyList<Problem> items, int totalCount) =
-            await problemRepository.GetPage(request.Page, request.PageSize, cancellationToken);
-
-        int totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-
-        if (totalCount > 0 && request.Page > totalPages)
-            return new NotFoundError($"Page {request.Page} does not exist. Total pages: {totalPages}.");
-
-        var summaries = items
-            .Select(p => new ProblemSummary(
-                p.Id,
-                p.Name,
-                p.Instance.ProblemType(),
-                p.SolvingStatus,
-                p.Satisfiability,
-                p.CreatedAt))
-            .ToList();
-
-        return new ListProblemsResult(summaries, request.Page, request.PageSize, totalPages, totalCount);
+        ListProblemsResult result = await problemRepository.ListProblems(request.Page, request.PageSize, cancellationToken);
+        
+        if (result.TotalCount > 0 && request.Page > result.TotalPages)
+            return new NotFoundError($"Page {request.Page} does not exist. Total pages: {result.TotalPages}.");
+        
+        return result;
     }
 }
+
+public sealed record ListProblemsQuery(int Page, int PageSize) : IRequest<ListProblemsResult>;
 
 public sealed record ListProblemsResult(
     IReadOnlyList<ProblemSummary> Items,
@@ -50,7 +39,7 @@ public sealed record ListProblemsResult(
 public sealed record ProblemSummary(
     Guid Id,
     string Name,
-    string? InstanceType,
+    string InstanceType,
     SolvingStatus SolvingStatus,
     Satisfiability Satisfiability,
     DateTime CreatedAt

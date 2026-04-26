@@ -17,6 +17,10 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
         builder.Property(problem => problem.Description)
             .IsRequired()
             .HasMaxLength(5000);
+        
+        builder.Property(problem => problem.ProblemType)
+            .IsRequired()
+            .HasMaxLength(50);
 
         builder.Property(problem => problem.Solver)
             .HasMaxLength(100);

@@ -24,7 +24,7 @@ public sealed class SolveProblemHandler(
         if (problem.SolvingStatus is SolvingStatus.Running)
             return new ConflictError("Cannot reduce to SAT while solving is in progress.");
 
-        problem.Solve(request.Solver);
+        problem.MarkAsPending(request.Solver);
 
         await problemRepository.Update(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
