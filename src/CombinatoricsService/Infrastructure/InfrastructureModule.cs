@@ -7,6 +7,7 @@ using Quartz;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Application.Solvers;
+using Raijin.CombinatoricsService.Infrastructure.Converters;
 using Raijin.CombinatoricsService.Infrastructure.Messaging;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
 using Raijin.CombinatoricsService.Infrastructure.Persistence.Repositories;
@@ -26,6 +27,12 @@ public static class InfrastructureModule
         services.AddPersistence();
         services.AddSolvers();
         services.AddQuartz(quartzConfiguration);
+        services.AddConverters();
+    }
+
+    public static void AddConverters(this IServiceCollection services)
+    {
+        services.AddTransient<BoolExprJsonConverter>();
     }
 
     private static void AddMessaging(this IServiceCollection services)

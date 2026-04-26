@@ -13,10 +13,10 @@ public static class ApplicationModule
 
     public static IServiceCollection AddApplication(this IServiceCollection services) => services
         .AddMessaging()
-        .AddApplicationServices()
+        .AddParsers()
         .AddValidatorsFromAssembly(Assembly);
 
-    private static IServiceCollection AddApplicationServices(this IServiceCollection services) => services
+    public static IServiceCollection AddParsers(this IServiceCollection services) => services
         .AddSingleton<IBoolExprParser, BoolExprParser>();
 
     private static IServiceCollection AddMessaging(this IServiceCollection services) => services

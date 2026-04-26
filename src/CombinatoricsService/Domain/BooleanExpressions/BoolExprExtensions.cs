@@ -17,7 +17,7 @@ public static class BoolExprExtensions
     public static BoolExpr IsTrue(this BoolExpr expression) => new Equal(expression, new ConstExpr(true));
 
     public static BoolExpr IsFalse(this BoolExpr expression) => new Equal(expression, new ConstExpr(false));
-    
+
     internal static string BracketedIfLowerPrecedenceThan(this BoolExpr child, BoolExpr parent)
-         => parent.Precedence > child.Precedence ? $"({child})" : child.ToString();
+        => parent.Precedence > child.Precedence ? $"({child})" : child.ToString();
 }

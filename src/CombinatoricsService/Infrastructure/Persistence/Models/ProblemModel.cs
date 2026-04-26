@@ -9,6 +9,8 @@ internal class ProblemModel
     public required string Name { get; set; }
 
     public required string Description { get; set; }
+    
+    public required string ProblemType { get; set; }
 
     public string? Solver { get; set; }
 

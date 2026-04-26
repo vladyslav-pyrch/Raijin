@@ -30,6 +30,7 @@ public sealed class SolveNextPendingProblemHandler(
             return Result.Ok();
         }
 
+        problem.ReduceToSat();
         problem.MarkAsRunning();
         await problemRepository.Update(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);

@@ -1,10 +1,7 @@
-using System.Text.Json.Serialization;
-
 namespace Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
 public sealed record ConstExpr(bool Value) : BoolExpr
 {
-    [JsonIgnore]
     public override int Precedence => 60;
 
     public override IEnumerable<BoolVar> GetVariables() => [];
