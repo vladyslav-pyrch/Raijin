@@ -5,10 +5,11 @@ import {Spinner} from '../Spinner';
 interface BooleanInstanceFormProps {
   onSubmit: (formula: string) => Promise<void>;
   loading: boolean;
+  initialFormula?: string;
 }
 
-export function BooleanInstanceForm({ onSubmit, loading }: BooleanInstanceFormProps) {
-  const [formula, setFormula] = useState('');
+export function BooleanInstanceForm({ onSubmit, loading, initialFormula = '' }: BooleanInstanceFormProps) {
+  const [formula, setFormula] = useState(initialFormula);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {

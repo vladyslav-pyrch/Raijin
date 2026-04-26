@@ -5,10 +5,11 @@ import {Spinner} from '../Spinner';
 interface SatInstanceFormProps {
   onSubmit: (clauses: string[][]) => Promise<void>;
   loading: boolean;
+  initialText?: string;
 }
 
-export function SatInstanceForm({ onSubmit, loading }: SatInstanceFormProps) {
-  const [text, setText] = useState('');
+export function SatInstanceForm({ onSubmit, loading, initialText = '' }: SatInstanceFormProps) {
+  const [text, setText] = useState(initialText);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {

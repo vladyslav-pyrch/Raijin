@@ -72,35 +72,32 @@ export interface GetSatEncodingVariableMapResponse {
   variables: VariableMapEntryResponse[];
 }
 
-export interface CreateProblemRequest {
-  name?: string;
-  description?: string | null;
-}
-
-export interface CreateProblemResponse {
-  problemId: string;
-}
-
 export interface UpdateProblemRequest {
   name?: string | null;
   description?: string | null;
 }
 
-export interface ReduceToSatRequest {
-  solver?: string;
+// ─── Graph primitives ─────────────────────────────────────────────────────────
+
+export interface VertexDto {
+  id: string;
 }
 
-// ─── Vertex Coloring ─────────────────────────────────────────────────────────
-
-export interface VertexColoringEdgeDto {
+export interface EdgeDto {
   label: string;
   u: string;
   v: string;
 }
 
+export interface GraphDto {
+  vertices: VertexDto[];
+  edges: EdgeDto[];
+}
+
+// ─── Vertex Coloring ─────────────────────────────────────────────────────────
+
 export interface VertexColoringInstanceDto {
-  vertices: string[];
-  edges: VertexColoringEdgeDto[];
+  graph: GraphDto;
   colorCount: number;
 }
 
@@ -118,21 +115,24 @@ export interface GetVertexColoringSolutionResponse {
   satisfiability: Satisfiability;
 }
 
-export interface SetVertexColoringProblemInstanceRequest {
+export interface GetVertexColoringInstanceResponse {
+  instance: VertexColoringInstanceDto;
+}
+
+export interface CreateVertexColoringProblemRequest {
+  name?: string;
+  description?: string | null;
   instance?: VertexColoringInstanceDto;
+}
+
+export interface CreateVertexColoringProblemResponse {
+  problemId: string;
 }
 
 // ─── Edge Coloring ───────────────────────────────────────────────────────────
 
-export interface EdgeColoringEdgeDto {
-  label: string;
-  u: string;
-  v: string;
-}
-
 export interface EdgeColoringInstanceDto {
-  vertices: string[];
-  edges: EdgeColoringEdgeDto[];
+  graph: GraphDto;
   colorCount: number;
 }
 
@@ -150,8 +150,18 @@ export interface GetEdgeColoringSolutionResponse {
   satisfiability: Satisfiability;
 }
 
-export interface SetEdgeColoringProblemInstanceRequest {
+export interface GetEdgeColoringInstanceResponse {
+  instance: EdgeColoringInstanceDto;
+}
+
+export interface CreateEdgeColoringProblemRequest {
+  name?: string;
+  description?: string | null;
   instance?: EdgeColoringInstanceDto;
+}
+
+export interface CreateEdgeColoringProblemResponse {
+  problemId: string;
 }
 
 // ─── CSP ─────────────────────────────────────────────────────────────────────
@@ -186,8 +196,18 @@ export interface GetCspSolutionResponse {
   satisfiability: Satisfiability;
 }
 
-export interface SetCspProblemInstanceRequest {
+export interface GetCspInstanceResponse {
+  instance: CspInstanceDto;
+}
+
+export interface CreateCspProblemRequest {
+  name?: string;
+  description?: string | null;
   instance?: CspInstanceDto;
+}
+
+export interface CreateCspProblemResponse {
+  problemId: string;
 }
 
 // ─── Boolean ─────────────────────────────────────────────────────────────────
@@ -210,19 +230,24 @@ export interface GetBooleanSolutionResponse {
   satisfiability: Satisfiability;
 }
 
-export interface SetBooleanProblemInstanceRequest {
+export interface GetBooleanInstanceResponse {
+  instance: BooleanProblemInstanceDto;
+}
+
+export interface CreateBooleanProblemRequest {
+  name?: string;
+  description?: string | null;
   instance?: BooleanProblemInstanceDto;
+}
+
+export interface CreateBooleanProblemResponse {
+  problemId: string;
 }
 
 // ─── Boolean Satisfiability (SAT) ────────────────────────────────────────────
 
-export interface BooleanSatisfiabilityInstanceDto {
-  /** Each inner array is a clause; each string is a literal name, e.g. "x1" or "~y2" (negated). */
-  clauses: string[][];
-}
-
-/** GET /problems/{id}/instance/sat — clauses as literal strings, e.g. ["x1", "~y2"] */
-export interface GetSatInstanceResponse {
+/** Each inner array is a clause; each string is a literal name, e.g. "x1" or "~y2" (negated). */
+export interface SatInstanceDto {
   clauses: string[][];
 }
 
@@ -240,6 +265,16 @@ export interface GetBooleanSatisfiabilitySolutionResponse {
   satisfiability: Satisfiability;
 }
 
-export interface SetBooleanSatisfiabilityProblemInstanceRequest {
-  instance?: BooleanSatisfiabilityInstanceDto;
+export interface GetBooleanSatisfiabilityInstanceResponse {
+  instance: SatInstanceDto;
+}
+
+export interface CreateSatProblemRequest {
+  name?: string;
+  description?: string | null;
+  instance?: SatInstanceDto;
+}
+
+export interface CreateSatProblemResponse {
+  problemId: string;
 }

@@ -1,11 +1,10 @@
 import {useState} from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {useProblems} from './hooks/useProblems';
-import {api} from './lib/api';
 import {Button} from './components/Button';
-import {Modal} from './components/Modal';
 import {Spinner} from './components/Spinner';
 import {ProblemCard} from './components/ProblemCard';
+import {SetInstanceModal} from './components/forms/SetInstanceModal';
 import {WelcomePage} from './pages/WelcomePage';
 import {ProblemDetailPage} from './pages/ProblemDetailPage';
 
@@ -36,36 +35,6 @@ function AppLayout() {
   const { problems, loading, error, totalPages, page, loadPage, refresh } = useProblems();
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  const [createLoading, setCreateLoading] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-
-  const openCreate = () => {
-    setNewName('');
-    setNewDesc('');
-    setCreateError(null);
-    setCreateOpen(true);
-  };
-
-  const handleCreate = async () => {
-    if (!newName.trim()) {
-      setCreateError('Name is required');
-      return;
-    }
-    setCreateLoading(true);
-    setCreateError(null);
-    try {
-      const res = await api.createProblem({ name: newName.trim(), description: newDesc || null });
-      setCreateOpen(false);
-      await refresh();
-      navigate(`/problems/${res.problemId}`);
-    } catch (err) {
-      setCreateError(err instanceof Error ? err.message : 'Failed to create problem');
-    } finally {
-      setCreateLoading(false);
-    }
-  };
 
   return (
     <div className="flex flex-col h-screen" style={{ background: '#f2f3f3' }}>
@@ -98,7 +67,7 @@ function AppLayout() {
               Problems
             </span>
             <button
-              onClick={openCreate}
+              onClick={() => setCreateOpen(true)}
               className="text-xs font-semibold px-2 py-1 rounded cursor-pointer transition-colors"
               style={{
                 background: '#ff9900',
@@ -180,55 +149,15 @@ function AppLayout() {
       />
 
       {/* ── Create Problem modal ─────────────────────────────────────────── */}
-      <Modal open={createOpen} title="Create Problem" onClose={() => setCreateOpen(false)}>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Name <span style={{ color: '#d13212' }}>*</span>
-            </label>
-            <input
-              className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
-              style={{
-                borderColor: '#aab7b8',
-                color: '#16191f',
-              }}
-              placeholder="My combinatorics problem"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              disabled={createLoading}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Description
-            </label>
-            <textarea
-              className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
-              style={{ borderColor: '#aab7b8', color: '#16191f' }}
-              rows={3}
-              placeholder="Optional description…"
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-              disabled={createLoading}
-            />
-          </div>
-          {createError && (
-            <p className="text-xs" style={{ color: '#d13212' }}>
-              {createError}
-            </p>
-          )}
-          <div className="flex justify-end gap-2 pt-1">
-            <Button variant="secondary" onClick={() => setCreateOpen(false)} disabled={createLoading}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleCreate} disabled={createLoading}>
-              {createLoading && <Spinner size="sm" />}
-              Create problem
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <SetInstanceModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={async (newId) => {
+          setCreateOpen(false);
+          await refresh();
+          navigate(`/problems/${newId}`);
+        }}
+      />
     </div>
   );
 }

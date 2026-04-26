@@ -1,15 +1,17 @@
 import {useState} from 'react';
-import {useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import {useProblem} from '../hooks/useProblem';
 import {useSatEncoding} from '../hooks/useSatEncoding';
+import {useInstance} from '../hooks/useInstance';
 import {api} from '../lib/api';
+import type {InstanceTypeValue} from '../lib/constants';
 import {SOLVER_OPTIONS, STATUSES_WITH_ENCODING} from '../lib/constants';
 import {Button} from '../components/Button';
 import {DropdownButton} from '../components/DropdownButton';
 import {Modal} from '../components/Modal';
 import {Spinner} from '../components/Spinner';
 import {StatusBadge} from '../components/StatusBadge';
-import {SetInstanceModal} from '../components/forms/SetInstanceModal';
+import {type ForkPrefill, SetInstanceModal} from '../components/forms/SetInstanceModal';
 import {ProblemInfoSection} from '../components/sections/ProblemInfoSection';
 import {DescriptionSection} from '../components/sections/DescriptionSection';
 import {InstanceSection} from '../components/sections/InstanceSection';
@@ -23,6 +25,7 @@ interface ProblemDetailPageProps {
 
 export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const problemId = id ?? '';
 
   const { problem, loading, error, refresh } = useProblem(problemId);
@@ -30,12 +33,19 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
   const hasEncoding = STATUSES_WITH_ENCODING.includes(
     problem?.solvingStatus as (typeof STATUSES_WITH_ENCODING)[number],
   );
+  const canSolve = problem?.solvingStatus !== 'Running' && problem?.instanceType !== null;
 
   const { encoding, loading: encLoading, error: encError } = useSatEncoding(problemId, hasEncoding);
 
+  // Lift instance data here so Edit (fork) modal can pre-fill it
+  const { instance, loading: instLoading, error: instError } = useInstance(
+    problemId,
+    problem?.instanceType ?? null,
+  );
+
   // modals
   const [updateOpen, setUpdateOpen] = useState(false);
-  const [instanceOpen, setInstanceOpen] = useState(false);
+  const [forkOpen, setForkOpen] = useState(false);
 
   // update form
   const [updName, setUpdName] = useState('');
@@ -73,7 +83,7 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
     setSolveLoading(true);
     setSolveError(null);
     try {
-      await api.reduceToSat(problemId, { solver });
+      await api.solve(problemId, solver);
       refresh();
       onProblemChanged();
     } catch (err) {
@@ -103,6 +113,17 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
   }
 
   const solverOptions = SOLVER_OPTIONS.map((s) => ({ label: s, value: s }));
+
+  // Build fork prefill when instance data is available
+  const forkPrefill: ForkPrefill | undefined =
+    instance && problem.instanceType
+      ? {
+          name: problem.name,
+          description: problem.description ?? '',
+          instanceType: problem.instanceType as InstanceTypeValue,
+          instance,
+        }
+      : undefined;
 
   return (
     <div className="flex flex-col h-full">
@@ -136,12 +157,20 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
             <Button variant="secondary" size="sm" onClick={openUpdate}>
               Edit
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => setInstanceOpen(true)}>
-              Set instance
-            </Button>
-            {!hasEncoding && problem.instanceType !== null && (
+            {/* Fork: create new versioned problem pre-filled with current data */}
+            {forkPrefill && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setForkOpen(true)}
+                disabled={instLoading}
+              >
+                New version
+              </Button>
+            )}
+            {canSolve && (
               <DropdownButton
-                label="Reduce to SAT"
+                label="Solve"
                 options={solverOptions}
                 onSelect={handleSolve}
                 loading={solveLoading}
@@ -161,7 +190,12 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
         <ProblemInfoSection problem={problem} />
         <DescriptionSection description={problem.description} />
-        <InstanceSection problemId={problemId} instanceType={problem.instanceType} />
+        <InstanceSection
+          instanceType={problem.instanceType}
+          instance={instance}
+          loading={instLoading}
+          error={instError}
+        />
 
         {hasEncoding && (
           <SatEncodingSection encoding={encoding} loading={encLoading} error={encError} />
@@ -177,7 +211,7 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
         />
       </div>
 
-      {/* ── Edit modal ──────────────────────────────────────────────────── */}
+      {/* ── Edit (name/description only) modal ──────────────────────────── */}
       <Modal open={updateOpen} title="Edit problem" onClose={() => setUpdateOpen(false)}>
         <div className="space-y-4">
           <div>
@@ -222,16 +256,19 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
         </div>
       </Modal>
 
-      {/* ── Set instance modal ───────────────────────────────────────────── */}
-      <SetInstanceModal
-        open={instanceOpen}
-        problemId={problemId}
-        onClose={() => setInstanceOpen(false)}
-        onSuccess={() => {
-          refresh();
-          onProblemChanged();
-        }}
-      />
+      {/* ── Fork (new version) modal ─────────────────────────────────────── */}
+      {forkPrefill && (
+        <SetInstanceModal
+          open={forkOpen}
+          onClose={() => setForkOpen(false)}
+          onSuccess={async (newId) => {
+            setForkOpen(false);
+            await onProblemChanged();
+            navigate(`/problems/${newId}`);
+          }}
+          prefill={forkPrefill}
+        />
+      )}
     </div>
   );
 }

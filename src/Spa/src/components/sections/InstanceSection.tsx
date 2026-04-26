@@ -1,10 +1,10 @@
-import {useInstance} from '../../hooks/useInstance';
 import {Spinner} from '../Spinner';
+import type {AnyInstanceData} from '../../hooks/useInstance';
 import type {
     BooleanProblemInstanceDto,
     CspInstanceDto,
     EdgeColoringInstanceDto,
-    GetSatInstanceResponse,
+    SatInstanceDto,
     VertexColoringInstanceDto,
 } from '../../services/combinatorics';
 
@@ -24,7 +24,7 @@ function BooleanInstance({ data }: { data: BooleanProblemInstanceDto }) {
   );
 }
 
-function SatInstance({ data }: { data: GetSatInstanceResponse }) {
+function SatInstance({ data }: { data: SatInstanceDto }) {
   return (
     <div>
       <p className="text-xs font-medium mb-1" style={{ color: '#545b64' }}>
@@ -39,7 +39,7 @@ function SatInstance({ data }: { data: GetSatInstanceResponse }) {
             </tr>
           </thead>
           <tbody>
-            {data.clauses.map((clause, i) => (
+            {data.clauses.map((clause: string[], i: number) => (
               <tr key={i} style={{ borderTop: '1px solid #eaeded' }}>
                 <td className="px-3 py-1" style={{ color: '#879596' }}>{i + 1}</td>
                 <td className="px-3 py-1" style={{ color: '#16191f' }}>{clause.join('  ')}</td>
@@ -118,11 +118,14 @@ function GraphInstance({
   data: VertexColoringInstanceDto | EdgeColoringInstanceDto;
   label: string;
 }) {
+  const vertices = data.graph.vertices;
+  const edges = data.graph.edges;
+
   return (
     <div className="space-y-4">
       <div className="flex gap-8 text-sm">
-        <span><span style={{ color: '#545b64' }}>Vertices: </span><strong>{data.vertices.length}</strong></span>
-        <span><span style={{ color: '#545b64' }}>Edges: </span><strong>{data.edges.length}</strong></span>
+        <span><span style={{ color: '#545b64' }}>Vertices: </span><strong>{vertices.length}</strong></span>
+        <span><span style={{ color: '#545b64' }}>Edges: </span><strong>{edges.length}</strong></span>
         <span><span style={{ color: '#545b64' }}>Colors ({label}): </span><strong>{data.colorCount}</strong></span>
       </div>
 
@@ -130,13 +133,13 @@ function GraphInstance({
         <div>
           <p className="text-xs font-medium mb-1" style={{ color: '#545b64' }}>Vertices</p>
           <div className="flex flex-wrap gap-1">
-            {data.vertices.map((v) => (
+            {vertices.map((v) => (
               <span
-                key={v}
+                key={v.id}
                 className="inline-block px-2 py-0.5 rounded text-xs font-mono border"
                 style={{ background: '#fef6e4', color: '#16191f', borderColor: '#f5a623' }}
               >
-                {v}
+                {v.id}
               </span>
             ))}
           </div>
@@ -144,7 +147,7 @@ function GraphInstance({
 
         <div>
           <p className="text-xs font-medium mb-1" style={{ color: '#545b64' }}>
-            Edges ({data.edges.length})
+            Edges ({edges.length})
           </p>
           <div className="overflow-auto max-h-40 border rounded" style={{ borderColor: '#d5dbdb' }}>
             <table className="w-full text-xs">
@@ -156,7 +159,7 @@ function GraphInstance({
                 </tr>
               </thead>
               <tbody>
-                {data.edges.map((e) => (
+                {edges.map((e) => (
                   <tr key={e.label} style={{ borderTop: '1px solid #eaeded' }}>
                     <td className="px-2 py-1 font-mono" style={{ color: '#545b64' }}>{e.label}</td>
                     <td className="px-2 py-1 font-mono" style={{ color: '#ff9900' }}>{e.u}</td>
@@ -175,13 +178,13 @@ function GraphInstance({
 // ─── Main section ─────────────────────────────────────────────────────────────
 
 interface InstanceSectionProps {
-  problemId: string;
   instanceType: string | null;
+  instance: AnyInstanceData | null;
+  loading: boolean;
+  error: string | null;
 }
 
-export function InstanceSection({ problemId, instanceType }: InstanceSectionProps) {
-  const { instance, loading, error } = useInstance(problemId, instanceType);
-
+export function InstanceSection({ instanceType, instance, loading, error }: InstanceSectionProps) {
   if (!instanceType) return null;
 
   return (
@@ -212,7 +215,7 @@ export function InstanceSection({ problemId, instanceType }: InstanceSectionProp
         {instance && (
           <>
             {instanceType === 'bool' && <BooleanInstance data={instance as BooleanProblemInstanceDto} />}
-            {instanceType === 'sat' && <SatInstance data={instance as GetSatInstanceResponse} />}
+            {instanceType === 'sat' && <SatInstance data={instance as SatInstanceDto} />}
             {instanceType === 'csp' && <CspInstance data={instance as CspInstanceDto} />}
             {instanceType === 'vertex-coloring' && (
               <GraphInstance data={instance as VertexColoringInstanceDto} label="vertex" />

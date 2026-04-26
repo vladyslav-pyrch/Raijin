@@ -1,6 +1,7 @@
 import {useCallback, useRef, useState} from 'react';
 import {Button} from '../Button';
 import {Spinner} from '../Spinner';
+import type {EdgeDto, GraphDto, VertexDto} from '../../services/combinatorics';
 
 interface GraphVertex {
   id: string;
@@ -16,12 +17,11 @@ interface GraphEdge {
 }
 
 interface GraphEditorFormProps {
-  onSubmit: (
-    vertices: string[],
-    edges: { label: string; u: string; v: string }[],
-    colorCount: number,
-  ) => Promise<void>;
+  onSubmit: (instance: { graph: GraphDto; colorCount: number }) => Promise<void>;
   loading: boolean;
+  initialVertices?: GraphVertex[];
+  initialEdges?: GraphEdge[];
+  initialColorCount?: number;
 }
 
 type Mode = 'add' | 'move';
@@ -35,10 +35,29 @@ function uid() {
   return `v${++uidCounter}`;
 }
 
-export function GraphEditorForm({ onSubmit, loading }: GraphEditorFormProps) {
-  const [vertices, setVertices] = useState<GraphVertex[]>([]);
-  const [edges, setEdges] = useState<GraphEdge[]>([]);
-  const [colorCount, setColorCount] = useState(3);
+/** Lay out vertices in a circle for pre-fill when no positions are known. */
+export function circleLayout(ids: string[]): GraphVertex[] {
+  const cx = SVG_W / 2;
+  const cy = SVG_H / 2;
+  const r = Math.min(SVG_W, SVG_H) * 0.35;
+  return ids.map((id, i) => ({
+    id: uid(),
+    name: id,
+    x: cx + r * Math.cos((2 * Math.PI * i) / ids.length - Math.PI / 2),
+    y: cy + r * Math.sin((2 * Math.PI * i) / ids.length - Math.PI / 2),
+  }));
+}
+
+export function GraphEditorForm({
+  onSubmit,
+  loading,
+  initialVertices,
+  initialEdges,
+  initialColorCount,
+}: GraphEditorFormProps) {
+  const [vertices, setVertices] = useState<GraphVertex[]>(initialVertices ?? []);
+  const [edges, setEdges] = useState<GraphEdge[]>(initialEdges ?? []);
+  const [colorCount, setColorCount] = useState(initialColorCount ?? 3);
   const [mode, setMode] = useState<Mode>('add');
   const [error, setError] = useState<string | null>(null);
 
@@ -155,32 +174,42 @@ export function GraphEditorForm({ onSubmit, loading }: GraphEditorFormProps) {
       setError('Color count must be at least 1');
       return;
     }
-    await onSubmit(
-      vertices.map((v) => v.name),
-      edges,
-      colorCount,
-    );
+
+    const graphVertices: VertexDto[] = vertices.map((v) => ({ id: v.name }));
+    const graphEdges: EdgeDto[] = edges;
+
+    await onSubmit({ graph: { vertices: graphVertices, edges: graphEdges }, colorCount });
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-700">Mode:</span>
+        <span className="text-xs font-medium" style={{ color: '#545b64' }}>Mode:</span>
         <button
           onClick={() => setMode('add')}
-          className={`px-3 py-1 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${mode === 'add' ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+          className="px-3 py-1 rounded text-xs font-medium border cursor-pointer transition-colors"
+          style={
+            mode === 'add'
+              ? { background: '#ff9900', color: '#16191f', borderColor: '#e88b00' }
+              : { background: '#fff', color: '#545b64', borderColor: '#aab7b8' }
+          }
         >
           Add
         </button>
         <button
           onClick={() => setMode('move')}
-          className={`px-3 py-1 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${mode === 'move' ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+          className="px-3 py-1 rounded text-xs font-medium border cursor-pointer transition-colors"
+          style={
+            mode === 'move'
+              ? { background: '#ff9900', color: '#16191f', borderColor: '#e88b00' }
+              : { background: '#fff', color: '#545b64', borderColor: '#aab7b8' }
+          }
         >
           Move
         </button>
-        <span className="text-xs text-gray-400 ml-2">
+        <span className="text-xs" style={{ color: '#879596' }}>
           {mode === 'add'
-            ? 'Click canvas → add vertex. Drag vertex → vertex = add edge. Right-click = delete.'
+            ? 'Click canvas → vertex. Drag vertex→vertex → edge. Right-click → delete.'
             : 'Drag vertices to reposition.'}
         </span>
       </div>
@@ -188,14 +217,13 @@ export function GraphEditorForm({ onSubmit, loading }: GraphEditorFormProps) {
       <svg
         ref={svgRef}
         viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        className="w-full border border-gray-200 rounded-lg bg-gray-50 cursor-crosshair select-none"
-        style={{ height: 320 }}
+        className="w-full border rounded cursor-crosshair select-none"
+        style={{ height: 300, background: '#f2f3f3', borderColor: '#d5dbdb' }}
         onClick={handleSvgClick}
         onMouseMove={handleSvgMouseMove}
         onMouseUp={handleSvgMouseUp}
         onMouseLeave={handleSvgMouseUp}
       >
-        {/* background rect to catch clicks */}
         <rect width={SVG_W} height={SVG_H} fill="transparent" />
 
         {/* edges */}
@@ -207,23 +235,14 @@ export function GraphEditorForm({ onSubmit, loading }: GraphEditorFormProps) {
           const my = (u.y + v.y) / 2;
           return (
             <g key={edge.label}>
-              <line
-                x1={u.x} y1={u.y} x2={v.x} y2={v.y}
-                stroke="#d1d5db" strokeWidth={2}
-              />
-              {/* wide transparent hit area for right-click */}
+              <line x1={u.x} y1={u.y} x2={v.x} y2={v.y} stroke="#d5dbdb" strokeWidth={2} />
               <line
                 x1={u.x} y1={u.y} x2={v.x} y2={v.y}
                 stroke="transparent" strokeWidth={16}
                 onContextMenu={(e) => handleEdgeContextMenu(e, edge.label)}
                 style={{ cursor: 'context-menu' }}
               />
-              <text
-                x={mx} y={my - 6}
-                textAnchor="middle"
-                fontSize={10}
-                fill="#9ca3af"
-              >
+              <text x={mx} y={my - 6} textAnchor="middle" fontSize={10} fill="#879596">
                 {edge.label}
               </text>
             </g>
@@ -235,7 +254,7 @@ export function GraphEditorForm({ onSubmit, loading }: GraphEditorFormProps) {
           <line
             x1={ghostLine.x1} y1={ghostLine.y1}
             x2={ghostLine.x2} y2={ghostLine.y2}
-            stroke="#f97316" strokeWidth={1.5} strokeDasharray="6 3"
+            stroke="#ff9900" strokeWidth={1.5} strokeDasharray="6 3"
           />
         )}
 
@@ -249,17 +268,12 @@ export function GraphEditorForm({ onSubmit, loading }: GraphEditorFormProps) {
             onContextMenu={(e) => handleVertexContextMenu(e, v.id)}
             style={{ cursor: mode === 'move' ? 'grab' : 'pointer' }}
           >
-            <circle
-              r={VERTEX_R}
-              fill="white"
-              stroke="#f97316"
-              strokeWidth={2}
-            />
+            <circle r={VERTEX_R} fill="white" stroke="#ff9900" strokeWidth={2} />
             <text
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize={11}
-              fill="#374151"
+              fill="#16191f"
               style={{ userSelect: 'none', pointerEvents: 'none' }}
             >
               {v.name.length > 5 ? v.name.slice(0, 4) + '…' : v.name}
@@ -269,26 +283,27 @@ export function GraphEditorForm({ onSubmit, loading }: GraphEditorFormProps) {
       </svg>
 
       <div className="flex items-center gap-4">
-        <label className="text-sm font-medium text-gray-700">Color count:</label>
+        <label className="text-xs font-medium" style={{ color: '#545b64' }}>Color count:</label>
         <input
           type="number"
           min={1}
           value={colorCount}
           onChange={(e) => setColorCount(Number(e.target.value))}
-          className="w-20 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          className="w-20 border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-1"
+          style={{ borderColor: '#aab7b8' }}
           disabled={loading}
         />
-        <span className="text-xs text-gray-400">
+        <span className="text-xs" style={{ color: '#879596' }}>
           {vertices.length} vertices · {edges.length} edges
         </span>
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-xs" style={{ color: '#d13212' }}>{error}</p>}
 
       <div className="flex justify-end">
         <Button variant="primary" onClick={handleSubmit} disabled={loading}>
           {loading && <Spinner size="sm" />}
-          Set Instance
+          Create
         </Button>
       </div>
     </div>
