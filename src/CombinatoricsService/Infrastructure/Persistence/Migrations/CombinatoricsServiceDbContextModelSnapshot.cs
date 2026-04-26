@@ -45,6 +45,7 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(5000)");
 
                     b.Property<JsonDocument>("Instance")
+                        .IsRequired()
                         .HasColumnType("json");
 
                     b.Property<string>("Name")

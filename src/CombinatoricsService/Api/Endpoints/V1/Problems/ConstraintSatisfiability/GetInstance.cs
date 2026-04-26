@@ -12,9 +12,9 @@ public sealed class GetCspInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/instance/csp", Execute)
+        endpoint.MapGet("problems/{id:Guid}/csp/instance", Execute)
             .WithName("get csp instance")
-            .WithTags("problems", "csp");
+            .WithTags("csp");
     }
 
     public static async Task<Results<Ok<GetCspInstanceResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
@@ -26,12 +26,7 @@ public sealed class GetCspInstanceEndpoint : IEndpoint
             await mediator.Send(new GetCspInstanceQuery(id), cancellationToken);
 
         if (result.IsSuccess)
-        {
-            var value = result.Value;
-            return TypedResults.Ok(new GetCspInstanceResponse(
-                value.Variables.Select(v => new CspVariableResponse(v.Name, v.States)).ToList(),
-                value.Constraints));
-        }
+            return TypedResults.Ok(new GetCspInstanceResponse(result.Value.Instance));
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();
@@ -43,9 +38,6 @@ public sealed class GetCspInstanceEndpoint : IEndpoint
     }
 }
 
-public sealed record GetCspInstanceResponse(
-    IReadOnlyList<CspVariableResponse> Variables,
-    IReadOnlyList<string> Constraints
-);
+public sealed record GetCspInstanceResponse(CspInstanceDto Instance);
 
 public sealed record CspVariableResponse(string Name, IReadOnlyList<string> States);

@@ -67,7 +67,7 @@ internal static class EdgeColoringToCspReduction
     }
 }
 
-internal static partial class InternalExtensions
+internal static class InternalExtensions
 {
     public static DecisionVariable ToDecisionVariable(this Edge edge, List<string> colorStates) =>
         new(edge.Label, colorStates);

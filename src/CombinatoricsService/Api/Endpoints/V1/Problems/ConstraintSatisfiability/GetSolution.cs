@@ -13,15 +13,14 @@ public sealed class GetCspSolutionEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/solution/csp", Execute)
+        endpoint.MapGet("problems/{id:Guid}/csp/solution", Execute)
             .WithName("get csp solution")
-            .WithTags("problems", "csp");
+            .WithTags("csp");
     }
 
     public static async Task<Results<
         Ok<GetCspSolutionResponse>,
         NotFound<ProblemDetails>,
-        UnprocessableEntity<ProblemDetails>,
         ValidationProblem,
         InternalServerError>> Execute(
         [FromRoute] Guid id,
@@ -38,9 +37,6 @@ public sealed class GetCspSolutionEndpoint : IEndpoint
 
         if (result.Has(out NotFoundError? notFoundError))
             return notFoundError.ToNotFoundResult();
-
-        if (result.Has(out DomainError? domainError))
-            return domainError.ToUnprocessableEntityResult();
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();

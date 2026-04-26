@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
 using Raijin.CombinatoricsService.Application.Errors;
-using Raijin.CombinatoricsService.Application.Features.Problems.VertexColouring;
+using Raijin.CombinatoricsService.Application.Features.Problems.VertexColoring;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Domain.Problems;
 
@@ -13,15 +13,14 @@ public sealed class GetVertexColoringSolutionEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/solution/vertex-coloring", Execute)
+        endpoint.MapGet("problems/{id:Guid}/vertex-coloring/solution", Execute)
             .WithName("get vertex coloring solution")
-            .WithTags("problems", "vertex-coloring");
+            .WithTags("vertex-coloring");
     }
 
     public static async Task<Results<
         Ok<GetVertexColoringSolutionResponse>,
         NotFound<ProblemDetails>,
-        UnprocessableEntity<ProblemDetails>,
         ValidationProblem,
         InternalServerError>> Execute(
         [FromRoute] Guid id,
@@ -38,9 +37,6 @@ public sealed class GetVertexColoringSolutionEndpoint : IEndpoint
 
         if (result.Has(out NotFoundError? notFoundError))
             return notFoundError.ToNotFoundResult();
-
-        if (result.Has(out DomainError? domainError))
-            return domainError.ToUnprocessableEntityResult();
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();

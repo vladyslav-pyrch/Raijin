@@ -17,7 +17,12 @@ public sealed class ListProblemsEndpoint : IEndpoint
             .WithTags("problems");
     }
 
-    public static async Task<Results<Ok<ListProblemsResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
+    public static async Task<Results<
+        Ok<ListProblemsResponse>,
+        NotFound<ProblemDetails>,
+        ValidationProblem,
+        InternalServerError
+    >> Execute(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromServices] IMediator mediator = null!,

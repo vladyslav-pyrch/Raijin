@@ -7,5 +7,5 @@ public interface ISatSolver
 {
     string Name { get; }
 
-    Task<Result<SolveResult>> Solve(SatEncoding satEncoding, CancellationToken cancellationToken);
+    Task<Result<SatSolverResult>> Solve(SatEncoding satEncoding, CancellationToken cancellationToken);
 }

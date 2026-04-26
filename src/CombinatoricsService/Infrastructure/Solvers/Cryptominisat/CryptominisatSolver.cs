@@ -16,7 +16,7 @@ internal sealed class CryptominisatSolver(
 
     public string Name => "cryptominisat";
 
-    public async Task<Result<SolveResult>> Solve(
+    public async Task<Result<SatSolverResult>> Solve(
         SatEncoding satEncoding,
         CancellationToken cancellationToken)
     {
@@ -30,7 +30,7 @@ internal sealed class CryptominisatSolver(
 
         Result<string> filePathResult = await WriteCnfFileAsync(satEncoding, cancellationToken);
         if (filePathResult.IsFailed)
-            return Result.Fail<SolveResult>(filePathResult.Errors);
+            return Result.Fail<SatSolverResult>(filePathResult.Errors);
 
         string filePath = filePathResult.Value;
 
@@ -49,10 +49,10 @@ internal sealed class CryptominisatSolver(
             if (executionResult.IsFailed)
             {
                 logger.LogWarning("CryptoMiniSat execution failed: {Errors}", executionResult.Errors);
-                return Result.Fail<SolveResult>(executionResult.Errors);
+                return Result.Fail<SatSolverResult>(executionResult.Errors);
             }
 
-            Result<SolveResult> parseResult = ParseSolution(executionResult.Value);
+            Result<SatSolverResult> parseResult = ParseSolution(executionResult.Value);
             if (parseResult.IsFailed)
                 logger.LogError("Failed to parse CryptoMiniSat output: {Errors}", parseResult.Errors);
             else
@@ -108,26 +108,26 @@ internal sealed class CryptominisatSolver(
         }
     }
 
-    private Result<SolveResult> ParseSolution(string output)
+    private Result<SatSolverResult> ParseSolution(string output)
     {
         if (string.IsNullOrWhiteSpace(output))
-            return Result.Fail<SolveResult>("Empty output from CryptoMiniSat");
+            return Result.Fail<SatSolverResult>("Empty output from CryptoMiniSat");
 
         string[] lines = output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
         if (lines.Any(line => line.StartsWith("s UNSATISFIABLE")))
         {
             logger.LogInformation("Problem is UNSATISFIABLE");
-            return Result.Ok(new SolveResult(Satisfiability.Unsatisfiable, []));
+            return Result.Ok(new SatSolverResult(Satisfiability.Unsatisfiable, []));
         }
 
         if (!lines.Any(line => line.StartsWith("s SATISFIABLE")))
-            return Result.Fail<SolveResult>($"Unexpected output format: {output}");
+            return Result.Fail<SatSolverResult>($"Unexpected output format: {output}");
 
         string[] solutionLines = lines.Where(line => line.StartsWith("v ")).ToArray();
 
         if (solutionLines.Length == 0)
-            return Result.Fail<SolveResult>("No solution variables found in SATISFIABLE result");
+            return Result.Fail<SatSolverResult>("No solution variables found in SATISFIABLE result");
 
         try
         {
@@ -138,12 +138,12 @@ internal sealed class CryptominisatSolver(
                 .ToList();
 
             logger.LogDebug("Parsed solution with {Count} variable assignments", solution.Count);
-            return Result.Ok(new SolveResult(Satisfiability.Satisfiable, solution));
+            return Result.Ok(new SatSolverResult(Satisfiability.Satisfiable, solution));
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to parse solution literals");
-            return Result.Fail<SolveResult>($"Failed to parse solution: {ex.Message}");
+            return Result.Fail<SatSolverResult>($"Failed to parse solution: {ex.Message}");
         }
     }
 

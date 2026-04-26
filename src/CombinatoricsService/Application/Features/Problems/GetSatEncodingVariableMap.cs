@@ -25,10 +25,7 @@ public sealed class GetSatEncodingVariableMapHandler(
         if (problem.SatEncoding is null)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a SAT encoding.");
 
-        IReadOnlyDictionary<string, int>? variableMap = problem.ComputeVariableMap();
-
-        if (variableMap is null)
-            return new NotFoundError($"Problem '{request.ProblemId}' does not have an instance.");
+        IReadOnlyDictionary<string, int> variableMap = problem.ComputeVariableMap();
 
         IReadOnlyList<VariableMapEntry> variables = variableMap
             .Select(kvp => new VariableMapEntry(kvp.Key, kvp.Value))

@@ -4,9 +4,9 @@ using Raijin.CombinatoricsService.Domain.Problems.ConstraintSatisfiability;
 
 namespace Raijin.CombinatoricsService.Domain.Problems.VertexColouring;
 
-internal static class VertexColouringToCspReduction
+internal static class VertexColoringToCspReduction
 {
-    internal static VertexColouringToCspReductionResult Apply(VertexColoringInstance instance)
+    internal static VertexColoringToCspReductionResult Apply(VertexColoringInstance instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
 
@@ -38,11 +38,11 @@ internal static class VertexColouringToCspReduction
             .SelectMany(v => Enumerable.Range(1, colourCount).Select(v.ToVertexColorAssignment))
             .ToDictionary(vca => vca, vca => vca.ToDecisionVariableStateAssignment());
 
-        return new VertexColouringToCspReductionResult(csp, symbolTable);
+        return new VertexColoringToCspReductionResult(csp, symbolTable);
     }
 }
 
-internal static partial class InternalExtensions
+internal static class InternalExtensions
 {
     public static DecisionVariable ToDecisionVariable(this Vertex vertex, List<string> colourStates) =>
         new(vertex.Id, colourStates);

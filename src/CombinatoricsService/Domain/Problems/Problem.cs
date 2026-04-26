@@ -2,11 +2,12 @@
 
 public sealed class Problem
 {
-    private Problem(Guid id, string name, string description, DateTime createdAt)
+    private Problem(Guid id, string name, string description, Instance instance, DateTime createdAt)
     {
         Id = id;
         Name = name;
         Description = description;
+        Instance =  instance;
         CreatedAt = createdAt;
     }
 
@@ -18,7 +19,7 @@ public sealed class Problem
 
     public string? Solver { get; private set; }
 
-    public Instance? Instance { get; private set; }
+    public Instance Instance { get; }
 
     public Solution? Solution { get; private set; }
 
@@ -36,10 +37,11 @@ public sealed class Problem
 
     public DateTime? CompletedAt { get; private set; }
 
-    public static Problem Create(Guid id, string name, string description)
+    public static Problem Create(Guid id, string name, string description, Instance instance)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(description);
+        ArgumentNullException.ThrowIfNull(instance);
 
         if (name.Length > 100)
             throw new ArgumentException("Name cannot exceed 100 characters", nameof(name));
@@ -48,7 +50,7 @@ public sealed class Problem
 
         DateTime now = DateTime.UtcNow;
 
-        return new Problem(id, name, description, now)
+        return new Problem(id, name, description, instance, now)
         {
             UpdatedAt = now
         };
@@ -60,18 +62,17 @@ public sealed class Problem
         DateTime createdAt,
         DateTime updatedAt,
         string? solver,
-        Instance? instance,
+        Instance instance,
         SatEncoding? satEncoding,
         SolvingStatus solvingStatus,
         Satisfiability satisfiability,
         IReadOnlyList<int> assignment,
         DateTime? completedAt,
         Solution? solution
-    ) => new(id, name, description, createdAt)
+    ) => new(id, name, description, instance, createdAt)
     {
         UpdatedAt = updatedAt,
         Solver = solver,
-        Instance = instance,
         SatEncoding = satEncoding,
         SolvingStatus = solvingStatus,
         Satisfiability = satisfiability,
@@ -102,51 +103,19 @@ public sealed class Problem
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void SetSolver(string? solver)
+    public IReadOnlyDictionary<string, int> ComputeVariableMap() => Instance.GetVariableMap();
+
+    public void Solve(string solver)
     {
-        if (Solver == solver)
-            return;
-
-        if (SolvingStatus is SolvingStatus.Running)
-            throw new InvalidOperationException("Cannot change solver while solving is in progress.");
-
-        Solver = solver;
-        Solution = null;
-        Satisfiability = Satisfiability.Unknown;
-        Assignment = [];
-        SolvingStatus = SolvingStatus.NoSatEncoding;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void SetInstance(Instance instance)
-    {
-        ArgumentNullException.ThrowIfNull(instance);
-
-        if (SolvingStatus is SolvingStatus.Running)
-            throw new InvalidOperationException("Cannot change instance while solving is in progress.");
-
-        Instance = instance;
-        Solution = null;
-        SatEncoding = null;
-        SolvingStatus = SolvingStatus.NoSatEncoding;
-        Satisfiability = Satisfiability.Unknown;
-        Assignment = [];
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public IReadOnlyDictionary<string, int>? ComputeVariableMap() => Instance?.GetVariableMap();
-
-    public void ReduceToSat()
-    {
+        ArgumentNullException.ThrowIfNull(solver);
+        
         if (SolvingStatus is SolvingStatus.Running)
             throw new InvalidOperationException("Cannot re-encode to SAT while solving is in progress.");
 
-        if (Solver is null)
-            throw new InvalidOperationException("Cannot reduce to SAT: no solver has been set.");
-
         Instance instance = GetInstanceOrThrow();
 
-        SatEncoding = instance.ReduceToSat();
+        Solver = solver;
+        SatEncoding ??= instance.ReduceToSat();
         SolvingStatus = SolvingStatus.Pending;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -172,7 +141,7 @@ public sealed class Problem
         EnsureActiveStatus("complete");
 
         if (satisfiability == Satisfiability.Satisfiable)
-            Solution = Instance!.InterpretSolution(assignment);
+            Solution = Instance.InterpretSolution(assignment);
 
         Satisfiability = satisfiability;
         Assignment = assignment;

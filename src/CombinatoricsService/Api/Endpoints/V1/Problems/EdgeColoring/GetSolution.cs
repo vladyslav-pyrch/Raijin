@@ -13,15 +13,14 @@ public sealed class GetEdgeColoringSolutionEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/solution/edge-coloring", Execute)
+        endpoint.MapGet("problems/{id:Guid}/edge-coloring/solution", Execute)
             .WithName("get edge coloring solution")
-            .WithTags("problems", "edge-coloring");
+            .WithTags("edge-coloring");
     }
 
     public static async Task<Results<
         Ok<GetEdgeColoringSolutionResponse>,
         NotFound<ProblemDetails>,
-        UnprocessableEntity<ProblemDetails>,
         ValidationProblem,
         InternalServerError>> Execute(
         [FromRoute] Guid id,
@@ -38,9 +37,6 @@ public sealed class GetEdgeColoringSolutionEndpoint : IEndpoint
 
         if (result.Has(out NotFoundError? notFoundError))
             return notFoundError.ToNotFoundResult();
-
-        if (result.Has(out DomainError? domainError))
-            return domainError.ToUnprocessableEntityResult();
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();

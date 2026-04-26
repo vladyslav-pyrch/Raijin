@@ -12,12 +12,17 @@ public sealed class GetEdgeColoringInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/instance/edge-coloring", Execute)
+        endpoint.MapGet("problems/{id:Guid}/edge-coloring/instance", Execute)
             .WithName("get edge coloring instance")
-            .WithTags("problems", "edge-coloring");
+            .WithTags("edge-coloring");
     }
 
-    public static async Task<Results<Ok<GetEdgeColoringInstanceResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
+    public static async Task<Results<
+        Ok<GetEdgeColoringInstanceResponse>,
+        NotFound<ProblemDetails>,
+        ValidationProblem,
+        InternalServerError
+    >> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -26,13 +31,7 @@ public sealed class GetEdgeColoringInstanceEndpoint : IEndpoint
             await mediator.Send(new GetEdgeColoringInstanceQuery(id), cancellationToken);
 
         if (result.IsSuccess)
-        {
-            var value = result.Value;
-            return TypedResults.Ok(new GetEdgeColoringInstanceResponse(
-                value.Vertices,
-                value.Edges.Select(e => new EdgeResponse(e.Label, e.U, e.V)).ToList(),
-                value.ColorCount));
-        }
+            return TypedResults.Ok(new GetEdgeColoringInstanceResponse(result.Value.Instance));
 
         if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
             return validationErrors.ToValidationProblemResult();
@@ -44,10 +43,4 @@ public sealed class GetEdgeColoringInstanceEndpoint : IEndpoint
     }
 }
 
-public sealed record GetEdgeColoringInstanceResponse(
-    IReadOnlyList<string> Vertices,
-    IReadOnlyList<EdgeResponse> Edges,
-    int ColorCount
-);
-
-public sealed record EdgeResponse(string Label, string U, string V);
+public record GetEdgeColoringInstanceResponse(EdgeColoringInstanceDto Instance);
