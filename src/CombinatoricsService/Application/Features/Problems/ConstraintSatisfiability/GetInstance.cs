@@ -21,34 +21,29 @@ public sealed class GetCspInstanceHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.Instance is not CspInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a CSP instance.");
 
-        IReadOnlyList<CspVariableResult> variables = instance.Variables
-            .Select(v => new CspVariableResult(v.Name, v.States))
+        IReadOnlyList<DecisionVariableDto> variables = instance.Variables
+            .Select(v => new DecisionVariableDto(v.Name, v.States))
             .ToList();
 
         IReadOnlyList<string> constraints = instance.Constraints
             .Select(c => c.ToString())
             .ToList();
 
-        return new GetCspInstanceResult(variables, constraints);
+        return new GetCspInstanceResult(new CspInstanceDto(variables, constraints));
     }
 }
 
-public sealed record GetCspInstanceResult(
-    IReadOnlyList<CspVariableResult> Variables,
-    IReadOnlyList<string> Constraints
-);
-
-public sealed record CspVariableResult(string Name, IReadOnlyList<string> States);
+public sealed record GetCspInstanceResult(CspInstanceDto Instance);
 
 public sealed class GetCspInstanceValidator : AbstractValidator<GetCspInstanceQuery>
 {
     public GetCspInstanceValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

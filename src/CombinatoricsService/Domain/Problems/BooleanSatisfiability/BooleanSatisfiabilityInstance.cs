@@ -4,13 +4,6 @@ namespace Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 public sealed record BooleanSatisfiabilityInstance(IReadOnlyList<Clause> Clauses) : Instance
 {
-    public int GetVariableCount() =>
-        Clauses.SelectMany(clause => clause.Literals)
-            .DistinctBy(literal => literal.Variable.Name, StringComparer.Ordinal)
-            .Count();
-
-    public int GetClauseCount() => Clauses.Count;
-
     public override string ProblemType() => ProblemTypes.BooleanSatisfiabilityProblem;
 
     internal override SatEncoding ReduceToSat() => DimacsReduction.Apply(this).SatEncoding;

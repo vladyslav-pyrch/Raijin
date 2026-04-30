@@ -7,18 +7,7 @@ namespace Raijin.CombinatoricsService.Domain.Problems.Boolean;
 public sealed record BooleanProblemInstance(BoolExpr Root) : Instance
 {
     public override string ProblemType() => ProblemTypes.BooleanProblem;
-
-    public BooleanProblemInstance WithReplacementAt(NodePath path, BoolExpr replacement) =>
-        this with { Root = Root.ReplaceAt(path.Steps, replacement) };
-
-    public BooleanProblemInstance WithReplacement(
-        Func<BoolExpr, bool> predicate,
-        Func<BoolExpr, BoolExpr> replacement
-    ) => this with { Root = Root.Replace(predicate, replacement) };
-
-    public BooleanProblemInstance WithoutSubtreeAt(NodePath path) =>
-        WithReplacementAt(path, new ConstExpr(true));
-
+    
     internal override SatEncoding ReduceToSat() => TseitinTransform.Apply(this).Instance.ReduceToSat();
 
     internal override IReadOnlyDictionary<string, int> GetVariableMap()

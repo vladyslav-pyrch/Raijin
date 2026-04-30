@@ -5,10 +5,11 @@ import {Spinner} from '../Spinner';
 interface SatInstanceFormProps {
   onSubmit: (clauses: string[][]) => Promise<void>;
   loading: boolean;
+  initialText?: string;
 }
 
-export function SatInstanceForm({ onSubmit, loading }: SatInstanceFormProps) {
-  const [text, setText] = useState('');
+export function SatInstanceForm({ onSubmit, loading, initialText = '' }: SatInstanceFormProps) {
+  const [text, setText] = useState(initialText);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
@@ -44,20 +45,22 @@ export function SatInstanceForm({ onSubmit, loading }: SatInstanceFormProps) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="label">
           Clauses (one per line, space-separated literals)
         </label>
         <textarea
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-400"
+          className="input w-full font-geist-mono resize-y"
           rows={6}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={'x1 ~x2 x3\n~x1 x4\nx2 ~x3 ~x4 x5'}
           disabled={loading}
         />
-        {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-        <p className="text-gray-400 text-xs mt-1">
-          Each line is a clause. Variable name = positive literal. <code className="bg-gray-100 px-1 rounded">~name</code> = negation.
+        {error && <p className="text-error-500 text-xs mt-1">{error}</p>}
+        <p className="text-neutral-400 dark:text-neutral-500 text-xs mt-1">
+          Each line is a clause. Variable name = positive literal.{' '}
+          <code className="font-geist-mono bg-neutral-100 dark:bg-surface-tertiary px-1 rounded">~name</code>{' '}
+          = negation.
         </p>
       </div>
       <div className="flex justify-end">

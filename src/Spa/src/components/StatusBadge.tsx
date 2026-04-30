@@ -1,7 +1,7 @@
 import {STATUS_COLOR} from '../lib/constants';
 
 export function StatusBadge({ status }: { status: string }) {
-  const color = STATUS_COLOR[status] ?? '#879596';
+  const color = STATUS_COLOR[status] ?? '#9CA3AF';
   return (
     <span
       className="inline-flex items-center gap-1.5 text-xs font-medium"

@@ -27,6 +27,5 @@ public sealed record SatVariable
         Name = name;
     }
 
-    public static bool IsValidLiteralString(string literal) =>
-        LiteralRegex.IsMatch(literal ?? string.Empty);
+    public static bool IsValidLiteralString(string literal) => LiteralRegex.IsMatch(literal);
 }

@@ -45,12 +45,18 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(5000)");
 
                     b.Property<JsonDocument>("Instance")
+                        .IsRequired()
                         .HasColumnType("json");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ProblemType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Satisfiability")
                         .IsRequired()
@@ -79,52 +85,30 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ProblemModel", b =>
                 {
-                    b.OwnsOne("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.SatEncodingModel", "SatEncoding", b1 =>
+                    b.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ClauseModel", "Clauses", b1 =>
                         {
                             b1.Property<Guid>("Id")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid");
+
+                            b1.PrimitiveCollection<int[]>("Literals")
+                                .IsRequired()
+                                .HasColumnType("integer[]");
 
                             b1.Property<Guid>("ProblemId")
                                 .HasColumnType("uuid");
 
                             b1.HasKey("Id");
 
-                            b1.HasIndex("ProblemId")
-                                .IsUnique();
+                            b1.HasIndex("ProblemId");
 
-                            b1.ToTable("SatEncodings", (string)null);
+                            b1.ToTable("Clauses", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ProblemId");
-
-                            b1.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ClauseModel", "Clauses", b2 =>
-                                {
-                                    b2.Property<Guid>("Id")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("uuid");
-
-                                    b2.PrimitiveCollection<int[]>("Literals")
-                                        .IsRequired()
-                                        .HasColumnType("integer[]");
-
-                                    b2.Property<Guid>("SatEncodingId")
-                                        .HasColumnType("uuid");
-
-                                    b2.HasKey("Id");
-
-                                    b2.HasIndex("SatEncodingId");
-
-                                    b2.ToTable("Clauses", (string)null);
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("SatEncodingId");
-                                });
-
-                            b1.Navigation("Clauses");
                         });
 
-                    b.Navigation("SatEncoding");
+                    b.Navigation("Clauses");
                 });
 #pragma warning restore 612, 618
         }

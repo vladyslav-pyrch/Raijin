@@ -8,9 +8,6 @@ namespace Raijin.CombinatoricsService.Domain.Problems.EdgeColouring;
 
 public sealed record EdgeColoringInstance(Graph Graph, int ColourCount) : Instance
 {
-    public EdgeColoringInstance WithColourCount(int colourCount) =>
-        this with { ColourCount = colourCount };
-
     public override string ProblemType() => ProblemTypes.EdgeColoringProblem;
 
     internal override SatEncoding ReduceToSat() => EdgeColoringToCspReduction.Apply(this)
@@ -18,9 +15,9 @@ public sealed record EdgeColoringInstance(Graph Graph, int ColourCount) : Instan
 
     internal override IReadOnlyDictionary<string, int> GetVariableMap()
     {
-        EdgeColoringToCspReductionResult edgeResult = EdgeColoringToCspReduction.Apply(this);
-        CspToBooleanReductionResult cspResult = CspToBooleanReduction.Apply(edgeResult.CspInstance);
-        TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspResult.Instance);
+        EdgeColoringToCspReductionResult edgeColoringToCspResult = EdgeColoringToCspReduction.Apply(this);
+        CspToBooleanReductionResult cspToBoolResult = CspToBooleanReduction.Apply(edgeColoringToCspResult.CspInstance);
+        TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspToBoolResult.Instance);
         DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
         return dimacsResult.SymbolTable.ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
     }

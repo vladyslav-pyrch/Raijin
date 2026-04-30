@@ -1,17 +1,21 @@
 import {useVariableMap} from '../../hooks/useVariableMap';
+import {usePagination} from '../../hooks/usePagination';
 import {Button} from '../Button';
 import {Spinner} from '../Spinner';
+import {PaginationBar} from '../PaginationBar';
+
+const PAGE_SIZE = 100;
 
 export function VariableMapSection({ problemId }: { problemId: string }) {
   const { variableMap, loading, error, fetched, fetch } = useVariableMap(problemId);
 
+  const variables = variableMap?.variables ?? [];
+  const { page, totalPages, pageItems, setPage } = usePagination(variables, PAGE_SIZE);
+
   return (
-    <section className="bg-white border rounded" style={{ borderColor: '#d5dbdb' }}>
-      <div
-        className="px-4 py-3 border-b flex items-center justify-between"
-        style={{ borderColor: '#d5dbdb', background: '#fafafa' }}
-      >
-        <h2 className="text-sm font-semibold" style={{ color: '#16191f' }}>
+    <section className="card">
+      <div className="card-header flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
           Variable map
         </h2>
         {!fetched && (
@@ -24,7 +28,7 @@ export function VariableMapSection({ problemId }: { problemId: string }) {
 
       {!fetched && !loading && !error && (
         <div className="px-4 py-4">
-          <p className="text-sm" style={{ color: '#879596' }}>
+          <p className="text-sm text-neutral-400 dark:text-neutral-500">
             Click "Load variable map" to fetch the DIMACS variable index mapping.
           </p>
         </div>
@@ -32,28 +36,46 @@ export function VariableMapSection({ problemId }: { problemId: string }) {
 
       {error && (
         <div className="px-4 py-4">
-          <p className="text-sm" style={{ color: '#d13212' }}>{error}</p>
+          <p className="text-sm text-error-500">{error}</p>
         </div>
       )}
 
       {fetched && variableMap && (
-        <div className="overflow-auto max-h-64 border-t" style={{ borderColor: '#d5dbdb' }}>
-          <table className="w-full text-xs">
-            <thead className="sticky top-0" style={{ background: '#fafafa', borderBottom: '1px solid #d5dbdb' }}>
-              <tr>
-                <th className="text-left px-4 py-2 font-medium w-20" style={{ color: '#545b64' }}>Index</th>
-                <th className="text-left px-4 py-2 font-medium" style={{ color: '#545b64' }}>Variable name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {variableMap.variables.map((v) => (
-                <tr key={v.index} style={{ borderTop: '1px solid #eaeded' }}>
-                  <td className="px-4 py-1.5 font-mono" style={{ color: '#545b64' }}>{v.index}</td>
-                  <td className="px-4 py-1.5 font-mono" style={{ color: '#16191f' }}>{v.name}</td>
+        <div className="px-4 py-3 space-y-2">
+          {/* Summary */}
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {variables.length} variable{variables.length !== 1 ? 's' : ''}
+          </p>
+
+          {/* Table */}
+          <div className="overflow-auto max-h-64 border border-neutral-200 dark:border-neutral-700 rounded-md">
+            <table className="w-full text-xs">
+              <thead className="table-header sticky top-0">
+                <tr>
+                  <th className="text-left px-4 py-2 font-medium w-20 text-neutral-500 dark:text-neutral-400">Index</th>
+                  <th className="text-left px-4 py-2 font-medium text-neutral-500 dark:text-neutral-400">Variable name</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pageItems.map((v) => (
+                  <tr key={v.index} className="table-row">
+                    <td className="px-4 py-1.5 font-geist-mono text-neutral-500 dark:text-neutral-400">{v.index}</td>
+                    <td className="px-4 py-1.5 font-geist-mono text-neutral-900 dark:text-neutral-100">{v.name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <PaginationBar
+            page={page}
+            totalPages={totalPages}
+            totalItems={variables.length}
+            pageSize={PAGE_SIZE}
+            onPage={setPage}
+            noun="variables"
+          />
         </div>
       )}
     </section>

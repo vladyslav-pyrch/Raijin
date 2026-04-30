@@ -41,26 +41,32 @@ export function DropdownButton({
     <div className="relative inline-flex" ref={ref}>
       <div
         className={[
-          'inline-flex rounded border overflow-hidden',
+          'inline-flex rounded-md border overflow-hidden border-primary-600',
           isDisabled ? 'opacity-50' : '',
         ]
           .filter(Boolean)
           .join(' ')}
-        style={{ borderColor: '#e88b00' }}
       >
+        {/* Main label button */}
         <button
           disabled={isDisabled}
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold bg-[#ff9900] hover:bg-[#e88b00] text-[#16191f] border-r cursor-pointer transition-colors disabled:cursor-not-allowed"
-          style={{ borderColor: '#e88b00' }}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold
+                     bg-primary-500 hover:bg-primary-600 text-white
+                     border-r border-primary-600
+                     cursor-pointer transition-colors disabled:cursor-not-allowed"
         >
           {loading && <Spinner size="sm" />}
           {label}
         </button>
+
+        {/* Chevron button */}
         <button
           disabled={isDisabled}
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center px-2 py-1.5 bg-[#ff9900] hover:bg-[#e88b00] text-[#16191f] cursor-pointer transition-colors disabled:cursor-not-allowed"
+          className="flex items-center px-2 py-1.5
+                     bg-primary-500 hover:bg-primary-600 text-white
+                     cursor-pointer transition-colors disabled:cursor-not-allowed"
           aria-label="Show options"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +76,10 @@ export function DropdownButton({
       </div>
 
       {open && (
-        <div className="absolute top-full left-0 mt-0.5 w-44 bg-white border border-[#d5dbdb] rounded shadow-lg z-20 overflow-hidden">
+        <div className="absolute top-full left-0 mt-0.5 w-48
+                        bg-white dark:bg-surface-secondary
+                        border border-neutral-200 dark:border-neutral-700
+                        rounded-md shadow-lg z-20 overflow-hidden animate-fade-in">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -78,7 +87,10 @@ export function DropdownButton({
                 setOpen(false);
                 onSelect(opt.value);
               }}
-              className="w-full text-left px-3 py-2 text-sm text-[#16191f] hover:bg-[#f2f3f3] cursor-pointer transition-colors"
+              className="w-full text-left px-3 py-2 text-sm
+                         text-neutral-900 dark:text-neutral-100
+                         hover:bg-neutral-100 dark:hover:bg-surface-tertiary
+                         cursor-pointer transition-colors"
             >
               {opt.label}
             </button>

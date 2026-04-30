@@ -4,47 +4,170 @@ import {Button} from '../Button';
 import {BooleanInstanceForm} from './BooleanInstanceForm';
 import {SatInstanceForm} from './SatInstanceForm';
 import {CspInstanceForm} from './CspInstanceForm';
-import {GraphEditorForm} from './GraphEditorForm';
+import {circleLayout, GraphEditorForm} from './GraphEditorForm';
 import {INSTANCE_TYPES, type InstanceTypeValue} from '../../lib/constants';
 import {api} from '../../lib/api';
-import type {CspInstanceDto, VertexColoringEdgeDto,} from '../../services/combinatorics';
+import type {AnyInstanceData} from '../../hooks/useInstance';
+import type {
+    BooleanProblemInstanceDto,
+    CspInstanceDto,
+    EdgeColoringInstanceDto,
+    SatInstanceDto,
+    VertexColoringInstanceDto,
+} from '../../services/combinatorics';
 
-interface SetInstanceModalProps {
-  open: boolean;
-  problemId: string;
-  onClose: () => void;
-  onSuccess: () => void;
+// ─── Version name helper ──────────────────────────────────────────────────────
+
+/** Increment "(version N)" suffix, or append "(version 2)" if absent. */
+export function nextVersionName(name: string): string {
+  const match = name.match(/^(.*?)\s*\(version\s+(\d+)\)\s*$/i);
+  if (match) {
+    const base = (match[1] ?? '').trim();
+    const n = parseInt(match[2] ?? '1', 10);
+    return `${base} (version ${n + 1})`;
+  }
+  return `${name} (version 2)`;
 }
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+export interface ForkPrefill {
+  name: string;
+  description: string;
+  instanceType: InstanceTypeValue;
+  instance: AnyInstanceData;
+}
+
+interface CreateProblemModalProps {
+  open: boolean;
+  onClose: () => void;
+  /** Called with the new problem's ID after creation. */
+  onSuccess: (newProblemId: string) => void;
+  /** When provided, skips type picker and pre-fills all fields (fork/edit mode). */
+  prefill?: ForkPrefill;
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export function SetInstanceModal({
   open,
-  problemId,
   onClose,
   onSuccess,
-}: SetInstanceModalProps) {
-  const [selectedType, setSelectedType] = useState<InstanceTypeValue | null>(null);
+  prefill,
+}: CreateProblemModalProps) {
+  const isFork = prefill !== undefined;
+
+  const [selectedType, setSelectedType] = useState<InstanceTypeValue | null>(
+    prefill?.instanceType ?? null,
+  );
+  const [name, setName] = useState(isFork ? nextVersionName(prefill!.name) : '');
+  const [description, setDescription] = useState(isFork ? (prefill!.description ?? '') : '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClose = () => {
-    setSelectedType(null);
+    if (!isFork) {
+      setSelectedType(null);
+    }
+    setName(isFork ? nextVersionName(prefill!.name) : '');
+    setDescription(isFork ? (prefill!.description ?? '') : '');
     setError(null);
     onClose();
   };
 
-  const wrap = async (fn: () => Promise<void>) => {
+  const wrap = async (fn: () => Promise<string>) => {
+    if (!name.trim()) {
+      setError('Name is required');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      await fn();
+      const id = await fn();
       handleClose();
-      onSuccess();
+      onSuccess(id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to set instance');
+      setError(err instanceof Error ? err.message : 'Failed to create problem');
     } finally {
       setLoading(false);
     }
   };
+
+  // ── Per-type submit handlers ─────────────────────────────────────────────
+
+  const handleBoolSubmit = async (formula: string) => {
+    await wrap(async () => {
+      const res = await api.createBooleanProblem({
+        name: name.trim(),
+        description: description || null,
+        instance: { formula },
+      });
+      return res.problemId;
+    });
+  };
+
+  const handleSatSubmit = async (clauses: string[][]) => {
+    await wrap(async () => {
+      const res = await api.createSatProblem({
+        name: name.trim(),
+        description: description || null,
+        instance: { clauses },
+      });
+      return res.problemId;
+    });
+  };
+
+  const handleCspSubmit = async (instance: CspInstanceDto) => {
+    await wrap(async () => {
+      const res = await api.createCspProblem({
+        name: name.trim(),
+        description: description || null,
+        instance,
+      });
+      return res.problemId;
+    });
+  };
+
+  // ── Build pre-fill data for forms ────────────────────────────────────────
+
+  const getPrefillProps = () => {
+    if (!prefill) return {};
+    switch (prefill.instanceType) {
+      case 'bool': {
+        const d = prefill.instance as BooleanProblemInstanceDto;
+        return { initialFormula: d.formula };
+      }
+      case 'sat': {
+        const d = prefill.instance as SatInstanceDto;
+        return { initialText: d.clauses.map((c: string[]) => c.join(' ')).join('\n') };
+      }
+      case 'csp': {
+        const d = prefill.instance as CspInstanceDto;
+        return {
+          initialVariables: d.variables.map((v) => ({
+            name: v.name,
+            states: v.states.join(', '),
+          })),
+          initialConstraints: d.constraints.length ? d.constraints : [''],
+        };
+      }
+      case 'vertex-coloring':
+      case 'edge-coloring': {
+        const d = prefill.instance as VertexColoringInstanceDto | EdgeColoringInstanceDto;
+        return {
+          initialVertices: circleLayout(d.graph.vertices.map((v) => v.id)),
+          initialEdges: d.graph.edges,
+          initialColorCount: d.colorCount,
+        };
+      }
+      default:
+        return {};
+    }
+  };
+
+  const prefillProps = getPrefillProps();
+
+  // ── Render form for selected type ────────────────────────────────────────
 
   const renderForm = () => {
     switch (selectedType) {
@@ -52,61 +175,58 @@ export function SetInstanceModal({
         return (
           <BooleanInstanceForm
             loading={loading}
-            onSubmit={(formula) =>
-              wrap(() => api.setBooleanInstance(problemId, { instance: { formula } }))
-            }
+            onSubmit={handleBoolSubmit}
+            {...(prefillProps as { initialFormula?: string })}
           />
         );
       case 'sat':
         return (
           <SatInstanceForm
             loading={loading}
-            onSubmit={(clauses) =>
-              wrap(() => api.setSatInstance(problemId, { instance: { clauses } }))
-            }
+            onSubmit={handleSatSubmit}
+            {...(prefillProps as { initialText?: string })}
           />
         );
       case 'csp':
         return (
           <CspInstanceForm
             loading={loading}
-            onSubmit={(instance: CspInstanceDto) =>
-              wrap(() => api.setCspInstance(problemId, { instance }))
-            }
+            onSubmit={handleCspSubmit}
+            {...(prefillProps as object)}
           />
         );
       case 'vertex-coloring':
         return (
           <GraphEditorForm
             loading={loading}
-            onSubmit={(verts, edgs, colorCount) =>
-              wrap(() =>
-                api.setVertexColoringInstance(problemId, {
-                  instance: {
-                    vertices: verts,
-                    edges: edgs as VertexColoringEdgeDto[],
-                    colorCount,
-                  },
-                }),
-              )
-            }
+            onSubmit={async (inst) => {
+              await wrap(async () => {
+                const res = await api.createVertexColoringProblem({
+                  name: name.trim(),
+                  description: description || null,
+                  instance: inst,
+                });
+                return res.problemId;
+              });
+            }}
+            {...(prefillProps as object)}
           />
         );
       case 'edge-coloring':
         return (
           <GraphEditorForm
             loading={loading}
-            onSubmit={(verts, edgs, colorCount) =>
-              wrap(() =>
-                api.setEdgeColoringInstance(problemId, {
-                  instance: {
-                    vertices: verts,
-                    edges: edgs,
-                    colorCount,
-                  },
-                }),
-              )
-            }
+            onSubmit={async (inst) => {
+              await wrap(async () => {
+                const res = await api.createEdgeColoringProblem({
+                  name: name.trim(),
+                  description: description || null,
+                  instance: inst,
+                });
+                return res.problemId;
+              });
+            }}
+            {...(prefillProps as object)}
           />
         );
       default:
@@ -114,52 +234,76 @@ export function SetInstanceModal({
     }
   };
 
+  const modalTitle = isFork
+    ? 'Edit problem (new version)'
+    : selectedType
+      ? `New problem — ${INSTANCE_TYPES.find((t) => t.value === selectedType)?.label ?? selectedType}`
+      : 'New problem';
+
   return (
-    <Modal
-      open={open}
-      title={selectedType ? `Set Instance — ${selectedType}` : 'Set Problem Instance'}
-      onClose={handleClose}
-    >
-      {!selectedType ? (
-        <div className="space-y-2">
-          <p className="text-xs mb-3" style={{ color: '#545b64' }}>Choose a problem type:</p>
-          {INSTANCE_TYPES.map((t) => (
-            <button
-              key={t.value}
-              onClick={() => setSelectedType(t.value)}
-              className="w-full text-left px-3 py-2.5 rounded border transition-colors cursor-pointer"
-              style={{ borderColor: '#d5dbdb', background: '#fff', color: '#16191f' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#fef6e4';
-                e.currentTarget.style.borderColor = '#ff9900';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#fff';
-                e.currentTarget.style.borderColor = '#d5dbdb';
-              }}
-            >
-              <span className="text-sm font-medium">{t.label}</span>
-            </button>
-          ))}
-        </div>
-      ) : (
+    <Modal open={open} title={modalTitle} onClose={handleClose}>
+      <div className="space-y-4">
+        {/* Name + description always visible */}
         <div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setSelectedType(null)}
-            className="mb-4"
-          >
+          <label className="label">
+            Name <span className="text-error-500">*</span>
+          </label>
+          <input
+            className="input w-full"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={loading}
+            placeholder="Problem name"
+          />
+        </div>
+        <div>
+          <label className="label">Description</label>
+          <textarea
+            className="input w-full resize-y"
+            rows={2}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={loading}
+            placeholder="Optional description…"
+          />
+        </div>
+
+        {/* Type picker (create mode only) */}
+        {!isFork && !selectedType && (
+          <div>
+            <p className="label">Choose problem type:</p>
+            {INSTANCE_TYPES.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setSelectedType(t.value)}
+                className="w-full text-left px-3 py-2.5 rounded-md border mb-1.5 transition-colors cursor-pointer
+                           border-neutral-200 dark:border-neutral-700
+                           bg-white dark:bg-surface-secondary
+                           text-neutral-900 dark:text-neutral-100
+                           hover:bg-primary-50 dark:hover:bg-primary-900/20
+                           hover:border-primary-300 dark:hover:border-primary-700"
+              >
+                <span className="text-sm font-medium">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Back button (create mode, type selected) */}
+        {!isFork && selectedType && (
+          <Button size="sm" variant="ghost" onClick={() => setSelectedType(null)}>
             ← Back
           </Button>
-          {renderForm()}
-          {error && (
-            <p className="text-xs mt-3" style={{ color: '#d13212' }}>
-              {error}
-            </p>
-          )}
-        </div>
-      )}
+        )}
+
+        {/* Instance form */}
+        {selectedType && renderForm()}
+
+        {error && <p className="text-error-500 text-xs">{error}</p>}
+      </div>
     </Modal>
   );
 }
+
+// Re-export under old name for backward compat with App.tsx import path
+export { SetInstanceModal as CreateProblemModal };

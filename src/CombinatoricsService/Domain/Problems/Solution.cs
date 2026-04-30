@@ -12,5 +12,5 @@ namespace Raijin.CombinatoricsService.Domain.Problems;
 [JsonDerivedType(typeof(BooleanProblemSolution), ProblemTypes.BooleanProblem)]
 [JsonDerivedType(typeof(CspSolution), ProblemTypes.ConstraintSatisfiabilityProblem)]
 [JsonDerivedType(typeof(EdgeColoringSolution), ProblemTypes.EdgeColoringProblem)]
-[JsonDerivedType(typeof(VertexColouringSolution), ProblemTypes.VertexColoringProblem)]
+[JsonDerivedType(typeof(VertexColoringSolution), ProblemTypes.VertexColoringProblem)]
 public abstract record Solution;

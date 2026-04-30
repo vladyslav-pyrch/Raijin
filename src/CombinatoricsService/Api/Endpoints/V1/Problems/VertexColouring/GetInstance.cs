@@ -1,9 +1,7 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
-using Raijin.CombinatoricsService.Application.Features.Problems.VertexColouring;
+using Raijin.CombinatoricsService.Application.Features.Problems.VertexColoring;
 using Raijin.CombinatoricsService.Application.Messaging;
 
 namespace Raijin.CombinatoricsService.Api.Endpoints.V1.Problems.VertexColouring;
@@ -12,12 +10,15 @@ public sealed class GetVertexColoringInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/instance/vertex-coloring", Execute)
+        endpoint.MapGet("problems/{id:Guid}/vertex-coloring/instance", Execute)
             .WithName("get vertex coloring instance")
-            .WithTags("problems", "vertex-coloring");
+            .WithTags("vertex-coloring")
+            .Produces<GetVertexColoringInstanceResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<Ok<GetVertexColoringInstanceResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -25,29 +26,10 @@ public sealed class GetVertexColoringInstanceEndpoint : IEndpoint
         Result<GetVertexColoringInstanceResult> result =
             await mediator.Send(new GetVertexColoringInstanceQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            var value = result.Value;
-            return TypedResults.Ok(new GetVertexColoringInstanceResponse(
-                value.Vertices,
-                value.Edges.Select(e => new VertexEdgeResponse(e.Label, e.U, e.V)).ToList(),
-                value.ColorCount));
-        }
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetVertexColoringInstanceResponse(result.Value.Instance))
+            : result.ToProblemResult();
     }
 }
 
-public sealed record GetVertexColoringInstanceResponse(
-    IReadOnlyList<string> Vertices,
-    IReadOnlyList<VertexEdgeResponse> Edges,
-    int ColorCount
-);
-
-public sealed record VertexEdgeResponse(string Label, string U, string V);
+public sealed record GetVertexColoringInstanceResponse(VertexColoringInstanceDto Instance);

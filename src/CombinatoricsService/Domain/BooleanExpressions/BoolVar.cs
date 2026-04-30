@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Raijin.CombinatoricsService.Domain.Patterns;
 
@@ -23,13 +22,7 @@ public partial record BoolVar : BoolExpr
 
     public string Name { get; }
 
-    [JsonIgnore]
-    public override IReadOnlyList<BoolExpr> Children => [];
-
-    protected override BoolExpr WithChildren(IReadOnlyList<BoolExpr> children) => this;
-
-    protected override int ResolveChildIndex(ChildSelector selector) =>
-        throw new InvalidOperationException($"{nameof(BoolVar)} is a leaf node and has no children.");
+    public override int Precedence => 60;
 
     public override IEnumerable<BoolVar> GetVariables() => [this];
 

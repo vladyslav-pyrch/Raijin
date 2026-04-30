@@ -22,18 +22,24 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 p-4"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white border border-[#d5dbdb] shadow-2xl w-full max-w-xl mx-4 overflow-hidden rounded">
+      <div className="card w-full max-w-xl animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 bg-[#f2f3f3] border-b border-[#d5dbdb]">
-          <h2 className="text-sm font-semibold text-[#16191f]">{title}</h2>
+        <div className="card-header flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            {title}
+          </h2>
           <button
             onClick={onClose}
-            className="text-[#545b64] hover:text-[#16191f] text-xl leading-none cursor-pointer w-6 h-6 flex items-center justify-center"
+            className="w-6 h-6 flex items-center justify-center rounded
+                       text-neutral-500 dark:text-neutral-400
+                       hover:text-neutral-900 dark:hover:text-neutral-100
+                       hover:bg-neutral-100 dark:hover:bg-surface-tertiary
+                       text-xl leading-none cursor-pointer transition-colors"
             aria-label="Close"
           >
             ×

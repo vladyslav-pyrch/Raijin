@@ -1,13 +1,19 @@
 import {useState} from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {useProblems} from './hooks/useProblems';
-import {api} from './lib/api';
+import {useMobileDetect} from './hooks/useMobileDetect';
+import {getCookie, setCookie} from './lib/cookies';
 import {Button} from './components/Button';
-import {Modal} from './components/Modal';
 import {Spinner} from './components/Spinner';
 import {ProblemCard} from './components/ProblemCard';
 import {WelcomePage} from './pages/WelcomePage';
 import {ProblemDetailPage} from './pages/ProblemDetailPage';
+import {CreateProblemPage} from './pages/CreateProblemPage';
+import {EditProblemPage} from './pages/EditProblemPage';
+import {HelpPage} from './pages/HelpPage';
+import {MobileBlockPage} from './pages/MobileBlockPage';
+
+// ─── Sidebar card list (needs useParams from router context) ──────────────────
 
 function SidebarCardList({
   problems,
@@ -31,82 +37,73 @@ function SidebarCardList({
   );
 }
 
+// ─── Main layout ──────────────────────────────────────────────────────────────
+
 function AppLayout() {
+  const isMobile = useMobileDetect();
   const navigate = useNavigate();
   const { problems, loading, error, totalPages, page, loadPage, refresh } = useProblems();
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  const [createLoading, setCreateLoading] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(
+    () => getCookie('darkMode') === 'true',
+  );
 
-  const openCreate = () => {
-    setNewName('');
-    setNewDesc('');
-    setCreateError(null);
-    setCreateOpen(true);
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const next = !prev;
+      document.documentElement.classList.toggle('dark', next);
+      setCookie('darkMode', String(next));
+      return next;
+    });
   };
 
-  const handleCreate = async () => {
-    if (!newName.trim()) {
-      setCreateError('Name is required');
-      return;
-    }
-    setCreateLoading(true);
-    setCreateError(null);
-    try {
-      const res = await api.createProblem({ name: newName.trim(), description: newDesc || null });
-      setCreateOpen(false);
-      await refresh();
-      navigate(`/problems/${res.problemId}`);
-    } catch (err) {
-      setCreateError(err instanceof Error ? err.message : 'Failed to create problem');
-    } finally {
-      setCreateLoading(false);
-    }
-  };
+  if (isMobile) return <MobileBlockPage />;
 
   return (
-    <div className="flex flex-col h-screen" style={{ background: '#f2f3f3' }}>
-      {/* ── Top navigation bar ──────────────────────────────────────────── */}
-      <header
-        className="sticky top-0 z-10 flex items-center shrink-0 min-h-[48px] px-4 gap-4"
-        style={{ background: '#232f3e' }}
-      >
-        <span className="text-base font-bold tracking-tight" style={{ color: '#ff9900' }}>
+    <div className="flex flex-col h-screen bg-neutral-50 dark:bg-surface text-neutral-900 dark:text-neutral-100">
+
+      {/* Top navigation bar */}
+      <header className="sticky top-0 z-10 flex items-center shrink-0 min-h-[48px] px-4 gap-4 bg-neutral-900 dark:bg-neutral-900 shadow-md">
+        <button
+          onClick={() => navigate('/')}
+          className="text-base font-bold tracking-tight cursor-pointer hover:opacity-80 bg-transparent border-0 p-0 text-primary-400"
+        >
           ⚡ Raijin
-        </span>
-        <span className="text-xs" style={{ color: '#d5dbdb', opacity: 0.6 }}>
+        </button>
+        <span className="text-xs text-neutral-400 opacity-70">
           Combinatorics Solver
         </span>
+        <div className="flex-1" />
+        <button
+          onClick={() => navigate('/help')}
+          className="text-xs cursor-pointer text-neutral-400 hover:text-neutral-200 transition-colors"
+        >
+          Help
+        </button>
+        <button
+          onClick={toggleDarkMode}
+          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="text-sm cursor-pointer text-neutral-400 hover:text-neutral-200 transition-colors w-7 h-7 flex items-center justify-center rounded hover:bg-neutral-700"
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? '☀' : '☾'}
+        </button>
       </header>
 
-      {/* ── Body ────────────────────────────────────────────────────────── */}
+      {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* ── Sidebar ─────────────────────────────────────────────────── */}
-        <aside
-          className="w-64 shrink-0 flex flex-col overflow-hidden border-r"
-          style={{ background: '#ffffff', borderColor: '#d5dbdb' }}
-        >
+
+        {/* Sidebar */}
+        <aside className="w-64 shrink-0 flex flex-col overflow-hidden border-r border-neutral-200 dark:border-neutral-700 bg-white dark:bg-surface-secondary">
+
           {/* Sidebar header */}
-          <div
-            className="px-3 py-2 border-b flex items-center justify-between shrink-0"
-            style={{ borderColor: '#d5dbdb', background: '#fafafa' }}
-          >
-            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#545b64' }}>
+          <div className="px-3 py-2 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-surface-tertiary flex items-center justify-between shrink-0">
+            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               Problems
             </span>
             <button
-              onClick={openCreate}
-              className="text-xs font-semibold px-2 py-1 rounded cursor-pointer transition-colors"
-              style={{
-                background: '#ff9900',
-                color: '#16191f',
-                border: '1px solid #e88b00',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#e88b00')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#ff9900')}
+              onClick={() => navigate('/create')}
+              className="btn btn-primary btn-sm"
             >
               + Create
             </button>
@@ -120,12 +117,10 @@ function AppLayout() {
               </div>
             )}
             {error && (
-              <p className="text-xs px-3 py-2" style={{ color: '#d13212' }}>
-                {error}
-              </p>
+              <p className="text-xs px-3 py-2 text-error-500">{error}</p>
             )}
             {!loading && problems.length === 0 && (
-              <p className="text-xs text-center py-8" style={{ color: '#879596' }}>
+              <p className="text-xs text-center py-8 text-neutral-400">
                 No problems yet
               </p>
             )}
@@ -144,14 +139,11 @@ function AppLayout() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div
-              className="flex items-center justify-between px-3 py-2 border-t text-xs shrink-0"
-              style={{ borderColor: '#d5dbdb' }}
-            >
+            <div className="flex items-center justify-between px-3 py-2 border-t border-neutral-200 dark:border-neutral-700 text-xs shrink-0">
               <Button size="sm" variant="ghost" onClick={() => loadPage(page - 1)} disabled={page <= 1}>
                 ‹ Prev
               </Button>
-              <span style={{ color: '#879596' }}>
+              <span className="text-neutral-400">
                 {page} / {totalPages}
               </span>
               <Button size="sm" variant="ghost" onClick={() => loadPage(page + 1)} disabled={page >= totalPages}>
@@ -161,74 +153,20 @@ function AppLayout() {
           )}
         </aside>
 
-        {/* ── Main content ─────────────────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto" style={{ background: '#f2f3f3' }}>
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto bg-neutral-50 dark:bg-surface">
           <Routes>
             <Route path="/" element={<WelcomePage />} />
-            <Route
-              path="/problems/:id"
-              element={<ProblemDetailPage onProblemChanged={refresh} />}
-            />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/create" element={<CreateProblemPage onProblemChanged={refresh} />} />
+            <Route path="/problems/:id" element={<ProblemDetailPage onProblemChanged={refresh} />} />
+            <Route path="/problems/:id/edit" element={<EditProblemPage onProblemChanged={refresh} />} />
           </Routes>
         </main>
       </div>
 
-      {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer
-        className="shrink-0 min-h-[36px] border-t flex items-center px-4"
-        style={{ background: '#fafafa', borderColor: '#d5dbdb' }}
-      />
-
-      {/* ── Create Problem modal ─────────────────────────────────────────── */}
-      <Modal open={createOpen} title="Create Problem" onClose={() => setCreateOpen(false)}>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Name <span style={{ color: '#d13212' }}>*</span>
-            </label>
-            <input
-              className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
-              style={{
-                borderColor: '#aab7b8',
-                color: '#16191f',
-              }}
-              placeholder="My combinatorics problem"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              disabled={createLoading}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Description
-            </label>
-            <textarea
-              className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
-              style={{ borderColor: '#aab7b8', color: '#16191f' }}
-              rows={3}
-              placeholder="Optional description…"
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-              disabled={createLoading}
-            />
-          </div>
-          {createError && (
-            <p className="text-xs" style={{ color: '#d13212' }}>
-              {createError}
-            </p>
-          )}
-          <div className="flex justify-end gap-2 pt-1">
-            <Button variant="secondary" onClick={() => setCreateOpen(false)} disabled={createLoading}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleCreate} disabled={createLoading}>
-              {createLoading && <Spinner size="sm" />}
-              Create problem
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      {/* Footer */}
+      <footer className="shrink-0 min-h-[36px] border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-surface-secondary" />
     </div>
   );
 }

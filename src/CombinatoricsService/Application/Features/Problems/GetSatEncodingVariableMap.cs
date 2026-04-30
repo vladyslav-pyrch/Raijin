@@ -20,15 +20,12 @@ public sealed class GetSatEncodingVariableMapHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.SatEncoding is null)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a SAT encoding.");
 
-        IReadOnlyDictionary<string, int>? variableMap = problem.ComputeVariableMap();
-
-        if (variableMap is null)
-            return new NotFoundError($"Problem '{request.ProblemId}' does not have an instance.");
+        IReadOnlyDictionary<string, int> variableMap = problem.ComputeVariableMap();
 
         IReadOnlyList<VariableMapEntry> variables = variableMap
             .Select(kvp => new VariableMapEntry(kvp.Key, kvp.Value))
@@ -47,6 +44,6 @@ public sealed class GetSatEncodingVariableMapValidator : AbstractValidator<GetSa
 {
     public GetSatEncodingVariableMapValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

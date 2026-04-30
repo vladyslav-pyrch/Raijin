@@ -19,7 +19,7 @@ IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb);
 
-IResourceBuilder<ProjectResource> combinatoricsServiceSatSolver = builder
+builder
     .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-service-sat-solver")
     .WithEnvironment("MAX_JOBS_COUNT", "3")
     .WithEnvironment("MAX_REFIRE_COUNT", "3")
@@ -45,7 +45,7 @@ IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
 
 combinatoricsServiceApi.WithEnvironment("Cors__AllowedOrigins__0", spaFrontend.GetEndpoint("http"));
 
-IResourceBuilder<ScalarResource> scalar = builder
+builder
     .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
     .WithApiReference(combinatoricsServiceApi, (options, _) =>
     {

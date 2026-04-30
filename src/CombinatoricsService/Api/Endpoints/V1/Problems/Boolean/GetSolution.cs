@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -13,17 +11,15 @@ public sealed class GetBooleanSolutionEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/solution/bool", Execute)
+        endpoint.MapGet("problems/{id:Guid}/bool/solution", Execute)
             .WithName("get boolean solution")
-            .WithTags("problems", "bool");
+            .WithTags("bool")
+            .Produces<GetBooleanSolutionResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<
-        Ok<GetBooleanSolutionResponse>,
-        NotFound<ProblemDetails>,
-        UnprocessableEntity<ProblemDetails>,
-        ValidationProblem,
-        InternalServerError>> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -31,21 +27,11 @@ public sealed class GetBooleanSolutionEndpoint : IEndpoint
         Result<GetBooleanSolutionResult> result = await mediator.Send(
             new GetBooleanSolutionQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Ok(new GetBooleanSolutionResponse(
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetBooleanSolutionResponse(
                 result.Value.Solution,
-                result.Value.Satisfiability));
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        if (result.Has(out DomainError? domainError))
-            return domainError.ToUnprocessableEntityResult();
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        return TypedResults.InternalServerError();
+                result.Value.Satisfiability))
+            : result.ToProblemResult();
     }
 }
 

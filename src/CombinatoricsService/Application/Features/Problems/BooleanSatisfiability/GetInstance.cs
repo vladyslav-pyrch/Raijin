@@ -8,9 +8,6 @@ using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 
-public sealed record GetBooleanSatisfiabilityInstanceQuery(Guid ProblemId)
-    : IRequest<GetBooleanSatisfiabilityInstanceResult>;
-
 public sealed class GetBooleanSatisfiabilityInstanceHandler(
     IProblemRepository problemRepository
 ) : IRequestHandler<GetBooleanSatisfiabilityInstanceQuery, GetBooleanSatisfiabilityInstanceResult>
@@ -22,7 +19,7 @@ public sealed class GetBooleanSatisfiabilityInstanceHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.Instance is not BooleanSatisfiabilityInstance instance)
             return new NotFoundError(
@@ -34,17 +31,20 @@ public sealed class GetBooleanSatisfiabilityInstanceHandler(
                 .ToList())
             .ToList();
 
-        return new GetBooleanSatisfiabilityInstanceResult(clauses);
+        return new GetBooleanSatisfiabilityInstanceResult(new SatInstanceDto(clauses));
     }
 }
 
-public sealed record GetBooleanSatisfiabilityInstanceResult(IReadOnlyList<IReadOnlyList<string>> Clauses);
+public sealed record GetBooleanSatisfiabilityInstanceQuery(Guid ProblemId)
+    : IRequest<GetBooleanSatisfiabilityInstanceResult>;
+
+public sealed record GetBooleanSatisfiabilityInstanceResult(SatInstanceDto Instance );
 
 public sealed class GetBooleanSatisfiabilityInstanceValidator
     : AbstractValidator<GetBooleanSatisfiabilityInstanceQuery>
 {
     public GetBooleanSatisfiabilityInstanceValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

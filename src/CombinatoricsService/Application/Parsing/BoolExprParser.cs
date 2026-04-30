@@ -79,7 +79,7 @@ public sealed class BoolExprParser : IBoolExprParser
                     next is null or
                         { Type: not TokenType.Variable and not TokenType.LeftBracket and not TokenType.Not })
                     return Result.Fail(new Error(
-                        $"Problem at {token.Index}. 'not' (~) operator must be followed by a variable, a left parenthesis, or another 'not' operator"
+                        $"Problem at {token.Index}. 'not' (~ or !) operator must be followed by a variable, a left parenthesis, or another 'not' operator"
                     ));
 
                 if (previous != null && IsOperator(previous) && IsOperator(token) && token.Type != TokenType.Not)
@@ -160,7 +160,7 @@ public sealed class BoolExprParser : IBoolExprParser
                         break;
                     case TokenType.Not when stack.Count < 1:
                         return Result.Fail(new Error(
-                            $"Problem at {token.Index}. Not enough operands for 'not' (~) operator"));
+                            $"Problem at {token.Index}. Not enough operands for 'not' (! or ~) operator"));
                     case TokenType.Not:
                         stack.Push(new Not(stack.Pop()));
                         break;
@@ -196,7 +196,7 @@ public sealed class BoolExprParser : IBoolExprParser
                     }
                     case TokenType.Implication when stack.Count < 2:
                         return Result.Fail(new Error(
-                            $"Problem at {token.Index}. Not enough operands for 'implication' (->) operator"));
+                            $"Problem at {token.Index}. Not enough operands for 'implication' (=> or ->) operator"));
                     case TokenType.Implication:
                     {
                         BoolExpr right = stack.Pop();
@@ -206,7 +206,7 @@ public sealed class BoolExprParser : IBoolExprParser
                     }
                     case TokenType.ImplicationBackward when stack.Count < 2:
                         return Result.Fail(new Error(
-                            $"Problem at {token.Index}. Not enough operands for 'implication_backward' (<-) operator"));
+                            $"Problem at {token.Index}. Not enough operands for 'implication_backward' (<= or <-) operator"));
                     case TokenType.ImplicationBackward:
                     {
                         BoolExpr right = stack.Pop();
@@ -216,7 +216,7 @@ public sealed class BoolExprParser : IBoolExprParser
                     }
                     case TokenType.Equivalence when stack.Count < 2:
                         return Result.Fail(new Error(
-                            $"Problem at {token.Index}. Not enough operands for 'equivalence' (<-> or =) operator"));
+                            $"Problem at {token.Index}. Not enough operands for 'equivalence' (<->, <=>, or =) operator"));
                     case TokenType.Equivalence:
                     {
                         BoolExpr right = stack.Pop();

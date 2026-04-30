@@ -4,13 +4,13 @@ import type {
     BooleanProblemInstanceDto,
     CspInstanceDto,
     EdgeColoringInstanceDto,
-    GetSatInstanceResponse,
+    SatInstanceDto,
     VertexColoringInstanceDto,
 } from '../services/combinatorics';
 
 export type AnyInstanceData =
   | BooleanProblemInstanceDto
-  | GetSatInstanceResponse
+  | SatInstanceDto
   | CspInstanceDto
   | VertexColoringInstanceDto
   | EdgeColoringInstanceDto;

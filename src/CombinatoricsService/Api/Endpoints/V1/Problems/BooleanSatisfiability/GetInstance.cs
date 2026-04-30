@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -12,12 +10,15 @@ public sealed class GetBooleanSatisfiabilityInstanceEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/instance/sat", Execute)
+        endpoint.MapGet("problems/{id:Guid}/sat/instance", Execute)
             .WithName("get boolean satisfiability instance")
-            .WithTags("problems", "sat");
+            .WithTags("sat")
+            .Produces<GetBooleanSatisfiabilityInstanceResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<Ok<GetBooleanSatisfiabilityInstanceResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -25,17 +26,10 @@ public sealed class GetBooleanSatisfiabilityInstanceEndpoint : IEndpoint
         Result<GetBooleanSatisfiabilityInstanceResult> result =
             await mediator.Send(new GetBooleanSatisfiabilityInstanceQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Ok(new GetBooleanSatisfiabilityInstanceResponse(result.Value.Clauses));
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetBooleanSatisfiabilityInstanceResponse(result.Value.Instance))
+            : result.ToProblemResult();
     }
 }
 
-public sealed record GetBooleanSatisfiabilityInstanceResponse(IReadOnlyList<IReadOnlyList<string>> Clauses);
+public sealed record GetBooleanSatisfiabilityInstanceResponse(SatInstanceDto Instance);

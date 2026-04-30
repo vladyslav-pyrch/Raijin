@@ -16,7 +16,7 @@ public class MigrationWorker(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        using Activity activity = ActivitySource.StartActivity("Migrating database", ActivityKind.Client);
+        using Activity? activity = ActivitySource.StartActivity(nameof(MigrationWorker), ActivityKind.Client);
 
         try
         {

@@ -3,7 +3,6 @@ using FluentValidation;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
-using Raijin.CombinatoricsService.Domain.Problems;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
@@ -17,22 +16,12 @@ public sealed class GetSatEncodingHandler(
         GetSatEncodingQuery request,
         CancellationToken cancellationToken)
     {
-        Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
+        GetSatEncodingResult? result = await problemRepository.GetSatEncodingByProblemId(request.ProblemId, cancellationToken);
 
-        if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+        if (result is null)
+            return new NotFoundError($"There is no problem with id '{request.ProblemId}' or the problem does not have a SAT encoding.");
 
-        if (problem.SatEncoding is null)
-            return new NotFoundError($"Problem '{request.ProblemId}' does not have a SAT encoding.");
-
-        IReadOnlyList<IReadOnlyList<int>> clauses = problem.SatEncoding.Clauses
-            .Select(clause => (IReadOnlyList<int>)clause.ToList())
-            .ToList();
-
-        return new GetSatEncodingResult(
-            problem.SatEncoding.NumberOfVariables,
-            problem.SatEncoding.NumberOfClauses,
-            clauses);
+        return result;
     }
 }
 
@@ -46,6 +35,6 @@ public sealed class GetSatEncodingValidator : AbstractValidator<GetSatEncodingQu
 {
     public GetSatEncodingValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

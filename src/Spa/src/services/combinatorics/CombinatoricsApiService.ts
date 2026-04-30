@@ -1,29 +1,36 @@
 import type {
-  BooleanProblemInstanceDto,
-  CreateProblemRequest,
-  CreateProblemResponse,
-  CspInstanceDto,
-  EdgeColoringInstanceDto,
-  GetBooleanSatisfiabilitySolutionResponse,
-  GetBooleanSolutionResponse,
-  GetCspSolutionResponse,
-  GetEdgeColoringSolutionResponse,
-  GetProblemResponse,
-  GetSatEncodingResponse,
-  GetSatEncodingVariableMapResponse,
-  GetSatInstanceResponse,
-  GetVertexColoringSolutionResponse,
-  HttpValidationProblemDetails,
-  ListProblemsResponse,
-  ProblemDetails,
-  ReduceToSatRequest,
-  SetBooleanProblemInstanceRequest,
-  SetBooleanSatisfiabilityProblemInstanceRequest,
-  SetCspProblemInstanceRequest,
-  SetEdgeColoringProblemInstanceRequest,
-  SetVertexColoringProblemInstanceRequest,
-  UpdateProblemRequest,
-  VertexColoringInstanceDto,
+    BooleanProblemInstanceDto,
+    CreateBooleanProblemRequest,
+    CreateBooleanProblemResponse,
+    CreateCspProblemRequest,
+    CreateCspProblemResponse,
+    CreateEdgeColoringProblemRequest,
+    CreateEdgeColoringProblemResponse,
+    CreateSatProblemRequest,
+    CreateSatProblemResponse,
+    CreateVertexColoringProblemRequest,
+    CreateVertexColoringProblemResponse,
+    CspInstanceDto,
+    EdgeColoringInstanceDto,
+    GetBooleanInstanceResponse,
+    GetBooleanSatisfiabilityInstanceResponse,
+    GetBooleanSatisfiabilitySolutionResponse,
+    GetBooleanSolutionResponse,
+    GetCspInstanceResponse,
+    GetCspSolutionResponse,
+    GetEdgeColoringInstanceResponse,
+    GetEdgeColoringSolutionResponse,
+    GetProblemResponse,
+    GetSatEncodingResponse,
+    GetSatEncodingVariableMapResponse,
+    GetVertexColoringInstanceResponse,
+    GetVertexColoringSolutionResponse,
+    HttpValidationProblemDetails,
+    ListProblemsResponse,
+    ProblemDetails,
+    SatInstanceDto,
+    UpdateProblemRequest,
+    VertexColoringInstanceDto,
 } from './types';
 
 // ─── Error ───────────────────────────────────────────────────────────────────
@@ -121,151 +128,87 @@ export class CombinatoricsApiService {
     );
   }
 
-  createProblem(request: CreateProblemRequest): Promise<CreateProblemResponse> {
-    return this.request<CreateProblemResponse>('POST', '/problems', request);
-  }
-
   updateProblem(id: string, request: UpdateProblemRequest): Promise<void> {
     return this.request<void>('PATCH', `/problems/${id}`, request);
   }
 
-  reduceToSat(id: string, request: ReduceToSatRequest): Promise<void> {
-    return this.request<void>('POST', `/problems/${id}/solution`, request);
-  }
-
-  // ── Vertex Coloring ────────────────────────────────────────────────────────
-
-  getVertexColoringInstance(id: string): Promise<VertexColoringInstanceDto> {
-    return this.request<VertexColoringInstanceDto>(
-      'GET',
-      `/problems/${id}/instance/vertex-coloring`,
-    );
-  }
-
-  getVertexColoringSolution(
-    id: string,
-  ): Promise<GetVertexColoringSolutionResponse> {
-    return this.request<GetVertexColoringSolutionResponse>(
-      'GET',
-      `/problems/${id}/solution/vertex-coloring`,
-    );
-  }
-
-  setVertexColoringInstance(
-    id: string,
-    request: SetVertexColoringProblemInstanceRequest,
-  ): Promise<void> {
-    return this.request<void>(
-      'POST',
-      `/problems/${id}/instance/vertex-coloring`,
-      request,
-    );
-  }
-
-  // ── Edge Coloring ──────────────────────────────────────────────────────────
-
-  getEdgeColoringInstance(id: string): Promise<EdgeColoringInstanceDto> {
-    return this.request<EdgeColoringInstanceDto>(
-      'GET',
-      `/problems/${id}/instance/edge-coloring`,
-    );
-  }
-
-  getEdgeColoringSolution(
-    id: string,
-  ): Promise<GetEdgeColoringSolutionResponse> {
-    return this.request<GetEdgeColoringSolutionResponse>(
-      'GET',
-      `/problems/${id}/solution/edge-coloring`,
-    );
-  }
-
-  setEdgeColoringInstance(
-    id: string,
-    request: SetEdgeColoringProblemInstanceRequest,
-  ): Promise<void> {
-    return this.request<void>(
-      'POST',
-      `/problems/${id}/instance/edge-coloring`,
-      request,
-    );
-  }
-
-  // ── CSP ────────────────────────────────────────────────────────────────────
-
-  getCspInstance(id: string): Promise<CspInstanceDto> {
-    return this.request<CspInstanceDto>('GET', `/problems/${id}/instance/csp`);
-  }
-
-  getCspSolution(id: string): Promise<GetCspSolutionResponse> {
-    return this.request<GetCspSolutionResponse>(
-      'GET',
-      `/problems/${id}/solution/csp`,
-    );
-  }
-
-  setCspInstance(
-    id: string,
-    request: SetCspProblemInstanceRequest,
-  ): Promise<void> {
-    return this.request<void>(
-      'POST',
-      `/problems/${id}/instance/csp`,
-      request,
-    );
+  /** Trigger reduction + solve. solver passed as query param. */
+  solve(id: string, solver: string): Promise<void> {
+    return this.request<void>('POST', `/problems/${id}/solve?solver=${encodeURIComponent(solver)}`);
   }
 
   // ── Boolean ────────────────────────────────────────────────────────────────
 
-  getBooleanInstance(id: string): Promise<BooleanProblemInstanceDto> {
-    return this.request<BooleanProblemInstanceDto>(
-      'GET',
-      `/problems/${id}/instance/bool`,
-    );
+  createBooleanProblem(request: CreateBooleanProblemRequest): Promise<CreateBooleanProblemResponse> {
+    return this.request<CreateBooleanProblemResponse>('POST', '/problems/bool', request);
+  }
+
+  async getBooleanInstance(id: string): Promise<BooleanProblemInstanceDto> {
+    const res = await this.request<GetBooleanInstanceResponse>('GET', `/problems/${id}/bool/instance`);
+    return res.instance;
   }
 
   getBooleanSolution(id: string): Promise<GetBooleanSolutionResponse> {
-    return this.request<GetBooleanSolutionResponse>(
-      'GET',
-      `/problems/${id}/solution/bool`,
-    );
-  }
-
-  setBooleanInstance(
-    id: string,
-    request: SetBooleanProblemInstanceRequest,
-  ): Promise<void> {
-    return this.request<void>(
-      'POST',
-      `/problems/${id}/instance/bool`,
-      request,
-    );
+    return this.request<GetBooleanSolutionResponse>('GET', `/problems/${id}/bool/solution`);
   }
 
   // ── Boolean Satisfiability (SAT) ───────────────────────────────────────────
 
-  getSatInstance(id: string): Promise<GetSatInstanceResponse> {
-    return this.request<GetSatInstanceResponse>(
-      'GET',
-      `/problems/${id}/instance/sat`,
-    );
+  createSatProblem(request: CreateSatProblemRequest): Promise<CreateSatProblemResponse> {
+    return this.request<CreateSatProblemResponse>('POST', '/problems/sat', request);
+  }
+
+  async getSatInstance(id: string): Promise<SatInstanceDto> {
+    const res = await this.request<GetBooleanSatisfiabilityInstanceResponse>('GET', `/problems/${id}/sat/instance`);
+    return res.instance;
   }
 
   getSatSolution(id: string): Promise<GetBooleanSatisfiabilitySolutionResponse> {
-    return this.request<GetBooleanSatisfiabilitySolutionResponse>(
-      'GET',
-      `/problems/${id}/solution/sat`,
-    );
+    return this.request<GetBooleanSatisfiabilitySolutionResponse>('GET', `/problems/${id}/sat/solution`);
   }
 
-  setSatInstance(
-    id: string,
-    request: SetBooleanSatisfiabilityProblemInstanceRequest,
-  ): Promise<void> {
-    return this.request<void>(
-      'POST',
-      `/problems/${id}/instance/sat`,
-      request,
-    );
+  // ── CSP ────────────────────────────────────────────────────────────────────
+
+  createCspProblem(request: CreateCspProblemRequest): Promise<CreateCspProblemResponse> {
+    return this.request<CreateCspProblemResponse>('POST', '/problems/csp', request);
+  }
+
+  async getCspInstance(id: string): Promise<CspInstanceDto> {
+    const res = await this.request<GetCspInstanceResponse>('GET', `/problems/${id}/csp/instance`);
+    return res.instance;
+  }
+
+  getCspSolution(id: string): Promise<GetCspSolutionResponse> {
+    return this.request<GetCspSolutionResponse>('GET', `/problems/${id}/csp/solution`);
+  }
+
+  // ── Vertex Coloring ────────────────────────────────────────────────────────
+
+  createVertexColoringProblem(request: CreateVertexColoringProblemRequest): Promise<CreateVertexColoringProblemResponse> {
+    return this.request<CreateVertexColoringProblemResponse>('POST', '/problems/vertex-coloring', request);
+  }
+
+  async getVertexColoringInstance(id: string): Promise<VertexColoringInstanceDto> {
+    const res = await this.request<GetVertexColoringInstanceResponse>('GET', `/problems/${id}/vertex-coloring/instance`);
+    return res.instance;
+  }
+
+  getVertexColoringSolution(id: string): Promise<GetVertexColoringSolutionResponse> {
+    return this.request<GetVertexColoringSolutionResponse>('GET', `/problems/${id}/vertex-coloring/solution`);
+  }
+
+  // ── Edge Coloring ──────────────────────────────────────────────────────────
+
+  createEdgeColoringProblem(request: CreateEdgeColoringProblemRequest): Promise<CreateEdgeColoringProblemResponse> {
+    return this.request<CreateEdgeColoringProblemResponse>('POST', '/problems/edge-coloring', request);
+  }
+
+  async getEdgeColoringInstance(id: string): Promise<EdgeColoringInstanceDto> {
+    const res = await this.request<GetEdgeColoringInstanceResponse>('GET', `/problems/${id}/edge-coloring/instance`);
+    return res.instance;
+  }
+
+  getEdgeColoringSolution(id: string): Promise<GetEdgeColoringSolutionResponse> {
+    return this.request<GetEdgeColoringSolutionResponse>('GET', `/problems/${id}/edge-coloring/solution`);
   }
 }

@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.EdgeColoring;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -13,17 +11,15 @@ public sealed class GetEdgeColoringSolutionEndpoint : IEndpoint
 {
     public void Map(IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapGet("problems/{id:Guid}/solution/edge-coloring", Execute)
+        endpoint.MapGet("problems/{id:Guid}/edge-coloring/solution", Execute)
             .WithName("get edge coloring solution")
-            .WithTags("problems", "edge-coloring");
+            .WithTags("edge-coloring")
+            .Produces<GetEdgeColoringSolutionResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<
-        Ok<GetEdgeColoringSolutionResponse>,
-        NotFound<ProblemDetails>,
-        UnprocessableEntity<ProblemDetails>,
-        ValidationProblem,
-        InternalServerError>> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -31,21 +27,11 @@ public sealed class GetEdgeColoringSolutionEndpoint : IEndpoint
         Result<GetEdgeColoringSolutionResult> result = await mediator.Send(
             new GetEdgeColoringSolutionQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Ok(new GetEdgeColoringSolutionResponse(
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetEdgeColoringSolutionResponse(
                 result.Value.Solution,
-                result.Value.Satisfiability));
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        if (result.Has(out DomainError? domainError))
-            return domainError.ToUnprocessableEntityResult();
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        return TypedResults.InternalServerError();
+                result.Value.Satisfiability))
+            : result.ToProblemResult();
     }
 }
 

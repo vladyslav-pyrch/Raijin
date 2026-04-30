@@ -17,6 +17,10 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
         builder.Property(problem => problem.Description)
             .IsRequired()
             .HasMaxLength(5000);
+        
+        builder.Property(problem => problem.ProblemType)
+            .IsRequired()
+            .HasMaxLength(50);
 
         builder.Property(problem => problem.Solver)
             .HasMaxLength(100);
@@ -43,33 +47,20 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
         builder.Property(problem => problem.UpdatedAt)
             .IsRequired();
 
-        builder.OwnsOne(problem => problem.SatEncoding, satEncoding =>
+        builder.OwnsMany(problem => problem.Clauses, clause =>
         {
-            satEncoding.ToTable("SatEncodings");
+            clause.ToTable("Clauses");
 
-            satEncoding.HasKey(encoding => encoding.Id);
-
-            satEncoding.WithOwner()
+            clause.HasKey(c => c.Id);
+            
+            clause.WithOwner()
                 .HasForeignKey(encoding => encoding.ProblemId);
 
-            satEncoding.Property(encoding => encoding.Id)
+            clause.Property(c => c.Id)
                 .ValueGeneratedOnAdd();
 
-            satEncoding.OwnsMany(encoding => encoding.Clauses, clause =>
-            {
-                clause.ToTable("Clauses");
-
-                clause.HasKey(c => c.Id);
-
-                clause.WithOwner()
-                    .HasForeignKey(c => c.SatEncodingId);
-
-                clause.Property(c => c.Id)
-                    .ValueGeneratedOnAdd();
-
-                clause.PrimitiveCollection(c => c.Literals)
-                    .IsRequired();
-            });
+            clause.PrimitiveCollection(c => c.Literals)
+                .IsRequired();
         });
     }
 }
