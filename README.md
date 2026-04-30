@@ -191,7 +191,6 @@ npm run build
 - **.NET 10** — ASP.NET Core Minimal APIs
 - **.NET Aspire 13** — distributed app orchestration
 - **Entity Framework Core** — ORM + migrations (PostgreSQL)
-- **MediatR** — CQRS mediator
 - **FluentValidation** — input validation
 - **FluentResults** — result pattern (no exceptions for flow control)
 - **Quartz.NET** — background job scheduling (SAT Solver)
