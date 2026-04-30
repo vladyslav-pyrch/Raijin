@@ -1,4 +1,5 @@
 import {Spinner} from '../Spinner';
+import {GraphCanvas} from '../GraphCanvas';
 import type {AnyInstanceData} from '../../hooks/useInstance';
 import type {
     BooleanProblemInstanceDto,
@@ -118,59 +119,24 @@ function GraphInstance({
   data: VertexColoringInstanceDto | EdgeColoringInstanceDto;
   label: string;
 }) {
-  const vertices = data.graph.vertices;
-  const edges = data.graph.edges;
+  const { graph, colorCount } = data;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex gap-8 text-sm">
-        <span><span style={{ color: '#545b64' }}>Vertices: </span><strong>{vertices.length}</strong></span>
-        <span><span style={{ color: '#545b64' }}>Edges: </span><strong>{edges.length}</strong></span>
-        <span><span style={{ color: '#545b64' }}>Colors ({label}): </span><strong>{data.colorCount}</strong></span>
+        <span><span style={{ color: '#545b64' }}>Vertices: </span><strong>{graph.vertices.length}</strong></span>
+        <span><span style={{ color: '#545b64' }}>Edges: </span><strong>{graph.edges.length}</strong></span>
+        <span><span style={{ color: '#545b64' }}>Colors ({label}): </span><strong>{colorCount}</strong></span>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs font-medium mb-1" style={{ color: '#545b64' }}>Vertices</p>
-          <div className="flex flex-wrap gap-1">
-            {vertices.map((v) => (
-              <span
-                key={v.id}
-                className="inline-block px-2 py-0.5 rounded text-xs font-mono border"
-                style={{ background: '#fef6e4', color: '#16191f', borderColor: '#f5a623' }}
-              >
-                {v.id}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs font-medium mb-1" style={{ color: '#545b64' }}>
-            Edges ({edges.length})
-          </p>
-          <div className="overflow-auto max-h-40 border rounded" style={{ borderColor: '#d5dbdb' }}>
-            <table className="w-full text-xs">
-              <thead className="sticky top-0" style={{ background: '#fafafa', borderBottom: '1px solid #d5dbdb' }}>
-                <tr>
-                  <th className="text-left px-2 py-1.5 font-medium" style={{ color: '#545b64' }}>Label</th>
-                  <th className="text-left px-2 py-1.5 font-medium" style={{ color: '#545b64' }}>u</th>
-                  <th className="text-left px-2 py-1.5 font-medium" style={{ color: '#545b64' }}>v</th>
-                </tr>
-              </thead>
-              <tbody>
-                {edges.map((e) => (
-                  <tr key={e.label} style={{ borderTop: '1px solid #eaeded' }}>
-                    <td className="px-2 py-1 font-mono" style={{ color: '#545b64' }}>{e.label}</td>
-                    <td className="px-2 py-1 font-mono" style={{ color: '#ff9900' }}>{e.u}</td>
-                    <td className="px-2 py-1 font-mono" style={{ color: '#ff9900' }}>{e.v}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <p className="text-xs" style={{ color: '#879596' }}>
+        Drag vertices to rearrange layout. Scroll to zoom.
+      </p>
+      <GraphCanvas
+        vertices={graph.vertices}
+        edges={graph.edges}
+        movable
+        height={300}
+      />
     </div>
   );
 }
