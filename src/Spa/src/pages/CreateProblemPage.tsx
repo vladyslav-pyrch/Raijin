@@ -9,11 +9,11 @@ import {CspInstanceForm} from '../components/forms/CspInstanceForm';
 import {ErrorStack, useErrorStack} from '../components/ErrorStack';
 import type {AnyInstanceData} from '../hooks/useInstance';
 import type {
-  BooleanProblemInstanceDto,
-  CspInstanceDto,
-  EdgeColoringInstanceDto,
-  SatInstanceDto,
-  VertexColoringInstanceDto,
+    BooleanProblemInstanceDto,
+    CspInstanceDto,
+    EdgeColoringInstanceDto,
+    SatInstanceDto,
+    VertexColoringInstanceDto,
 } from '../services/combinatorics';
 
 // ─── Fork prefill (passed via router state) ───────────────────────────────────
@@ -228,24 +228,20 @@ export function CreateProblemPage({ onProblemChanged }: CreateProblemPageProps) 
   return (
     <div className="flex flex-col h-full">
       {/* Page header */}
-      <div
-        className="shrink-0 border-b px-6 py-4"
-        style={{ background: '#ffffff', borderColor: '#d5dbdb' }}
-      >
-        <p className="text-xs mb-1" style={{ color: '#879596' }}>
+      <div className="shrink-0 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 bg-white dark:bg-surface-secondary">
+        <p className="text-xs mb-1 text-neutral-400 dark:text-neutral-500">
           Problems <span className="mx-1">›</span>
-          <span style={{ color: '#0073bb' }}>
+          <span className="text-primary-500 dark:text-primary-400">
             {isFork ? `${prefill!.name} › New version` : 'New problem'}
           </span>
         </p>
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold" style={{ color: '#16191f' }}>
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             {pageTitle}
           </h1>
           <button
             onClick={() => navigate(-1)}
-            className="rounded border px-3 py-1.5 text-sm cursor-pointer"
-            style={{ borderColor: '#aab7b8', color: '#545b64', background: '#fff' }}
+            className="btn btn-secondary btn-sm"
           >
             Cancel
           </button>
@@ -255,17 +251,15 @@ export function CreateProblemPage({ onProblemChanged }: CreateProblemPageProps) 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         <div className="w-full space-y-5">
-          {/* Errors */}
           <ErrorStack errors={errors} onDismiss={dismiss} />
 
           {/* Name */}
           <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Name <span style={{ color: '#d13212' }}>*</span>
+            <label className="label">
+              Name <span className="text-error-500">*</span>
             </label>
             <input
-              className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-1"
-              style={{ borderColor: '#aab7b8', color: '#16191f' }}
+              className="input w-full"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={loading}
@@ -275,12 +269,9 @@ export function CreateProblemPage({ onProblemChanged }: CreateProblemPageProps) 
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Description
-            </label>
+            <label className="label">Description</label>
             <textarea
-              className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-1"
-              style={{ borderColor: '#aab7b8', color: '#16191f' }}
+              className="input w-full resize-y"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -292,24 +283,18 @@ export function CreateProblemPage({ onProblemChanged }: CreateProblemPageProps) 
           {/* Type picker — create mode only, before type is selected */}
           {!isFork && !selectedType && (
             <div>
-              <p className="text-xs font-semibold mb-2" style={{ color: '#16191f' }}>
-                Choose problem type:
-              </p>
+              <p className="label">Choose problem type:</p>
               <div className="space-y-1.5">
                 {INSTANCE_TYPES.map((t) => (
                   <button
                     key={t.value}
                     onClick={() => setSelectedType(t.value)}
-                    className="w-full rounded border px-4 py-3 text-left transition-colors cursor-pointer"
-                    style={{ borderColor: '#d5dbdb', background: '#fff', color: '#16191f' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#fef6e4';
-                      e.currentTarget.style.borderColor = '#ff9900';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#fff';
-                      e.currentTarget.style.borderColor = '#d5dbdb';
-                    }}
+                    className="w-full rounded-md border px-4 py-3 text-left transition-colors cursor-pointer
+                               border-neutral-200 dark:border-neutral-700
+                               bg-white dark:bg-surface-secondary
+                               text-neutral-900 dark:text-neutral-100
+                               hover:bg-primary-50 dark:hover:bg-primary-900/20
+                               hover:border-primary-300 dark:hover:border-primary-700"
                   >
                     <span className="text-sm font-medium">{t.label}</span>
                   </button>
@@ -322,8 +307,7 @@ export function CreateProblemPage({ onProblemChanged }: CreateProblemPageProps) 
           {!isFork && selectedType && (
             <button
               onClick={() => setSelectedType(null)}
-              className="text-sm cursor-pointer hover:underline"
-              style={{ color: '#0073bb' }}
+              className="link text-sm cursor-pointer"
             >
               ← Back to type selection
             </button>

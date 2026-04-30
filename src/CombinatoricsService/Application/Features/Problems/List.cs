@@ -49,7 +49,7 @@ public sealed class ListProblemsValidator : AbstractValidator<ListProblemsQuery>
 {
     public ListProblemsValidator()
     {
-        RuleFor(q => q.Page).GreaterThanOrEqualTo(1);
-        RuleFor(q => q.PageSize).InclusiveBetween(1, 100);
+        RuleFor(q => q.Page).GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
+        RuleFor(q => q.PageSize).InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
     }
 }

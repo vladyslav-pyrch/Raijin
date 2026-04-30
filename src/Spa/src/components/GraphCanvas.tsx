@@ -102,9 +102,9 @@ export function GraphCanvas({
 
   // Drag state
   const dragging = useRef<string | null>(null);
-  const dragOffset = useRef({ dx: 0, dy: 0 }); // offset from vertex center to cursor at drag start
+  const dragOffset = useRef({ dx: 0, dy: 0 });
 
-  // Pan state: captured at mousedown, used throughout the pan gesture
+  // Pan state
   const panStart = useRef<{
     clientX: number; clientY: number;
     vbX: number; vbY: number;
@@ -119,7 +119,7 @@ export function GraphCanvas({
     return clientToSvg(svg, clientX, clientY);
   }, []);
 
-  // ── Native wheel handler (passive:false required for preventDefault to work) ─
+  // ── Native wheel handler ──────────────────────────────────────────────────
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -164,11 +164,10 @@ export function GraphCanvas({
   const handleVertexMouseDown = (e: React.MouseEvent, id: string) => {
     if (!movable) return;
     e.stopPropagation();
-    e.preventDefault(); // prevent browser text-selection drag
+    e.preventDefault();
     dragging.current = id;
-    panStart.current = null; // not a pan
+    panStart.current = null;
 
-    // Capture offset so vertex center stays under cursor (no snap)
     const svgPt = getSvgCoords(e.clientX, e.clientY);
     const pos = positionsRef.current[id];
     dragOffset.current = pos
@@ -179,7 +178,6 @@ export function GraphCanvas({
   // ── Background drag (pan) ─────────────────────────────────────────────────
 
   const handleSvgMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    // Only start pan when clicking the background (svg or transparent rect), not a vertex
     const tag = (e.target as Element).tagName;
     if (tag !== 'svg' && tag !== 'rect') return;
     e.preventDefault();
@@ -202,7 +200,6 @@ export function GraphCanvas({
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      // Pan
       if (panStart.current && !dragging.current) {
         const p = panStart.current;
         setViewBox((vb) => ({
@@ -213,7 +210,6 @@ export function GraphCanvas({
         return;
       }
 
-      // Vertex drag
       if (dragging.current) {
         const { x, y } = getSvgCoords(e.clientX, e.clientY);
         const id = dragging.current;
@@ -238,9 +234,9 @@ export function GraphCanvas({
   return (
     <div
       className="relative w-full rounded border"
-      style={{ borderColor: '#d5dbdb', userSelect: 'none' }}
+      style={{ borderColor: 'var(--canvas-border)', userSelect: 'none' }}
     >
-      {/* Zoom controls — top-right corner */}
+      {/* Zoom controls */}
       <div className="absolute right-2 top-2 z-10 flex flex-col gap-1">
         {[
           { label: '+', title: 'Zoom in', onClick: handleZoomIn },
@@ -252,7 +248,11 @@ export function GraphCanvas({
             onClick={onClick}
             title={title}
             className="flex h-7 w-7 cursor-pointer items-center justify-center rounded text-sm font-bold"
-            style={{ background: 'rgba(255,255,255,0.92)', border: '1px solid #d5dbdb', color: '#16191f' }}
+            style={{
+              background: 'var(--canvas-zoom-bg)',
+              border: '1px solid var(--canvas-zoom-border)',
+              color: 'var(--canvas-zoom-text)',
+            }}
           >
             {label}
           </button>
@@ -265,7 +265,7 @@ export function GraphCanvas({
         style={{
           width: '100%',
           height,
-          background: '#f2f3f3',
+          background: 'var(--canvas-bg)',
           display: 'block',
           cursor: panStart.current ? 'grabbing' : movable ? 'grab' : 'default',
           userSelect: 'none',
@@ -290,13 +290,14 @@ export function GraphCanvas({
             <g key={edge.label}>
               <line
                 x1={u.x} y1={u.y} x2={v.x} y2={v.y}
-                stroke={color ?? '#aab7b8'}
+                stroke={color ?? 'var(--canvas-edge-stroke)'}
                 strokeWidth={color ? 3 : 2}
                 style={color ? { filter: `drop-shadow(0 0 5px ${color})` } : undefined}
               />
               <text
                 x={mx} y={my - 7}
-                textAnchor="middle" fontSize={10} fill="#879596"
+                textAnchor="middle" fontSize={10}
+                fill="var(--canvas-edge-text)"
                 style={{ userSelect: 'none', pointerEvents: 'none' }}
               >
                 {edge.label}
@@ -319,14 +320,14 @@ export function GraphCanvas({
             >
               <circle
                 r={VERTEX_R}
-                fill="white"
-                stroke={color ?? '#ff9900'}
+                fill={color ? 'var(--canvas-vertex-fill)' : 'var(--canvas-vertex-fill)'}
+                stroke={color ?? 'var(--canvas-vertex-stroke)'}
                 strokeWidth={color ? 3 : 2}
                 style={color ? { filter: `drop-shadow(0 0 6px ${color})` } : undefined}
               />
               <text
                 textAnchor="middle" dominantBaseline="middle"
-                fontSize={11} fill="#16191f"
+                fontSize={11} fill="var(--canvas-vertex-text)"
                 style={{ userSelect: 'none', pointerEvents: 'none' }}
               >
                 {v.id.length > 5 ? v.id.slice(0, 4) + '…' : v.id}
@@ -341,7 +342,7 @@ export function GraphCanvas({
           className="absolute inset-0 flex items-center justify-center"
           style={{ pointerEvents: 'none' }}
         >
-          <span className="text-sm" style={{ color: '#879596' }}>No vertices</span>
+          <span className="text-sm" style={{ color: 'var(--canvas-hint-text)' }}>No vertices</span>
         </div>
       )}
     </div>

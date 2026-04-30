@@ -1,11 +1,11 @@
-/** AWS-palette status colors — used for inline style (left stripe + badge). */
+/** Claude Code design system status colors. */
 export const STATUS_COLOR: Record<string, string> = {
-  NoSatEncoding: '#879596',
-  Pending:       '#ff9900',
-  Running:       '#0073bb',
-  Completed:     '#1d8348',
-  Failed:        '#d13212',
-  TimedOut:      '#f5a623',
+  NoSatEncoding: '#9CA3AF',  // neutral-400
+  Pending:       '#FF9933',  // warning-400
+  Running:       '#0066CC',  // primary-500
+  Completed:     '#10A760',  // success-500
+  Failed:        '#DC3545',  // error-500
+  TimedOut:      '#FF6D2A',  // warning-500
 };
 
 /** @deprecated Use STATUS_COLOR */

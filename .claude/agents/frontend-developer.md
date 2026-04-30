@@ -1,6 +1,6 @@
 # Frontend Developer Agent
 
-React 19 + TypeScript + Vite + TailwindCSS specialist for the Raijin SPA.
+React 19 + TypeScript + Vite 8 + Tailwind CSS v4 specialist for the Raijin SPA.
 
 ## Project location
 
@@ -8,201 +8,334 @@ React 19 + TypeScript + Vite + TailwindCSS specialist for the Raijin SPA.
 
 ---
 
-## Design system — AWS-style theme
+## Design system — Claude Code Design System (Tailwind v4)
 
-### Color palette
+### Tailwind v4 setup
 
-All colors defined as CSS variables in `src/index.css` (`@theme` block) and used via inline `style={{}}` for dynamic values or Tailwind arbitrary values for static ones.
+No `tailwind.config.js`. Configuration lives entirely in `src/index.css`:
+
+```css
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));   /* class-based dark mode */
+
+@theme {
+  --color-primary-500: #0066CC;
+  /* ... all tokens ... */
+}
+
+@layer components {
+  .btn { @apply ...; }
+  /* ... component classes ... */
+}
+```
+
+**Critical rules:**
+- Never create `tailwind.config.js`.
+- Dark mode is class-based: `.dark` on `<html>`. Use `dark:` prefix in Tailwind classes.
+- `@apply` inside `@layer components` can only reference utility classes, not other custom component classes.
+- Dynamic class names don't work with Tailwind v4 JIT — use `style={{}}` only for truly data-driven values (status colors, graph hex colors).
+
+---
+
+### Color tokens (`@theme`)
 
 | Token | Hex | Usage |
 |---|---|---|
-| `brand-navy` | `#232f3e` | Top navigation background |
-| `brand-squid` | `#16191f` | Primary text, headings |
-| `brand-orange` | `#ff9900` | Primary CTA buttons, active states, accents |
-| `brand-orange-dark` | `#e88b00` | Button hover, border |
-| `page-bg` | `#f2f3f3` | Page/app background |
-| `panel-bg` | `#ffffff` | Panel/card backgrounds |
-| `border` | `#d5dbdb` | Panel borders, dividers |
-| `border-light` | `#eaeded` | Table row separators |
-| `text` | `#16191f` | Primary text |
-| `text-secondary` | `#545b64` | Labels, secondary text |
-| `text-muted` | `#879596` | Placeholder, empty states |
-| `text-link` | `#0073bb` | Links, breadcrumbs |
+| `primary-500` | `#0066CC` | Primary buttons, links, active states, accents |
+| `primary-400` | `#3396FF` | Dark mode primary variant |
+| `primary-600` | `#0052A3` | Button hover |
+| `success-500` | `#10A760` | Success states |
+| `error-500` | `#DC3545` | Error states, destructive buttons |
+| `warning-500` | `#FF6D2A` | Warning badges |
+| `warning-400` | `#FF9933` | Pending status |
+| `neutral-50…900` | scale | Text, borders, backgrounds |
+| `surface` | `#111418` | Dark mode primary bg |
+| `surface-secondary` | `#1A1D23` | Dark mode card/sidebar bg |
+| `surface-tertiary` | `#252B35` | Dark mode card header, table header bg |
 
-### Status indicator colors (JS constant `STATUS_COLOR` in `lib/constants.ts`)
+### Status colors (`lib/constants.ts` → `STATUS_COLOR`)
 
 | Status | Hex |
 |---|---|
-| `NoSatEncoding` | `#879596` (muted grey) |
-| `Pending` | `#ff9900` (orange) |
-| `Running` | `#0073bb` (blue) |
-| `Completed` | `#1d8348` (green) |
-| `Failed` | `#d13212` (red) |
-| `TimedOut` | `#f5a623` (amber) |
+| `NoSatEncoding` | `#9CA3AF` |
+| `Pending` | `#FF9933` |
+| `Running` | `#0066CC` |
+| `Completed` | `#10A760` |
+| `Failed` | `#DC3545` |
+| `TimedOut` | `#FF6D2A` |
 
-Applied via inline `style={{ color, backgroundColor }}`. Never use static Tailwind classes for status colors — they are dynamic.
+Status colors applied via `style={{ color, background }}` only — they are data-driven hex values and cannot be Tailwind classes.
+
+---
+
+### Component classes (`@layer components` in `index.css`)
+
+Use these classes instead of writing raw Tailwind utility strings for common UI patterns.
+
+#### Buttons
+
+```tsx
+<button className="btn btn-primary">Save</button>
+<button className="btn btn-secondary">Cancel</button>
+<button className="btn btn-secondary btn-sm">Small action</button>
+<button className="btn btn-ghost">Tertiary</button>
+<button className="btn btn-destructive">Delete</button>
+```
+
+`.btn` — base (inline-flex, gap, padding, rounded-md, transition, focus ring, disabled styles)
+`.btn-sm` — override: smaller padding + text-xs
+`.btn-primary` — blue bg, white text
+`.btn-secondary` — neutral bg with border, dark mode aware
+`.btn-ghost` — transparent, no border until hover
+`.btn-destructive` — red bg, white text
+
+Never use raw `style={{background:'...'}}` for buttons. Never use old orange (`#ff9900`) anywhere.
+
+#### Inputs and labels
+
+```tsx
+<label className="label">Field name</label>
+<input className="input w-full" />
+<textarea className="input w-full resize-y" />
+```
+
+`.input` — padded, bordered, rounded-md, dark mode bg/border/text, focus ring on primary-500, disabled state.
+`.label` — block, text-sm, font-medium, dark mode text, mb-1.5.
+
+#### Cards and sections
+
+```tsx
+<section className="card">
+  <div className="card-header">
+    <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Title</h2>
+  </div>
+  <div className="px-4 py-4">…</div>
+</section>
+```
+
+`.card` — white/surface-secondary bg, border, rounded-lg, shadow-sm, overflow-hidden.
+`.card-header` — px-4 py-3, border-b, neutral-50/surface-tertiary bg.
+
+Every content section (ProblemInfo, Description, Instance, SAT Encoding, etc.) uses `.card`.
+
+#### Badges
+
+```tsx
+<span className="badge">neutral</span>
+<span className="badge badge-success">Active</span>
+<span className="badge badge-error">Failed</span>
+<span className="badge badge-warning">Pending</span>
+```
+
+#### Other component classes
+
+```tsx
+<a className="link">Click here</a>           /* primary-500, underline, dark aware */
+<pre className="code-block">…</pre>          /* dark bg, geist-mono, overflow */
+<code className="font-geist-mono text-xs …"> /* inline code */
+
+/* Table helpers */
+<thead className="table-header sticky top-0">…</thead>   /* neutral/surface-tertiary bg, border-b */
+<tr className="table-row">…</tr>                          /* border-t neutral-100/neutral-800 */
+```
+
+---
+
+### Typography and fonts
+
+Geist variable fonts installed from npm (`geist` package). Declared in `index.css` via `@font-face`, then referenced as:
+- `font-geist` — sans-serif, all body text (set on `body`)
+- `font-geist-mono` — monospace for IDs, code, formulas, table data
+
+---
+
+### Dark mode
+
+Toggle button in header. State managed in `App.tsx`, persisted to a 1-year cookie via `lib/cookies.ts`.
+
+```ts
+// lib/cookies.ts
+export function getCookie(name: string): string | undefined { … }
+export function setCookie(name: string, value: string): void { … }
+```
+
+`main.tsx` reads cookie before first render to avoid flash:
+```ts
+if (getCookie('darkMode') === 'true') {
+  document.documentElement.classList.add('dark');
+}
+```
+
+`App.tsx` toggle:
+```ts
+document.documentElement.classList.toggle('dark', next);
+setCookie('darkMode', String(next));
+```
 
 ---
 
 ## Layout structure
 
 ```
-h-screen flex flex-col
-├── <header>  min-h-[48px]  bg-[#232f3e]        ← dark nav, sticky top
+h-screen flex flex-col bg-neutral-50 dark:bg-surface
+├── <header>  bg-neutral-900  sticky top-0 z-10    ← dark nav bar, always dark
 ├── flex flex-1 overflow-hidden
-│   ├── <aside>  w-64  bg-white border-r         ← sidebar, fixed width
-│   └── <main>   flex-1  bg-[#f2f3f3]            ← content, fills space
-└── <footer>  min-h-[36px]  bg-[#fafafa]         ← minimal sticky footer
+│   ├── <aside>  bg-white dark:bg-surface-secondary  border-neutral-200 dark:border-neutral-700
+│   └── <main>   bg-neutral-50 dark:bg-surface       flex-1 overflow-y-auto
+└── <footer>  border-t  bg-white dark:bg-surface-secondary   ← minimal
 ```
 
-**Critical:** Never add `max-w-*` or `mx-auto` to page content. Content must fill the full main area. The problem detail page uses `flex flex-col h-full` so the page header + content both fill the viewport correctly.
+Header is always dark (`bg-neutral-900`) even in light mode — it's the brand bar. Use `text-primary-400` for the logo/brand text.
+
+**Critical:** No `max-w-*` or `mx-auto` on page content — content fills the full main area.
 
 ---
 
 ## Page structure (ProblemDetailPage pattern)
 
-```
-flex flex-col h-full
-├── Page header (white bg, border-b, px-6 py-4)  ← title + breadcrumb + action bar
-└── Content area (flex-1 overflow-y-auto px-6 py-5 space-y-4)  ← sections
-```
-
-Action buttons live in the page header, right-aligned. Order: secondary actions first, primary/destructive last.
-
----
-
-## Panel (section) convention
-
-Every content section is an AWS-style flat panel — no rounded-xl, no shadow cards.
-
 ```tsx
-<section className="bg-white border rounded" style={{ borderColor: '#d5dbdb' }}>
-  {/* Panel header */}
-  <div className="px-4 py-3 border-b" style={{ borderColor: '#d5dbdb', background: '#fafafa' }}>
-    <h2 className="text-sm font-semibold" style={{ color: '#16191f' }}>Section title</h2>
+<div className="flex flex-col h-full">
+  {/* Page header */}
+  <div className="shrink-0 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 bg-white dark:bg-surface-secondary">
+    <p className="text-xs mb-1 text-neutral-400 dark:text-neutral-500">
+      Breadcrumb <span>›</span> <span className="text-primary-500 dark:text-primary-400">Current</span>
+    </p>
+    <div className="flex items-start justify-between gap-4">
+      <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Title</h1>
+      <div className="flex items-center gap-2">
+        {/* action buttons */}
+      </div>
+    </div>
   </div>
-  {/* Panel body */}
-  <div className="px-4 py-4">
-    {/* content */}
+
+  {/* Content */}
+  <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+    {/* .card sections */}
   </div>
-</section>
-```
-
-Rules:
-- `rounded` only (not `rounded-xl`, not `rounded-lg`)
-- Header always has `background: #fafafa`
-- No box shadows on panels
-- Panels stack vertically with `space-y-4` gap
-
----
-
-## Table convention
-
-All data tables follow this pattern:
-
-```tsx
-<div className="overflow-auto max-h-64 border rounded" style={{ borderColor: '#d5dbdb' }}>
-  <table className="w-full text-xs">
-    <thead className="sticky top-0" style={{ background: '#fafafa', borderBottom: '1px solid #d5dbdb' }}>
-      <tr>
-        <th className="text-left px-3 py-2 font-medium" style={{ color: '#545b64' }}>Column</th>
-      </tr>
-    </thead>
-    <tbody>
-      {rows.map((row, i) => (
-        <tr key={i} style={{ borderTop: '1px solid #eaeded' }}>
-          <td className="px-3 py-1.5" style={{ color: '#16191f' }}>{row.value}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
 </div>
 ```
 
-- `font-mono` on ID/code columns
-- Use `text-xs` for all table text
-- Sticky thead always uses `#fafafa` background
-- Row borders: `#eaeded` (light), not `#d5dbdb`
-
----
-
-## Component conventions
-
-### Button variants
-
-| Variant | Background | Text | Border | Use for |
-|---|---|---|---|---|
-| `primary` | `#ff9900` | `#16191f` | `#e88b00` | Main CTA |
-| `secondary` | `#ffffff` | `#16191f` | `#aab7b8` | Non-destructive actions |
-| `danger` | `#d13212` | `#ffffff` | `#ba2e0f` | Destructive actions |
-| `ghost` | transparent | `#545b64` | transparent | Tertiary / toolbar |
-| `link` | transparent | `#0073bb` | none | Inline links |
-
-Default size: `md` (`px-4 py-2 text-sm`). Use `sm` (`px-3 py-1 text-xs`) in dense areas.
-
-### Modal
-
-- Gray header (`#f2f3f3` background) with title + × close button
-- White body `px-5 py-5`
-- Max width `max-w-xl`
-- No rounding beyond `rounded`
-- Backdrop: `bg-black/50`
-
-### StatusBadge
-
-Dot + text pattern. Both dot and text use the same `STATUS_COLOR` value via inline style. No border, no background.
-
-### ProblemCard (sidebar)
-
-Flat button, full-width, no border-radius card style:
-- Left 3px colored stripe = status color (orange when active, status color otherwise)
-- Active: `background: #fef6e4`
-- Inactive hover: `background: #f2f3f3`
-- Name: truncated, `text-sm font-medium`
-
-### Spinner
-
-`border-t-[#ff9900]` (orange) on gray border. Sizes: sm/md/lg.
-
----
-
-## Sidebar structure
-
-```
-w-64 border-r bg-white flex flex-col
-├── Header row (fafafa bg): "PROBLEMS" label + Create button
-├── Scrollable list of ProblemCards (flex-1 overflow-y-auto)
-└── Pagination row (border-t, only when totalPages > 1)
-```
-
-Sidebar header "Create" button uses inline hover handlers (not Tailwind hover classes) because Tailwind v4 doesn't support arbitrary value hover states well in SSR-free mode.
+Action buttons in page header are `btn btn-secondary btn-sm`. Primary action (Solve) uses `DropdownButton`.
 
 ---
 
 ## Styling rules
 
-1. **Inline styles for dynamic values** — all colors that depend on data (status, satisfiability, hover state) use `style={{}}`. Never use dynamic Tailwind class names (`text-${color}-500` doesn't work with Tailwind v4 JIT purging).
+1. **Component classes first** — always use `.btn`, `.input`, `.label`, `.card`, `.card-header`, `.badge`, `.code-block`, `.link`, `.table-header`, `.table-row` before writing raw Tailwind.
 
-2. **Tailwind for layout/spacing** — use Tailwind classes for flex, grid, padding, margin, width, overflow, positioning.
+2. **`style={{}}` only for data-driven values** — status colors, graph SVG hex colors. Never for layout, spacing, borders, or backgrounds that have a Tailwind equivalent.
 
-3. **No Tailwind color classes for brand colors** — use hex values inline or Tailwind arbitrary values like `bg-[#ff9900]` for static brand colors.
+3. **No JS hover handlers** — use `hover:` Tailwind classes. Never `onMouseEnter`/`onMouseLeave` + `e.currentTarget.style.*`.
 
-4. **No `rounded-xl` or `rounded-lg`** — use `rounded` (4px) only. AWS style is flat.
+4. **Dark mode with `dark:` prefix** — every new component must have dark mode variants. Pattern: `bg-white dark:bg-surface-secondary`, `text-neutral-900 dark:text-neutral-100`, `border-neutral-200 dark:border-neutral-700`.
 
-5. **No box shadows on panels** — only modals get `shadow-2xl`.
+5. **No orange anywhere** — the old `#ff9900` brand orange is replaced entirely by `primary-500` (`#0066CC`) blue.
 
-6. **Font size scale:**
+6. **No `rounded-xl`** — use `rounded-md` for buttons/inputs, `rounded-lg` for cards.
+
+7. **Font scale:**
    - Page title: `text-lg font-semibold`
    - Section heading: `text-sm font-semibold`
-   - Body text: `text-sm`
+   - Body: `text-sm`
    - Labels/metadata: `text-xs`
-   - Table content: `text-xs`
+   - Table content: `text-xs font-geist-mono` (for IDs/codes)
 
-7. **Error color**: `#d13212` (AWS red). Never use `text-red-500`.
+8. **Error display:** `<p className="text-sm text-error-500">{error}</p>` — never `style={{ color: '#d13212' }}`.
 
-8. **Success/completion color**: `#1d8348` (AWS green).
+9. **Link/breadcrumb color:** `text-primary-500 dark:text-primary-400` or `.link` class — never `style={{ color: '#0073bb' }}`.
 
-9. **Link color**: `#0073bb` (AWS blue). Used for breadcrumbs and inline links.
+---
+
+## Canvas color scheme
+
+Graph SVG elements (GraphCanvas + GraphEditorForm) do not support `dark:` Tailwind classes. Colors are provided via CSS custom properties declared in `index.css`:
+
+```css
+:root {
+  --canvas-bg: #F3F4F6;
+  --canvas-border: #E5E7EB;
+  --canvas-vertex-fill: #FFFFFF;
+  --canvas-vertex-stroke: #0066CC;   /* primary blue */
+  --canvas-vertex-text: #111827;
+  --canvas-edge-stroke: #9CA3AF;
+  --canvas-edge-text: #6B7280;
+  --canvas-ghost-stroke: #0066CC;
+  --canvas-edit-border: #0066CC;
+  --canvas-link-text: #0066CC;
+  --canvas-hint-text: #6B7280;
+  --canvas-zoom-bg: rgba(255,255,255,0.92);
+  --canvas-zoom-border: #E5E7EB;
+  --canvas-zoom-text: #111827;
+}
+.dark {
+  --canvas-bg: #111418;
+  --canvas-vertex-fill: #252B35;
+  --canvas-vertex-stroke: #3396FF;  /* primary-400 */
+  /* ... dark overrides ... */
+}
+```
+
+Use `style={{ background: 'var(--canvas-bg)' }}` etc. in SVG containers. Never hardcode hex in SVG components.
+
+Vertex default border: **blue** (`var(--canvas-vertex-stroke)`). The old orange border is gone.
+
+---
+
+## Scrollbars
+
+Global thin scrollbar styles in `index.css @layer base`:
+- 6px width/height, transparent track
+- Light: `#D1D5DB` thumb, `#9CA3AF` hover
+- Dark: `#374151` thumb, `#4B5563` hover
+- Firefox: `scrollbar-width: thin`
+
+---
+
+## Mobile detection
+
+```ts
+// hooks/useMobileDetect.ts
+export function useMobileDetect(): boolean
+// Returns true if: (pointer: coarse) OR (max-width: 1023px)
+// Reacts to orientation changes
+```
+
+In `App.tsx` root:
+```tsx
+const isMobile = useMobileDetect();
+if (isMobile) return <MobileBlockPage />;
+```
+
+`MobileBlockPage` shows a centered desktop-only notice. Never render the full app on mobile.
+
+---
+
+## Pagination
+
+Reusable `PaginationBar` component + `usePagination` hook for all large tables.
+
+```tsx
+// hooks/usePagination.ts
+function usePagination<T>(items: T[], pageSize: number):
+  { page, totalPages, pageItems, setPage }
+// Resets to page 1 when items.length changes
+
+// components/PaginationBar.tsx
+<PaginationBar
+  page={page}
+  totalPages={totalPages}
+  totalItems={items.length}
+  pageSize={PAGE_SIZE}
+  onPage={setPage}
+  noun="clauses"       // optional label noun
+/>
+// Renders null when totalItems <= pageSize
+// Shows: ‹ Prev | {from}–{to} of {N} {noun} · Page [input] of {total} | Next ›
+```
+
+Apply pagination to any table that can have more than ~100 rows. Standard page sizes:
+- Clauses / variables: `PAGE_SIZE = 100`
+- Coloring assignments: `PAGE_SIZE = 50`
 
 ---
 
@@ -211,41 +344,49 @@ Sidebar header "Create" button uses inline hover handlers (not Tailwind hover cl
 ```
 src/
   lib/
-    api.ts          ← CombinatoricsApiService singleton (reads VITE_COMBINATORICS_API_URL)
-    constants.ts    ← STATUS_COLOR, SOLVER_OPTIONS, STATUSES_WITH_ENCODING, INSTANCE_TYPES
+    api.ts            ← CombinatoricsApiService singleton (reads VITE_COMBINATORICS_API_URL)
+    constants.ts      ← STATUS_COLOR, SOLVER_OPTIONS, STATUSES_WITH_ENCODING, INSTANCE_TYPES
+    cookies.ts        ← getCookie / setCookie (1-year, SameSite=Lax)
   hooks/
-    useProblems.ts      ← paginated list + refresh
-    useProblem.ts       ← single problem + refresh
-    useSatEncoding.ts   ← conditional fetch (only when hasEncoding)
-    useVariableMap.ts   ← lazy fetch (triggered by user action)
-    useSolution.ts      ← solution by instanceType
-    useInstance.ts      ← instance data by instanceType
+    useProblems.ts        ← paginated list + refresh
+    useProblem.ts         ← single problem + refresh
+    useSatEncoding.ts     ← conditional fetch (only when hasEncoding)
+    useVariableMap.ts     ← lazy fetch (triggered by user)
+    useSolution.ts        ← solution by instanceType
+    useInstance.ts        ← instance data by instanceType
+    usePagination.ts      ← generic paginated slice hook
+    useMobileDetect.ts    ← matchMedia mobile/touch detection
   components/
-    Button.tsx           ← primary/secondary/danger/ghost/link variants
-    Modal.tsx            ← portal-based, AWS header style
-    Spinner.tsx          ← orange spin indicator
-    StatusBadge.tsx      ← dot + text, inline status color
-    DropdownButton.tsx   ← split button for solver selection
-    ProblemCard.tsx      ← flat sidebar nav item with status stripe
+    Button.tsx            ← primary/secondary/danger/ghost/link variants (uses .btn classes)
+    Modal.tsx             ← portal-based, uses .card + .card-header
+    Spinner.tsx           ← border-t-primary-500 spin indicator
+    StatusBadge.tsx       ← dot + text, inline status color (status colors are data-driven hex)
+    DropdownButton.tsx    ← split button for solver selection (primary-500 bg)
+    ProblemCard.tsx       ← sidebar nav item with status glow border (inline style for dynamic color)
+    PaginationBar.tsx     ← Prev/Next + jump-to-page input, renders null when not needed
     forms/
       BooleanInstanceForm.tsx
       SatInstanceForm.tsx        ← clauses as string[][] (variable names, ~ for negation)
       CspInstanceForm.tsx
-      GraphEditorForm.tsx        ← SVG interactive graph editor (Add/Move mode)
+      GraphEditorForm.tsx        ← SVG graph editor (Add/Move modes), uses --canvas-* CSS vars
       SetInstanceModal.tsx       ← type picker → form orchestrator
     sections/
       ProblemInfoSection.tsx
       DescriptionSection.tsx
-      InstanceSection.tsx        ← uses useInstance hook, renders per instanceType
-      SatEncodingSection.tsx
-      VariableMapSection.tsx     ← lazy load button
-      SolutionSection.tsx        ← uses useSolution hook, renders per instanceType
+      InstanceSection.tsx        ← useInstance hook, per-instanceType renderers, SAT clauses paginated
+      SatEncodingSection.tsx     ← paginated (100/page) with jump input
+      VariableMapSection.tsx     ← lazy load + paginated (100/page) with jump input
+      SolutionSection.tsx        ← useSolution hook, coloring tables paginated (50/page)
   pages/
-    WelcomePage.tsx       ← "/" route, centered empty state
-    ProblemDetailPage.tsx ← "/problems/:id", full-width, page header + sections
+    WelcomePage.tsx         ← "/" route, centered empty state
+    ProblemDetailPage.tsx   ← "/problems/:id"
+    CreateProblemPage.tsx   ← "/create"
+    EditProblemPage.tsx     ← "/problems/:id/edit"
+    HelpPage.tsx            ← "/help"
+    MobileBlockPage.tsx     ← shown to mobile/touch users
   services/
     combinatorics/
-      CombinatoricsApiService.ts  ← HTTP client, DO NOT MODIFY unless new endpoints added
+      CombinatoricsApiService.ts  ← HTTP client, DO NOT MODIFY unless new endpoints
       types.ts                    ← all request/response DTOs
       index.ts                    ← barrel export
 ```
@@ -254,29 +395,42 @@ src/
 
 ## API conventions
 
-- `CombinatoricsApiService` is instantiated once as `api` singleton in `lib/api.ts`
-- All mutations follow: set loading → call api → on success: close modal + refresh + onProblemChanged → on error: show inline error text
-- Error color: `#d13212`
-- Error display: `<p className="text-xs" style={{ color: '#d13212' }}>{error}</p>`
-- No toast notifications — errors are inline only
+- `api` singleton from `lib/api.ts`.
+- All mutations: set loading → call api → on success: close/navigate + refresh + onProblemChanged → on error: inline error.
+- Error display: `<p className="text-sm text-error-500">{error}</p>`
+- No toast notifications — errors are inline only.
 
-### Instance type → API method mapping
+### Instance type → API method
 
-| instanceType | GET instance | GET solution | SET instance |
-|---|---|---|---|
-| `Boolean` | `getBooleanInstance` | `getBooleanSolution` | `setBooleanInstance` |
-| `BooleanSatisfiability` | `getSatInstance` | `getSatSolution` | `setSatInstance` |
-| `CSP` | `getCspInstance` | `getCspSolution` | `setCspInstance` |
-| `VertexColoring` | `getVertexColoringInstance` | `getVertexColoringSolution` | `setVertexColoringInstance` |
-| `EdgeColoring` | `getEdgeColoringInstance` | `getEdgeColoringSolution` | `setEdgeColoringInstance` |
+| instanceType | Create problem | GET solution |
+|---|---|---|
+| `bool` | `createBooleanProblem` | `getBooleanSolution` |
+| `sat` | `createSatProblem` | `getSatSolution` |
+| `csp` | `createCspProblem` | `getCspSolution` |
+| `vertex-coloring` | `createVertexColoringProblem` | `getVertexColoringSolution` |
+| `edge-coloring` | `createEdgeColoringProblem` | `getEdgeColoringSolution` |
 
 ### SAT instance format
 
-SET: `clauses: string[][]` — each string is a literal name (`"x1"`) or negated (`"~x1"`).
-GET: `clauses: string[][]` — same format.
+`clauses: string[][]` — each string is a literal name (`"x1"`) or negated with `~` prefix (`"~x1"`).
+
+---
+
+## Common mistakes to avoid
+
+| Wrong | Correct |
+|---|---|
+| `style={{ background: '#ff9900' }}` on buttons | `className="btn btn-primary"` |
+| `style={{ color: '#0073bb' }}` on links | `className="link"` or `text-primary-500 dark:text-primary-400` |
+| `style={{ color: '#d13212' }}` on errors | `className="text-error-500"` |
+| `onMouseEnter/onMouseLeave` for hover | `hover:bg-primary-50` etc. |
+| `bg-white` without dark mode | `bg-white dark:bg-surface-secondary` |
+| Hardcoded hex in SVG vertex stroke | `stroke="var(--canvas-vertex-stroke)"` |
+| Rolling custom pagination | Use `PaginationBar` + `usePagination` |
+| `@apply .some-component-class` in `@layer components` | Inline the utilities directly |
 
 ---
 
 ## Triggers
 
-Activate this agent when the request involves: React, component, hook, TypeScript, UI, state, Vite, frontend, SPA, styling, Tailwind, design, page, form, modal, sidebar.
+Activate this agent when the request involves: React, component, hook, TypeScript, UI, state, Vite, frontend, SPA, styling, Tailwind, design, page, form, modal, sidebar, dark mode, canvas, graph editor.

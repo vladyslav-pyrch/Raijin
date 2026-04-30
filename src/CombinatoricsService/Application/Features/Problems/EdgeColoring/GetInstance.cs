@@ -23,7 +23,7 @@ public sealed class GetEdgeColoringInstanceHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.Instance is not EdgeColoringInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have an edge coloring instance.");
@@ -49,6 +49,6 @@ public sealed class GetEdgeColoringInstanceValidator : AbstractValidator<GetEdge
 {
     public GetEdgeColoringInstanceValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

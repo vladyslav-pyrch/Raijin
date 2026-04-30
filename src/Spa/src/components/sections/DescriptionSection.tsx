@@ -1,21 +1,18 @@
 export function DescriptionSection({ description }: { description: string }) {
   return (
-    <section className="bg-white border rounded" style={{ borderColor: '#d5dbdb' }}>
-      <div className="px-4 py-3 border-b" style={{ borderColor: '#d5dbdb', background: '#fafafa' }}>
-        <h2 className="text-sm font-semibold" style={{ color: '#16191f' }}>
+    <section className="card">
+      <div className="card-header">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
           Description
         </h2>
       </div>
       <div className="px-4 py-4">
         {description.trim() ? (
-          <pre
-            className="text-sm whitespace-pre-wrap font-sans leading-relaxed"
-            style={{ color: '#16191f' }}
-          >
+          <pre className="text-sm whitespace-pre-wrap font-geist leading-relaxed text-neutral-900 dark:text-neutral-100">
             {description}
           </pre>
         ) : (
-          <p className="text-sm italic" style={{ color: '#879596' }}>
+          <p className="text-sm italic text-neutral-400 dark:text-neutral-500">
             No description provided.
           </p>
         )}

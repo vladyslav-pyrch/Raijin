@@ -19,7 +19,7 @@ public sealed class GetBooleanInstanceHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.Instance is not BooleanProblemInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a boolean instance.");
@@ -38,6 +38,6 @@ public sealed class GetBooleanInstanceValidator : AbstractValidator<GetBooleanIn
 {
     public GetBooleanInstanceValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

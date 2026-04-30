@@ -19,7 +19,7 @@ public sealed class GetBooleanSatisfiabilityInstanceHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.Instance is not BooleanSatisfiabilityInstance instance)
             return new NotFoundError(
@@ -45,6 +45,6 @@ public sealed class GetBooleanSatisfiabilityInstanceValidator
 {
     public GetBooleanSatisfiabilityInstanceValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

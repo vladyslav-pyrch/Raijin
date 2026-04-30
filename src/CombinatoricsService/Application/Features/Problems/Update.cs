@@ -17,7 +17,7 @@ public sealed class UpdateProblemHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (request.Name is not null)
             problem.UpdateName(request.Name);
@@ -43,10 +43,10 @@ public sealed class UpdateProblemValidator : AbstractValidator<UpdateProblemComm
     public UpdateProblemValidator()
     {
         RuleFor(command => command.ProblemId)
-            .NotEmpty();
+            .NotEmpty().WithMessage("Problem identifier is required.");
         RuleFor(command => command.Name)
-            .MaximumLength(100);
+            .MaximumLength(100).WithMessage("Problem name must not exceed 100 characters.");
         RuleFor(command => command.Description)
-            .MaximumLength(5000);
+            .MaximumLength(5000).WithMessage("Problem description must not exceed 5000 characters.");
     }
 }

@@ -74,7 +74,7 @@ export function CspInstanceForm({ onSubmit, loading, initialVariables, initialCo
     <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-gray-700">Variables</label>
+          <label className="label mb-0">Variables</label>
           <Button
             size="sm"
             variant="ghost"
@@ -88,14 +88,14 @@ export function CspInstanceForm({ onSubmit, loading, initialVariables, initialCo
           {variables.map((v, i) => (
             <div key={i} className="flex gap-2 items-start">
               <input
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="input flex-1"
                 placeholder="Name"
                 value={v.name}
                 onChange={(e) => updateVariable(i, 'name', e.target.value)}
                 disabled={loading}
               />
               <input
-                className="flex-2 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="input flex-[2]"
                 placeholder="States (comma-separated)"
                 value={v.states}
                 onChange={(e) => updateVariable(i, 'states', e.target.value)}
@@ -116,9 +116,7 @@ export function CspInstanceForm({ onSubmit, loading, initialVariables, initialCo
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-gray-700">
-            Constraints (optional)
-          </label>
+          <label className="label mb-0">Constraints (optional)</label>
           <Button
             size="sm"
             variant="ghost"
@@ -132,7 +130,7 @@ export function CspInstanceForm({ onSubmit, loading, initialVariables, initialCo
           {constraints.map((c, i) => (
             <div key={i} className="flex gap-2">
               <input
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="input flex-1 font-geist-mono"
                 placeholder="e.g. colour::red | colour::blue & !colour::green"
                 value={c}
                 onChange={(e) => updateConstraint(i, e.target.value)}
@@ -151,7 +149,7 @@ export function CspInstanceForm({ onSubmit, loading, initialVariables, initialCo
         </div>
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-error-500 text-sm">{error}</p>}
 
       <div className="flex justify-end">
         <Button variant="primary" onClick={handleSubmit} disabled={loading}>

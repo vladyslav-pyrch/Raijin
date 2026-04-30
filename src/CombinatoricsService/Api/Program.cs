@@ -37,7 +37,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddResponseCompression();
 builder.Services.AddResponseCaching();
 
-
 // Api endpoints
 builder.Services.AddOpenApi();
 builder.Services.AddEndpoints();

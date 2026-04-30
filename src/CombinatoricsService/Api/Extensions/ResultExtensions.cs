@@ -1,88 +1,53 @@
-using System.Diagnostics.CodeAnalysis;
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Application.Errors;
 
 namespace Raijin.CombinatoricsService.Api.Extensions;
 
 public static class ResultExtensions
 {
-    public static NotFound<ProblemDetails> ToNotFoundResult(this NotFoundError notFoundError)
-        => TypedResults.NotFound(new ProblemDetails
-        {
-            Title = "Not Found",
-            Status = StatusCodes.Status404NotFound,
-            Detail = notFoundError.Message,
-            Extensions = notFoundError.Metadata
-        });
-
-    public static Conflict<ProblemDetails> ToConflictResult(this ConflictError conflictError)
-        => TypedResults.Conflict(new ProblemDetails
-        {
-            Title = "Conflict",
-            Status = StatusCodes.Status409Conflict,
-            Detail = conflictError.Message,
-            Extensions = conflictError.Metadata
-        });
-
-    public static UnprocessableEntity<ProblemDetails> ToUnprocessableEntityResult(this DomainError domainError)
-        => TypedResults.UnprocessableEntity(new ProblemDetails
-        {
-            Title = "Unprocessable Entity",
-            Status = StatusCodes.Status422UnprocessableEntity,
-            Detail = domainError.Message
-        });
-
-    public static ValidationProblem ToValidationProblemResult(this IReadOnlyList<ValidationError> validationErrors)
-        => TypedResults.ValidationProblem(
-            validationErrors.GroupBy(error => error.PropertyName).ToDictionary(
-                grouping => grouping.Key,
-                grouping => grouping.Select(error => error.Message).ToArray()
-            ),
-            title: "Validation Problem",
-            detail: "One or more validation errors has occured",
-            extensions: validationErrors.GroupedMetadata()!
-        );
-
-    private static Dictionary<string, object> GroupedMetadata(this IReadOnlyList<IError> errors)
+    public static IResult ToProblemResult(this ResultBase result)
     {
-        Dictionary<string, List<object>> groupedMetadata = [];
+        var errorsWithStatus = result.Errors
+            .Select(e => (error: e, status: GetHttpStatus(e)))
+            .ToList();
 
-        foreach (IError error in errors)
-        foreach (KeyValuePair<string, object> kvp in error.Metadata)
-        {
-            if (!groupedMetadata.TryGetValue(kvp.Key, out List<object>? values))
+        var (primaryError, statusCode) = errorsWithStatus.MaxBy(x => x.status);
+
+        return Results.Problem(
+            detail: primaryError.Message,
+            statusCode: statusCode,
+            title: GetTitle(statusCode),
+            type: GetType(statusCode),
+            extensions: new Dictionary<string, object?>
             {
-                values = [];
-                groupedMetadata[kvp.Key] = values;
-            }
-
-            values.Add(kvp.Value);
-        }
-
-        return groupedMetadata.ToDictionary(
-            kvp => kvp.Key,
-            kvp => kvp.Value.Count == 1 ? kvp.Value.First() : kvp.Value.ToArray()
-        );
+                ["errors"] = result.Errors.Select(e => e.Message).ToArray()
+            });
     }
 
-    extension(ResultBase result)
+    private static int GetHttpStatus(IError error) => error switch
     {
-        public IError? Error => result.Errors.FirstOrDefault();
+        ValidationError => StatusCodes.Status400BadRequest,
+        NotFoundError => StatusCodes.Status404NotFound,
+        ConflictError => StatusCodes.Status409Conflict,
+        DomainError => StatusCodes.Status422UnprocessableEntity,
+        _ => StatusCodes.Status400BadRequest
+    };
 
-        public bool Has<TError>([NotNullWhen(true)] out TError? error) where TError : IError
-        {
-            error = result.Errors.OfType<TError>().FirstOrDefault();
+    private static string GetTitle(int statusCode) => statusCode switch
+    {
+        StatusCodes.Status400BadRequest => "Bad Request",
+        StatusCodes.Status404NotFound => "Not Found",
+        StatusCodes.Status409Conflict => "Conflict",
+        StatusCodes.Status422UnprocessableEntity => "Unprocessable Entity",
+        _ => "Bad Request"
+    };
 
-            return error != null;
-        }
-
-        public bool Has<TError>([NotNullWhen(true)] out IReadOnlyList<TError>? errors) where TError : IError
-        {
-            errors = result.Errors.OfType<TError>().ToList();
-
-            return errors.Count > 0;
-        }
-    }
+    private static string GetType(int statusCode) => statusCode switch
+    {
+        StatusCodes.Status400BadRequest => "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+        StatusCodes.Status404NotFound => "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+        StatusCodes.Status409Conflict => "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+        StatusCodes.Status422UnprocessableEntity => "https://tools.ietf.org/html/rfc9110#section-15.5.21",
+        _ => "https://tools.ietf.org/html/rfc9110#section-15.5.1"
+    };
 }

@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -14,15 +12,13 @@ public sealed class GetBooleanInstanceEndpoint : IEndpoint
     {
         endpoint.MapGet("problems/{id:Guid}/bool/instance", Execute)
             .WithName("get boolean instance")
-            .WithTags("bool");
+            .WithTags("bool")
+            .Produces<GetBooleanInstanceResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<
-        Ok<GetBooleanInstanceResponse>,
-        NotFound<ProblemDetails>,
-        ValidationProblem,
-        InternalServerError
-    >> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -30,16 +26,9 @@ public sealed class GetBooleanInstanceEndpoint : IEndpoint
         Result<GetBooleanInstanceResult> result =
             await mediator.Send(new GetBooleanInstanceQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Ok(new GetBooleanInstanceResponse(result.Value.Instance));
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetBooleanInstanceResponse(result.Value.Instance))
+            : result.ToProblemResult();
     }
 }
 

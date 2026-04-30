@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -15,14 +13,13 @@ public sealed class GetCspSolutionEndpoint : IEndpoint
     {
         endpoint.MapGet("problems/{id:Guid}/csp/solution", Execute)
             .WithName("get csp solution")
-            .WithTags("csp");
+            .WithTags("csp")
+            .Produces<GetCspSolutionResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<
-        Ok<GetCspSolutionResponse>,
-        NotFound<ProblemDetails>,
-        ValidationProblem,
-        InternalServerError>> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -30,18 +27,11 @@ public sealed class GetCspSolutionEndpoint : IEndpoint
         Result<GetCspSolutionResult> result = await mediator.Send(
             new GetCspSolutionQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Ok(new GetCspSolutionResponse(
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetCspSolutionResponse(
                 result.Value.Solution,
-                result.Value.Satisfiability));
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        return TypedResults.InternalServerError();
+                result.Value.Satisfiability))
+            : result.ToProblemResult();
     }
 }
 

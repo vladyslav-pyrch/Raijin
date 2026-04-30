@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.VertexColoring;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -14,10 +12,13 @@ public sealed class GetVertexColoringInstanceEndpoint : IEndpoint
     {
         endpoint.MapGet("problems/{id:Guid}/vertex-coloring/instance", Execute)
             .WithName("get vertex coloring instance")
-            .WithTags("vertex-coloring");
+            .WithTags("vertex-coloring")
+            .Produces<GetVertexColoringInstanceResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<Ok<GetVertexColoringInstanceResponse>, NotFound<ProblemDetails>, ValidationProblem, InternalServerError>> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -25,16 +26,9 @@ public sealed class GetVertexColoringInstanceEndpoint : IEndpoint
         Result<GetVertexColoringInstanceResult> result =
             await mediator.Send(new GetVertexColoringInstanceQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Ok(new GetVertexColoringInstanceResponse(result.Value.Instance));
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetVertexColoringInstanceResponse(result.Value.Instance))
+            : result.ToProblemResult();
     }
 }
 

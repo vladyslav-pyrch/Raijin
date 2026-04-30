@@ -8,6 +8,6 @@ public sealed class BooleanProblemInstanceDtoValidator : AbstractValidator<Boole
 {
     public BooleanProblemInstanceDtoValidator()
     {
-        RuleFor(dto => dto.Formula).NotEmpty();
+        RuleFor(dto => dto.Formula).NotEmpty().WithMessage("Boolean formula is required.");
     }
 }

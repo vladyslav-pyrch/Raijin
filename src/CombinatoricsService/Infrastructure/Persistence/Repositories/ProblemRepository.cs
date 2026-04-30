@@ -43,12 +43,11 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
     public Task<GetSatEncodingResult?> GetSatEncodingByProblemId(Guid id, CancellationToken cancellationToken) => dbContext.Problems
         .AsNoTracking()
         .Where(p => p.Id == id)
-        .Where(p => p.SatEncoding != null)
-        .Select(p => p.SatEncoding!)
-        .Select(se => new GetSatEncodingResult(
-            se.Clauses.SelectMany(c => c.Literals).DefaultIfEmpty().Max(), // Number of variables is the max variable index in the clauses
-            se.Clauses.Count,
-            se.Clauses.Select(c => (IReadOnlyList<int>)c.Literals.ToList()).ToList()))
+        .Select(p => p.Clauses) // Get the clauses of the SAT encoding
+        .Select(clauses => new GetSatEncodingResult(
+            clauses.SelectMany(c => c.Literals).DefaultIfEmpty().Max(), // Number of variables is the max variable index in the clauses
+            clauses.Count,
+            clauses.Select(c => (IReadOnlyList<int>)c.Literals.ToList()).ToList()))
         .FirstOrDefaultAsync(cancellationToken);
 
     public Task Add(Problem problem, CancellationToken cancellationToken)
@@ -78,13 +77,9 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         existingModel.CompletedAt = problem.CompletedAt;
 
         if (problem.SatEncoding is null)
-            existingModel.SatEncoding = null;
-        else if (existingModel.SatEncoding is null)
-            existingModel.SatEncoding = ToSatEncodingModel(problem.SatEncoding, problem.Id);
+            existingModel.Clauses.Clear();
         else
-            existingModel.SatEncoding.Clauses = problem.SatEncoding.Clauses
-                .Select(clause => new ClauseModel { Literals = clause.ToArray() })
-                .ToList();
+            existingModel.Clauses = ToClausesModel(problem.SatEncoding, problem.Id);
     }
 
     public async Task<ListProblemsResult> ListProblems(int page, int pageSize, CancellationToken cancellationToken)
@@ -142,16 +137,16 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         CreatedAt = problem.CreatedAt,
         UpdatedAt = problem.UpdatedAt,
         CompletedAt = problem.CompletedAt,
-        SatEncoding = problem.SatEncoding is null ? null : ToSatEncodingModel(problem.SatEncoding, problem.Id)
+        Clauses = problem.SatEncoding is null ? [] : ToClausesModel(problem.SatEncoding, problem.Id)
     };
 
-    private static SatEncodingModel ToSatEncodingModel(SatEncoding encoding, Guid problemId) => new()
-    {
-        ProblemId = problemId,
-        Clauses = encoding.Clauses
-            .Select(clause => new ClauseModel { Literals = clause.ToArray() })
-            .ToList()
-    };
+    private static ICollection<ClauseModel> ToClausesModel(SatEncoding encoding, Guid problemId) => encoding.Clauses
+        .Select(clause => new ClauseModel
+        {
+            ProblemId = problemId,
+            Literals = clause.ToArray()
+        })
+        .ToList();
 
     private Problem ToDomain(ProblemModel model) => Problem.Rehydrate(
         model.Id,
@@ -161,7 +156,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         model.UpdatedAt,
         model.Solver,
         model.Instance.Deserialize<Instance>(JsonSerializerOptions) ?? throw new InvalidOperationException($"Failed to deserialize instance for problem {model.Id}."),
-        model.SatEncoding is null ? null : SatEncoding.Rehydrate(model.SatEncoding.Clauses.Select(IEnumerable<int> (c) => c.Literals)),
+        model.Clauses.Count == 0 ? null : SatEncoding.Rehydrate(model.Clauses.Select(IEnumerable<int> (c) => c.Literals)),
         Enum.Parse<SolvingStatus>(model.SolvingStatus),
         Enum.Parse<Satisfiability>(model.Satisfiability),
         model.Assignment,

@@ -22,16 +22,14 @@ export function ErrorStack({ errors, onDismiss }: ErrorStackProps) {
       {errors.map((e) => (
         <div
           key={e.id}
-          className="flex items-start gap-3 rounded border px-4 py-3"
-          style={{ background: '#fdedec', borderColor: '#d13212' }}
+          className="flex items-start gap-3 rounded-md border border-error-200 dark:border-error-800 bg-error-50 dark:bg-error-900 px-4 py-3"
         >
-          <span className="flex-1 text-sm" style={{ color: '#d13212' }}>
+          <span className="flex-1 text-sm text-error-700 dark:text-error-200">
             {e.message}
           </span>
           <button
             onClick={() => onDismiss(e.id)}
-            className="shrink-0 cursor-pointer text-base font-bold leading-none hover:opacity-60"
-            style={{ color: '#d13212' }}
+            className="shrink-0 cursor-pointer text-base font-bold leading-none text-error-500 dark:text-error-300 hover:opacity-70 transition-opacity"
             aria-label="Dismiss"
           >
             ×

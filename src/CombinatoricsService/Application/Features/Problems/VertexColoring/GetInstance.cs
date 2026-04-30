@@ -23,7 +23,7 @@ public sealed class GetVertexColoringInstanceHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.Instance is not VertexColoringInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a vertex coloring instance.");
@@ -46,6 +46,6 @@ public sealed class GetVertexColoringInstanceValidator : AbstractValidator<GetVe
 {
     public GetVertexColoringInstanceValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

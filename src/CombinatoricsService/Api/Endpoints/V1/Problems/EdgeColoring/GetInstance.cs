@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.EdgeColoring;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -14,15 +12,13 @@ public sealed class GetEdgeColoringInstanceEndpoint : IEndpoint
     {
         endpoint.MapGet("problems/{id:Guid}/edge-coloring/instance", Execute)
             .WithName("get edge coloring instance")
-            .WithTags("edge-coloring");
+            .WithTags("edge-coloring")
+            .Produces<GetEdgeColoringInstanceResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<
-        Ok<GetEdgeColoringInstanceResponse>,
-        NotFound<ProblemDetails>,
-        ValidationProblem,
-        InternalServerError
-    >> Execute(
+    public static async Task<IResult> Execute(
         [FromRoute] Guid id,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -30,16 +26,9 @@ public sealed class GetEdgeColoringInstanceEndpoint : IEndpoint
         Result<GetEdgeColoringInstanceResult> result =
             await mediator.Send(new GetEdgeColoringInstanceQuery(id), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Ok(new GetEdgeColoringInstanceResponse(result.Value.Instance));
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.Ok(new GetEdgeColoringInstanceResponse(result.Value.Instance))
+            : result.ToProblemResult();
     }
 }
 

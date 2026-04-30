@@ -35,6 +35,6 @@ public sealed class GetSatEncodingValidator : AbstractValidator<GetSatEncodingQu
 {
     public GetSatEncodingValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

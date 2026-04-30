@@ -21,7 +21,6 @@ export function EditProblemPage({ onProblemChanged }: EditProblemPageProps) {
   const [saving, setSaving] = useState(false);
   const { errors, addError, dismiss } = useErrorStack();
 
-  // Pre-fill once problem data arrives
   useEffect(() => {
     if (problem) {
       setName(problem.name);
@@ -46,11 +45,9 @@ export function EditProblemPage({ onProblemChanged }: EditProblemPageProps) {
     }
   };
 
-  // ── Loading / error ───────────────────────────────────────────────────────
-
   if (problemLoading) {
     return (
-      <div className="flex items-center justify-center h-full gap-3" style={{ color: '#545b64' }}>
+      <div className="flex items-center justify-center h-full gap-3 text-neutral-500 dark:text-neutral-400">
         <Spinner size="lg" /> Loading…
       </div>
     );
@@ -59,42 +56,33 @@ export function EditProblemPage({ onProblemChanged }: EditProblemPageProps) {
   if (problemError || !problem) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-sm" style={{ color: '#d13212' }}>
-          {problemError ?? 'Problem not found'}
-        </p>
+        <p className="text-sm text-error-500">{problemError ?? 'Problem not found'}</p>
       </div>
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <div className="flex flex-col h-full">
       {/* Page header */}
-      <div
-        className="shrink-0 border-b px-6 py-4"
-        style={{ background: '#ffffff', borderColor: '#d5dbdb' }}
-      >
-        <p className="text-xs mb-1" style={{ color: '#879596' }}>
+      <div className="shrink-0 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 bg-white dark:bg-surface-secondary">
+        <p className="text-xs mb-1 text-neutral-400 dark:text-neutral-500">
           Problems <span className="mx-1">›</span>
-          <span
-            className="cursor-pointer hover:underline"
-            style={{ color: '#0073bb' }}
+          <button
+            className="link"
             onClick={() => navigate(`/problems/${problemId}`)}
           >
             {problem.name}
-          </span>
+          </button>
           <span className="mx-1">›</span>
-          <span style={{ color: '#0073bb' }}>Edit</span>
+          <span className="text-primary-500 dark:text-primary-400">Edit</span>
         </p>
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold" style={{ color: '#16191f' }}>
+          <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             Edit problem
           </h1>
           <button
             onClick={() => navigate(`/problems/${problemId}`)}
-            className="rounded border px-3 py-1.5 text-sm cursor-pointer"
-            style={{ borderColor: '#aab7b8', color: '#545b64', background: '#fff' }}
+            className="btn btn-secondary btn-sm"
           >
             Cancel
           </button>
@@ -104,17 +92,14 @@ export function EditProblemPage({ onProblemChanged }: EditProblemPageProps) {
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         <div className="w-full space-y-5">
-          {/* Errors */}
           <ErrorStack errors={errors} onDismiss={dismiss} />
 
-          {/* Name */}
           <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Name <span style={{ color: '#d13212' }}>*</span>
+            <label className="label">
+              Name <span className="text-error-500">*</span>
             </label>
             <input
-              className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-1"
-              style={{ borderColor: '#aab7b8', color: '#16191f' }}
+              className="input w-full"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={saving}
@@ -122,14 +107,10 @@ export function EditProblemPage({ onProblemChanged }: EditProblemPageProps) {
             />
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-              Description
-            </label>
+            <label className="label">Description</label>
             <textarea
-              className="w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-1"
-              style={{ borderColor: '#aab7b8', color: '#16191f' }}
+              className="input w-full resize-y"
               rows={5}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -138,14 +119,13 @@ export function EditProblemPage({ onProblemChanged }: EditProblemPageProps) {
             />
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end">
             <button
               onClick={handleSave}
               disabled={saving}
-              className="rounded px-5 py-2 text-sm font-semibold cursor-pointer disabled:opacity-50"
-              style={{ background: '#ff9900', color: '#16191f', border: '1px solid #e88b00' }}
+              className="btn btn-primary disabled:opacity-50"
             >
+              {saving && <Spinner size="sm" />}
               {saving ? 'Saving…' : 'Save changes'}
             </button>
           </div>

@@ -112,7 +112,7 @@ export function GraphEditorForm({
   const [editLabel, setEditLabel] = useState('');
   const editInputRef = useRef<HTMLInputElement | null>(null);
 
-  // ViewBox + synced ref (ref is always current, used inside native event handlers)
+  // ViewBox + synced ref
   const [viewBox, setViewBox] = useState<ViewBox>(INIT_VB);
   const viewBoxRef = useRef<ViewBox>(INIT_VB);
   viewBoxRef.current = viewBox;
@@ -132,7 +132,7 @@ export function GraphEditorForm({
     }
   }, [editingVertex, editingEdge]);
 
-  // ── Native wheel handler (passive:false so preventDefault works) ───────────
+  // ── Native wheel handler ──────────────────────────────────────────────────
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -249,14 +249,12 @@ export function GraphEditorForm({
   // ── SVG background mouse events ───────────────────────────────────────────
 
   const handleSvgMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    // Only handle direct clicks on the SVG background or the transparent rect
     const tag = (e.target as Element).tagName;
     if (tag !== 'svg' && tag !== 'rect') return;
     if (editingVertex || editingEdge) return;
 
     dragDidMove.current = false;
 
-    // Start panning — compute scale once so pan stays stable regardless of CTM
     const svg = svgRef.current;
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
@@ -277,7 +275,7 @@ export function GraphEditorForm({
 
     const tag = (e.target as Element).tagName;
     if (tag !== 'svg' && tag !== 'rect') return;
-    if (dragDidMove.current) return; // Was a pan or edge-drag, not a click
+    if (dragDidMove.current) return;
 
     const { x, y } = getSvgCoords(e.clientX, e.clientY);
     const name = `v${++vertexCounter.current}`;
@@ -289,9 +287,9 @@ export function GraphEditorForm({
   const handleVertexMouseDown = (e: React.MouseEvent, vertexId: string) => {
     if (editingVertex || editingEdge) return;
     e.stopPropagation();
-    e.preventDefault(); // prevent text selection during drag
+    e.preventDefault();
     dragDidMove.current = false;
-    panStart.current = null; // not a pan
+    panStart.current = null;
     if (mode === 'add') {
       dragSource.current = vertexId;
     } else {
@@ -300,7 +298,7 @@ export function GraphEditorForm({
   };
 
   const handleSvgMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    // Pan (background drag, any mode)
+    // Pan
     if (panStart.current && !dragSource.current && !movingVertex.current) {
       dragDidMove.current = true;
       const { clientX: cx0, clientY: cy0, vbX, vbY, scaleX, scaleY } = panStart.current;
@@ -312,7 +310,7 @@ export function GraphEditorForm({
       return;
     }
 
-    // Edge-draw ghost line (add mode + vertex drag)
+    // Edge-draw ghost line
     if (mode === 'add' && dragSource.current) {
       dragDidMove.current = true;
       const src = verticesRef.current.find((v) => v.id === dragSource.current);
@@ -322,7 +320,7 @@ export function GraphEditorForm({
       return;
     }
 
-    // Move vertex (move mode)
+    // Move vertex
     if (mode === 'move' && movingVertex.current) {
       dragDidMove.current = true;
       const { x, y } = getSvgCoords(e.clientX, e.clientY);
@@ -349,8 +347,6 @@ export function GraphEditorForm({
       const srcV = verticesRef.current.find((v) => v.id === srcId);
       const tgtV = verticesRef.current.find((v) => v.id === targetId);
       dragSource.current = null;
-      // dragDidMove stays true — prevents handleSvgClick from adding a vertex
-      // after the edge-draw gesture completes. Resets on next mousedown.
       setGhostLine(null);
       if (srcV && tgtV) {
         const label = `e${++edgeCounter.current}`;
@@ -361,7 +357,6 @@ export function GraphEditorForm({
     }
   };
 
-  // Click on vertex in add mode → edit label (only if didn't drag)
   const handleVertexClick = (e: React.MouseEvent, vertexId: string) => {
     if (mode !== 'add') return;
     if (dragDidMove.current) return;
@@ -403,22 +398,17 @@ export function GraphEditorForm({
     <div className="space-y-3">
       {/* Toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-xs font-medium" style={{ color: '#545b64' }}>Mode:</span>
+        <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Mode:</span>
         {(['add', 'move'] as Mode[]).map((m) => (
           <button
             key={m}
             onClick={() => setMode(m)}
-            className="rounded border px-3 py-1 text-xs font-medium cursor-pointer transition-colors capitalize"
-            style={
-              mode === m
-                ? { background: '#ff9900', color: '#16191f', borderColor: '#e88b00' }
-                : { background: '#fff', color: '#545b64', borderColor: '#aab7b8' }
-            }
+            className={`btn btn-sm capitalize ${mode === m ? 'btn-primary' : 'btn-secondary'}`}
           >
             {m}
           </button>
         ))}
-        <span className="text-xs" style={{ color: '#879596' }}>
+        <span className="text-xs text-neutral-400 dark:text-neutral-500">
           {mode === 'add'
             ? 'Click canvas → add vertex. Drag vertex→vertex → edge. Click label → rename. Right-click → delete. Drag background → pan.'
             : 'Drag vertex → reposition. Drag background → pan.'}
@@ -428,7 +418,7 @@ export function GraphEditorForm({
       {/* Canvas wrapper */}
       <div
         className="relative w-full rounded border"
-        style={{ borderColor: '#d5dbdb', userSelect: 'none' }}
+        style={{ borderColor: 'var(--canvas-border)', userSelect: 'none' }}
       >
         {/* Zoom controls */}
         <div className="absolute right-2 top-2 z-10 flex flex-col gap-1">
@@ -442,7 +432,11 @@ export function GraphEditorForm({
               onClick={fn}
               title={title}
               className="flex h-7 w-7 cursor-pointer items-center justify-center rounded text-sm font-bold"
-              style={{ background: 'rgba(255,255,255,0.92)', border: '1px solid #d5dbdb', color: '#16191f' }}
+              style={{
+                background: 'var(--canvas-zoom-bg)',
+                border: '1px solid var(--canvas-zoom-border)',
+                color: 'var(--canvas-zoom-text)',
+              }}
             >
               {label}
             </button>
@@ -455,7 +449,7 @@ export function GraphEditorForm({
           className="w-full"
           style={{
             height: 420,
-            background: '#f2f3f3',
+            background: 'var(--canvas-bg)',
             display: 'block',
             cursor: panStart.current ? 'grabbing' : mode === 'move' ? 'grab' : 'crosshair',
             userSelect: 'none',
@@ -477,7 +471,7 @@ export function GraphEditorForm({
             const my = (u.y + v.y) / 2;
             return (
               <g key={edge.label}>
-                <line x1={u.x} y1={u.y} x2={v.x} y2={v.y} stroke="#aab7b8" strokeWidth={2} />
+                <line x1={u.x} y1={u.y} x2={v.x} y2={v.y} stroke="var(--canvas-edge-stroke)" strokeWidth={2} />
                 {/* Wide transparent hit area for right-click */}
                 <line
                   x1={u.x} y1={u.y} x2={v.x} y2={v.y}
@@ -496,15 +490,21 @@ export function GraphEditorForm({
                         if (e.key === 'Enter') commitEdgeEdit();
                         if (e.key === 'Escape') cancelEdit();
                       }}
-                      className="w-full h-full border rounded text-center"
-                      style={{ fontSize: 10, borderColor: '#ff9900', outline: 'none', background: 'white' }}
+                      className="w-full h-full rounded text-center"
+                      style={{
+                        fontSize: 10,
+                        border: '1.5px solid var(--canvas-edit-border)',
+                        outline: 'none',
+                        background: 'var(--canvas-vertex-fill)',
+                        color: 'var(--canvas-vertex-text)',
+                      }}
                     />
                   </foreignObject>
                 ) : (
                   <text
                     x={mx} y={my - 7}
                     textAnchor="middle" fontSize={10}
-                    fill={mode === 'add' ? '#0073bb' : '#879596'}
+                    fill={mode === 'add' ? 'var(--canvas-link-text)' : 'var(--canvas-edge-text)'}
                     style={{ cursor: mode === 'add' ? 'text' : 'default' }}
                     onClick={(e) => mode === 'add' && startEditEdge(e, edge.label)}
                   >
@@ -520,7 +520,7 @@ export function GraphEditorForm({
             <line
               x1={ghostLine.x1} y1={ghostLine.y1}
               x2={ghostLine.x2} y2={ghostLine.y2}
-              stroke="#ff9900" strokeWidth={1.5} strokeDasharray="6 3"
+              stroke="var(--canvas-ghost-stroke)" strokeWidth={1.5} strokeDasharray="6 3"
             />
           )}
 
@@ -537,8 +537,8 @@ export function GraphEditorForm({
             >
               <circle
                 r={VERTEX_R}
-                fill="white"
-                stroke={editingVertex === v.id ? '#0073bb' : '#ff9900'}
+                fill="var(--canvas-vertex-fill)"
+                stroke={editingVertex === v.id ? 'var(--canvas-edit-border)' : 'var(--canvas-vertex-stroke)'}
                 strokeWidth={editingVertex === v.id ? 2.5 : 2}
               />
               {editingVertex === v.id ? (
@@ -553,13 +553,18 @@ export function GraphEditorForm({
                       if (e.key === 'Escape') cancelEdit();
                     }}
                     className="h-full w-full border-0 text-center"
-                    style={{ fontSize: 11, outline: 'none', background: 'transparent', color: '#16191f' }}
+                    style={{
+                      fontSize: 11,
+                      outline: 'none',
+                      background: 'transparent',
+                      color: 'var(--canvas-vertex-text)',
+                    }}
                   />
                 </foreignObject>
               ) : (
                 <text
                   textAnchor="middle" dominantBaseline="middle"
-                  fontSize={11} fill="#16191f"
+                  fontSize={11} fill="var(--canvas-vertex-text)"
                   style={{ userSelect: 'none', pointerEvents: 'none' }}
                 >
                   {v.name.length > 5 ? v.name.slice(0, 4) + '…' : v.name}
@@ -573,27 +578,25 @@ export function GraphEditorForm({
       {/* Color count + stats */}
       <div className="flex items-center gap-6 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-xs font-medium" style={{ color: '#545b64' }}>Color count:</label>
+          <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Color count:</label>
           <input
             type="number" min={1} value={colorCount}
             onChange={(e) => setColorCount(Number(e.target.value))}
-            className="w-20 rounded border px-3 py-1.5 text-sm focus:outline-none"
-            style={{ borderColor: '#aab7b8' }}
+            className="input w-20"
             disabled={loading}
           />
         </div>
-        <span className="text-xs" style={{ color: '#879596' }}>
+        <span className="text-xs text-neutral-400 dark:text-neutral-500">
           {vertices.length} vertices · {edges.length} edges
         </span>
       </div>
 
-      {error && <p className="text-xs" style={{ color: '#d13212' }}>{error}</p>}
+      {error && <p className="text-error-500 text-xs">{error}</p>}
 
       <div className="flex justify-end">
         <button
           onClick={handleSubmit} disabled={loading}
-          className="rounded px-4 py-2 text-sm font-semibold cursor-pointer disabled:opacity-50"
-          style={{ background: '#ff9900', color: '#16191f', border: '1px solid #e88b00' }}
+          className="btn btn-primary disabled:opacity-50"
         >
           {loading ? 'Saving…' : 'Create'}
         </button>

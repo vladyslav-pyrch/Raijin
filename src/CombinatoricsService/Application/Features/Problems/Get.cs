@@ -20,7 +20,7 @@ public sealed class GetProblemHandler(
         GetProblemResult? problem = await problemRepository.GetSummaryById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         return problem;
     }
@@ -43,6 +43,6 @@ public sealed class GetProblemValidator : AbstractValidator<GetProblemQuery>
 {
     public GetProblemValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

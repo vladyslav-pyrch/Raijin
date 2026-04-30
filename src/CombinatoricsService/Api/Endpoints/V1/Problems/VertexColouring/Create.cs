@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Features.Problems.VertexColoring;
 using Raijin.CombinatoricsService.Application.Messaging;
@@ -15,14 +13,12 @@ public sealed class CreateVertexColoringProblemEndpoint : IEndpoint
     {
         endpoint.MapPost("problems/vertex-coloring", Execute)
             .WithName("create vertex coloring problem")
-            .WithTags("vertex-coloring");
+            .WithTags("vertex-coloring")
+            .Produces<CreateVertexColoringProblemResponse>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 
-    public static async Task<Results<
-        Created<CreateVertexColoringProblemResponse>,
-        ValidationProblem,
-        InternalServerError
-    >> Execute(
+    public static async Task<IResult> Execute(
         [FromBody] CreateVertexColoringProblemRequest request,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken
@@ -36,13 +32,9 @@ public sealed class CreateVertexColoringProblemEndpoint : IEndpoint
             request.Instance
         ), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Created($"/problems/{result.Value.ProblemId}", new CreateVertexColoringProblemResponse(result.Value.ProblemId));
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.Created($"/problems/{result.Value.ProblemId}", new CreateVertexColoringProblemResponse(result.Value.ProblemId))
+            : result.ToProblemResult();
     }
 }
 

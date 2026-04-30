@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -14,15 +12,13 @@ public sealed class ListProblemsEndpoint : IEndpoint
     {
         endpoint.MapGet("problems", Execute)
             .WithName("list problems")
-            .WithTags("problems");
+            .WithTags("problems")
+            .Produces<ListProblemsResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<
-        Ok<ListProblemsResponse>,
-        NotFound<ProblemDetails>,
-        ValidationProblem,
-        InternalServerError
-    >> Execute(
+    public static async Task<IResult> Execute(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromServices] IMediator mediator = null!,
@@ -47,13 +43,7 @@ public sealed class ListProblemsEndpoint : IEndpoint
                 value.TotalCount));
         }
 
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        return TypedResults.InternalServerError();
+        return result.ToProblemResult();
     }
 }
 

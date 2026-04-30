@@ -1,8 +1,6 @@
-﻿using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
+using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Messaging;
 
@@ -14,34 +12,25 @@ public sealed class UpdateProblemEndpoint : IEndpoint
     {
         endpoint.MapPatch("problems/{id:Guid}", Execute)
             .WithName("update problem")
-            .WithTags("problems");
+            .WithTags("problems")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    public static async Task<Results<
-            NoContent,
-            NotFound<ProblemDetails>,
-            ValidationProblem,
-            InternalServerError
-        >> Execute(
-            [FromRoute] Guid id,
-            [FromBody] UpdateProblemRequest request,
-            [FromServices] IMediator mediator,
-            CancellationToken cancellationToken
-        )
+    public static async Task<IResult> Execute(
+        [FromRoute] Guid id,
+        [FromBody] UpdateProblemRequest request,
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken
+    )
     {
         Result result = await mediator.Send(new UpdateProblemCommand(id, request.Name, request.Description),
             cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.NoContent();
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        if (result.Has(out NotFoundError? notFoundError))
-            return notFoundError.ToNotFoundResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.NoContent()
+            : result.ToProblemResult();
     }
 }
 

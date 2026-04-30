@@ -19,7 +19,7 @@ public sealed class SolveProblemHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.SolvingStatus is SolvingStatus.Running)
             return new ConflictError("Cannot reduce to SAT while solving is in progress.");
@@ -47,9 +47,9 @@ public sealed class SolveProblemValidator : AbstractValidator<SolveProblemComman
     public SolveProblemValidator()
     {
         RuleFor(command => command.ProblemId)
-            .NotEmpty();
+            .NotEmpty().WithMessage("Problem identifier is required.");
         RuleFor(command => command.Solver)
-            .NotEmpty()
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("Solver name is required.")
+            .MaximumLength(100).WithMessage("Solver name must not exceed 100 characters.");
     }
 }

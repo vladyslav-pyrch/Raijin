@@ -245,12 +245,11 @@ export function SetInstanceModal({
       <div className="space-y-4">
         {/* Name + description always visible */}
         <div>
-          <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-            Name <span style={{ color: '#d13212' }}>*</span>
+          <label className="label">
+            Name <span className="text-error-500">*</span>
           </label>
           <input
-            className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-1"
-            style={{ borderColor: '#aab7b8', color: '#16191f' }}
+            className="input w-full"
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
@@ -258,12 +257,9 @@ export function SetInstanceModal({
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold mb-1" style={{ color: '#16191f' }}>
-            Description
-          </label>
+          <label className="label">Description</label>
           <textarea
-            className="w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-1"
-            style={{ borderColor: '#aab7b8', color: '#16191f' }}
+            className="input w-full resize-y"
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -275,21 +271,17 @@ export function SetInstanceModal({
         {/* Type picker (create mode only) */}
         {!isFork && !selectedType && (
           <div>
-            <p className="text-xs mb-2" style={{ color: '#545b64' }}>Choose problem type:</p>
+            <p className="label">Choose problem type:</p>
             {INSTANCE_TYPES.map((t) => (
               <button
                 key={t.value}
                 onClick={() => setSelectedType(t.value)}
-                className="w-full text-left px-3 py-2.5 rounded border mb-1.5 transition-colors cursor-pointer"
-                style={{ borderColor: '#d5dbdb', background: '#fff', color: '#16191f' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#fef6e4';
-                  e.currentTarget.style.borderColor = '#ff9900';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.borderColor = '#d5dbdb';
-                }}
+                className="w-full text-left px-3 py-2.5 rounded-md border mb-1.5 transition-colors cursor-pointer
+                           border-neutral-200 dark:border-neutral-700
+                           bg-white dark:bg-surface-secondary
+                           text-neutral-900 dark:text-neutral-100
+                           hover:bg-primary-50 dark:hover:bg-primary-900/20
+                           hover:border-primary-300 dark:hover:border-primary-700"
               >
                 <span className="text-sm font-medium">{t.label}</span>
               </button>
@@ -307,11 +299,7 @@ export function SetInstanceModal({
         {/* Instance form */}
         {selectedType && renderForm()}
 
-        {error && (
-          <p className="text-xs" style={{ color: '#d13212' }}>
-            {error}
-          </p>
-        )}
+        {error && <p className="text-error-500 text-xs">{error}</p>}
       </div>
     </Modal>
   );

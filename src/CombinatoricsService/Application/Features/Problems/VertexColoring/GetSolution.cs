@@ -22,7 +22,7 @@ public sealed class GetVertexColoringSolutionHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.SolvingStatus is SolvingStatus.Failed)
             return new NotFoundError("Solving failed — no solution is available.");
@@ -60,6 +60,6 @@ public sealed class GetVertexColoringSolutionValidator : AbstractValidator<GetVe
 {
     public GetVertexColoringSolutionValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }

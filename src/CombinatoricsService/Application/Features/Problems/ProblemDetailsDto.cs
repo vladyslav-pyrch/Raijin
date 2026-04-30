@@ -12,10 +12,10 @@ public sealed class ProblemDetailsDtoValidator : AbstractValidator<ProblemDetail
     public ProblemDetailsDtoValidator()
     {
         RuleFor(dto => dto.Name)
-            .NotEmpty()
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("Problem name is required.")
+            .MaximumLength(100).WithMessage("Problem name must not exceed 100 characters.");
         RuleFor(dto => dto.Description)
-            .NotNull()
-            .MaximumLength(5000);
+            .NotNull().WithMessage("Problem description is required.")
+            .MaximumLength(5000).WithMessage("Problem description must not exceed 5000 characters.");
     }
 }

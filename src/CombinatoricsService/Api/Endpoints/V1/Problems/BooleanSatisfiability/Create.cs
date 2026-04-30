@@ -1,8 +1,6 @@
 using FluentResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Raijin.CombinatoricsService.Api.Extensions;
-using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems;
 using Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 using Raijin.CombinatoricsService.Application.Messaging;
@@ -15,14 +13,12 @@ public sealed class CreateSatProblemEndpoint : IEndpoint
     {
         endpoint.MapPost("problems/sat", Execute)
             .WithName("create sat problem")
-            .WithTags("sat");
+            .WithTags("sat")
+            .Produces<CreateSatProblemResponse>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 
-    public static async Task<Results<
-        Created<CreateSatProblemResponse>,
-        ValidationProblem,
-        InternalServerError
-    >> Execute(
+    public static async Task<IResult> Execute(
         [FromBody] CreateSatProblemRequest request,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken
@@ -36,13 +32,9 @@ public sealed class CreateSatProblemEndpoint : IEndpoint
             request.Instance
         ), cancellationToken);
 
-        if (result.IsSuccess)
-            return TypedResults.Created($"/problems/{result.Value.ProblemId}", new CreateSatProblemResponse(result.Value.ProblemId));
-
-        if (result.Has(out IReadOnlyList<ValidationError>? validationErrors))
-            return validationErrors.ToValidationProblemResult();
-
-        return TypedResults.InternalServerError();
+        return result.IsSuccess
+            ? TypedResults.Created($"/problems/{result.Value.ProblemId}", new CreateSatProblemResponse(result.Value.ProblemId))
+            : result.ToProblemResult();
     }
 }
 

@@ -21,7 +21,7 @@ public sealed class GetCspInstanceHandler(
         Problem? problem = await problemRepository.GetById(request.ProblemId, cancellationToken);
 
         if (problem is null)
-            return new NotFoundError(nameof(Problem), request.ProblemId);
+            return new NotFoundError($"Problem '{request.ProblemId}' not found.");
 
         if (problem.Instance is not CspInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a CSP instance.");
@@ -44,6 +44,6 @@ public sealed class GetCspInstanceValidator : AbstractValidator<GetCspInstanceQu
 {
     public GetCspInstanceValidator()
     {
-        RuleFor(q => q.ProblemId).NotEmpty();
+        RuleFor(q => q.ProblemId).NotEmpty().WithMessage("Problem identifier is required.");
     }
 }
