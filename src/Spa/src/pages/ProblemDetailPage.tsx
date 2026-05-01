@@ -33,7 +33,7 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
   );
   const canSolve = problem?.solvingStatus !== 'Running' && problem?.instanceType !== null;
 
-  const { encoding, loading: encLoading, error: encError } = useSatEncoding(problemId, hasEncoding);
+  const { encoding, loading: encLoading, error: encError, refresh: refreshEncoding } = useSatEncoding(problemId, hasEncoding);
 
   const { instance, loading: instLoading, error: instError } = useInstance(
     problemId,
@@ -46,6 +46,7 @@ export function ProblemDetailPage({ onProblemChanged }: ProblemDetailPageProps) 
 
   const handleRefresh = () => {
     refresh();
+    refreshEncoding();
     onProblemChanged();
   };
 

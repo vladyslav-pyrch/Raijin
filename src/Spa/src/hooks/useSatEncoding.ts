@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {api} from '../lib/api';
 import type {GetSatEncodingResponse} from '../services/combinatorics';
 
@@ -6,18 +6,27 @@ interface UseSatEncodingResult {
   encoding: GetSatEncodingResponse | null;
   loading: boolean;
   error: string | null;
+  refresh: () => void;
 }
 
 export function useSatEncoding(id: string, enabled: boolean): UseSatEncodingResult {
   const [encoding, setEncoding] = useState<GetSatEncodingResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
+
+  // Reset state when problem id changes — prevents cross-problem contamination
+  useEffect(() => {
+    setEncoding(null);
+    setError(null);
+  }, [id]);
 
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setEncoding(null);
     api
       .getSatEncoding(id)
       .then((res) => {
@@ -33,7 +42,9 @@ export function useSatEncoding(id: string, enabled: boolean): UseSatEncodingResu
     return () => {
       cancelled = true;
     };
-  }, [id, enabled]);
+  }, [id, enabled, tick]);
 
-  return { encoding, loading, error };
+  const refresh = useCallback(() => setTick((t) => t + 1), []);
+
+  return { encoding, loading, error, refresh };
 }
