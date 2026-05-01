@@ -21,7 +21,7 @@ internal static class EdgeColoringToCspReduction
                 adjacency[e.U] = uList = [];
             if (!adjacency.TryGetValue(e.V, out List<Edge>? vList))
                 adjacency[e.V] = vList = [];
-            
+
             uList.Add(e);
             vList.Add(e);
         }
@@ -32,7 +32,7 @@ internal static class EdgeColoringToCspReduction
 
         Dictionary<Edge, int> edgeIndex = edges.Select((e, i) => (e, i)).ToDictionary(t => t.e, t => t.i);
         HashSet<(int, int)> processedPairs = [];
-        
+
         List<BoolExpr> constraints = [];
         foreach (Edge e1 in edges)
         {
@@ -55,12 +55,11 @@ internal static class EdgeColoringToCspReduction
                 );
             }
         }
-        
+
         var csp = new CspInstance(variables, constraints);
-        
+
         Dictionary<EdgeColorAssignment, DecisionVariableStateAssignment> symbolTable = edges
-            .SelectMany(
-                e => Enumerable.Range(1, colourCount).Select(e.ToEdgeColorAssignment)
+            .SelectMany(e => Enumerable.Range(1, colourCount).Select(e.ToEdgeColorAssignment)
             ).ToDictionary(eca => eca, eca => eca.ToDecisionVariableStateAssignment());
 
         return new EdgeColoringToCspReductionResult(csp, symbolTable);

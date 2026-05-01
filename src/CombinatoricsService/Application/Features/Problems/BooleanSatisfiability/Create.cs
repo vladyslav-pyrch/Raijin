@@ -10,7 +10,7 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatis
 public sealed class CreateSatProblemHandler(
     IProblemRepository problemRepository,
     IUnitOfWork unitOfWork
-) : IRequestHandler<CreateSatProblemCommand,CreateSatProblemResult>
+) : IRequestHandler<CreateSatProblemCommand, CreateSatProblemResult>
 {
     public async Task<Result<CreateSatProblemResult>> Handle(
         CreateSatProblemCommand request,
@@ -25,7 +25,7 @@ public sealed class CreateSatProblemHandler(
             }).ToList());
 
         List<Clause> clauses = literals.Select(clauseLiterals => new Clause(clauseLiterals)).ToList();
-        
+
         var problem = Problem.Create(
             Guid.CreateVersion7(),
             request.Details.Name,

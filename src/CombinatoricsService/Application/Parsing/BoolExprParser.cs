@@ -4,20 +4,34 @@ using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 namespace Raijin.CombinatoricsService.Application.Parsing;
 
 /// <summary>
-/// Parses a Boolean expression string into an immutable <see cref="BoolExpr"/> AST
-/// using the Shunting-Yard algorithm.
+///     Parses a Boolean expression string into an immutable <see cref="BoolExpr" /> AST
+///     using the Shunting-Yard algorithm.
 /// </summary>
 public sealed class BoolExprParser : IBoolExprParser
 {
     private static readonly Dictionary<TokenType, int> Precedences = new()
     {
-        { TokenType.Not, 5 },
-        { TokenType.And, 4 },
-        { TokenType.Or, 3 },
-        { TokenType.Xor, 2 },
-        { TokenType.Implication, 1 },
-        { TokenType.ImplicationBackward, 1 },
-        { TokenType.Equivalence, 0 }
+        {
+            TokenType.Not, 5
+        },
+        {
+            TokenType.And, 4
+        },
+        {
+            TokenType.Or, 3
+        },
+        {
+            TokenType.Xor, 2
+        },
+        {
+            TokenType.Implication, 1
+        },
+        {
+            TokenType.ImplicationBackward, 1
+        },
+        {
+            TokenType.Equivalence, 0
+        }
     };
 
     private static readonly HashSet<TokenType> RightAssociativeOperators =
@@ -111,10 +125,10 @@ public sealed class BoolExprParser : IBoolExprParser
                         or TokenType.ImplicationBackward or TokenType.Equivalence or TokenType.Xor:
                     {
                         while (stack.Count > 0 && IsOperator(stack.Peek()) &&
-                               ((IsLeftAssociative(token.Type) &&
-                                 Precedences[token.Type] <= Precedences[stack.Peek().Type]) ||
-                                (IsRightAssociative(token.Type) &&
-                                 Precedences[token.Type] < Precedences[stack.Peek().Type])))
+                               (IsLeftAssociative(token.Type) &&
+                                Precedences[token.Type] <= Precedences[stack.Peek().Type] ||
+                                IsRightAssociative(token.Type) &&
+                                Precedences[token.Type] < Precedences[stack.Peek().Type]))
                             postfix.Add(stack.Pop());
                         stack.Push(token);
                         break;
@@ -231,7 +245,7 @@ public sealed class BoolExprParser : IBoolExprParser
 
             if (stack.Count != 1)
                 return Result.Fail(new Error(
-                    $"The expression could not be parsed into a single boolean expression; leftover operands after parsing. Make sure to not use spaces between variables"));
+                    "The expression could not be parsed into a single boolean expression; leftover operands after parsing. Make sure to not use spaces between variables"));
 
             return Result.Ok(stack.Pop());
         }

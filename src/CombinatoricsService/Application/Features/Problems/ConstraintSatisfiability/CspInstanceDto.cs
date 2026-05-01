@@ -16,7 +16,7 @@ public sealed class CspInstanceDtoValidator : AbstractValidator<CspInstanceDto>
     private static readonly Regex VariableNameRegex = new(
         VariableNamePatterns.VariableNameFull,
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
-        matchTimeout: TimeSpan.FromMilliseconds(100));
+        TimeSpan.FromMilliseconds(100));
 
     public CspInstanceDtoValidator()
     {

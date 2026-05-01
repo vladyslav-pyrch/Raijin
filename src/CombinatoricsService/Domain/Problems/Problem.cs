@@ -7,7 +7,7 @@ public sealed class Problem
         Id = id;
         Name = name;
         Description = description;
-        Instance =  instance;
+        Instance = instance;
         CreatedAt = createdAt;
     }
 
@@ -119,13 +119,13 @@ public sealed class Problem
     public void MarkAsPending(string solver)
     {
         ArgumentNullException.ThrowIfNull(solver);
-        
+
         if (Instance is null)
             throw new InvalidOperationException("Cannot mark a problem as pending without an instance.");
-        
+
         if (SolvingStatus == SolvingStatus.Running)
             throw new InvalidOperationException($"Cannot mark a problem as pending in '{SolvingStatus}' status.");
-        
+
         Solver = solver;
         SolvingStatus = SolvingStatus.Pending;
         UpdatedAt = DateTime.UtcNow;
@@ -135,7 +135,7 @@ public sealed class Problem
     {
         if (Instance is null)
             throw new InvalidOperationException("Cannot mark a problem as running without an instance.");
-        
+
         if (SatEncoding is null)
             throw new InvalidOperationException("Cannot mark a problem as running without a SAT encoding.");
 

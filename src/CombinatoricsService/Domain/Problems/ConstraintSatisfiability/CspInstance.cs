@@ -8,7 +8,7 @@ namespace Raijin.CombinatoricsService.Domain.Problems.ConstraintSatisfiability;
 public sealed record CspInstance(
     IReadOnlyList<DecisionVariable> Variables,
     IReadOnlyList<BoolExpr> Constraints
-    ) : Instance
+) : Instance
 {
     public override string ProblemType() => ProblemTypes.ConstraintSatisfiabilityProblem;
 
@@ -30,11 +30,11 @@ public sealed record CspInstance(
             Index = Math.Abs(i),
             Value = i > 0
         }).ToArray();
-        
+
         CspToBooleanReductionResult cspToBoolResult = CspToBooleanReduction.Apply(this);
         TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspToBoolResult.Instance);
         DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
-        
+
         Dictionary<int, DecisionVariableStateAssignment> invertedSymbolTable = cspToBoolResult.SymbolTable
             .ToDictionary(kvp => kvp.Key, kvp => dimacsResult.SymbolTable[tseitinResult.SymbolTable[kvp.Value]])
             .Invert();

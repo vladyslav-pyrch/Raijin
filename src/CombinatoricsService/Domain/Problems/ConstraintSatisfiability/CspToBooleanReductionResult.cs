@@ -7,4 +7,4 @@ internal record CspToBooleanReductionResult(
     BooleanProblemInstance Instance,
     IReadOnlyDictionary<DecisionVariableStateAssignment, BoolVar> SymbolTable,
     IReadOnlyList<BoolVar> AuxiliaryVariables
-    );
+);

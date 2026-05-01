@@ -26,7 +26,7 @@ public sealed class CreateEdgeColoringProblemHandler(
                 verticesLookup[e.V]
             )
         ).ToList();
-        
+
         var problem = Problem.Create(
             Guid.CreateVersion7(),
             request.ProblemDetails.Name,
@@ -36,7 +36,7 @@ public sealed class CreateEdgeColoringProblemHandler(
                 request.Instance.ColorCount
             )
         );
-        
+
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
 
@@ -56,7 +56,7 @@ public sealed class CreateEdgeColoringProblemValidator : AbstractValidator<Creat
     public CreateEdgeColoringProblemValidator(
         IValidator<EdgeColoringInstanceDto> edgeColoringInstanceDtoValidator,
         IValidator<ProblemDetailsDto> problemDetailsValidator
-        )
+    )
     {
         RuleFor(c => c.ProblemDetails)
             .NotNull()

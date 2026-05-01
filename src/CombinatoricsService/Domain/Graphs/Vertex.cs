@@ -8,13 +8,7 @@ public sealed record Vertex
     private static readonly Regex NameRegex = new(
         VariableNamePatterns.VariableNameFull,
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
-        matchTimeout: TimeSpan.FromMilliseconds(100));
-
-    public string Id { get; }
-    
-    public float X { get; init; }
-    
-    public float Y { get; init; }
+        TimeSpan.FromMilliseconds(100));
 
     public Vertex(string id, float x, float y)
     {
@@ -27,4 +21,10 @@ public sealed record Vertex
         X = x;
         Y = y;
     }
+
+    public string Id { get; }
+
+    public float X { get; init; }
+
+    public float Y { get; init; }
 }

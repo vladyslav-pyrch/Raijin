@@ -6,9 +6,9 @@ namespace Raijin.CombinatoricsService.Application.Persistence;
 public interface IProblemRepository
 {
     public Task<Problem?> GetById(Guid id, CancellationToken cancellationToken);
-    
+
     public Task<GetProblemResult?> GetSummaryById(Guid id, CancellationToken cancellationToken);
-    
+
     public Task<GetSatEncodingResult?> GetSatEncodingByProblemId(Guid id, CancellationToken cancellationToken);
 
     public Task Add(Problem problem, CancellationToken cancellationToken);

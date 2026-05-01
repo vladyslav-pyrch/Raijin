@@ -26,7 +26,7 @@ public sealed class CreateVertexColoringProblemHandler(
                 verticesLookup[e.V]
             )
         ).ToList();
-        
+
         var problem = Problem.Create(
             Guid.CreateVersion7(),
             request.ProblemDetails.Name,
@@ -36,7 +36,7 @@ public sealed class CreateVertexColoringProblemHandler(
                 request.Instance.ColorCount
             )
         );
-        
+
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
 
@@ -58,7 +58,7 @@ public sealed class CreateVertexColoringProblemValidator : AbstractValidator<Cre
     public CreateVertexColoringProblemValidator(
         IValidator<VertexColoringInstanceDto> vertexColoringInstanceDtoValidator,
         IValidator<ProblemDetailsDto> problemDetailsValidator
-        )
+    )
     {
         RuleFor(c => c.ProblemDetails)
             .NotNull()

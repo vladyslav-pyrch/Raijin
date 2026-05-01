@@ -20,7 +20,7 @@ public sealed class ValidationBehavior<TRequest, TResult>(
         logger.LogDebug("Validating {RequestName}", requestName);
 
         ValidationResult validationResult = await validator.ValidateAsync(request, cancellationToken);
-        
+
         if (!validationResult.IsValid)
         {
             logger.LogWarning("Validation failed for {RequestName} with {ErrorCount} error(s): {Errors}",
@@ -29,7 +29,7 @@ public sealed class ValidationBehavior<TRequest, TResult>(
                 string.Join("; ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}")));
             return Result.Fail(validationResult.ToValidationErrors());
         }
-        
+
         logger.LogDebug("Validation passed for {RequestName}", requestName);
         return await next();
     }
@@ -49,7 +49,7 @@ public sealed class ValidationBehavior<TRequest>(
         logger.LogDebug("Validating {RequestName}", requestName);
 
         ValidationResult validationResult = await validator.ValidateAsync(request, cancellationToken);
-        
+
         if (!validationResult.IsValid)
         {
             logger.LogWarning("Validation failed for {RequestName} with {ErrorCount} error(s): {Errors}",
@@ -58,7 +58,7 @@ public sealed class ValidationBehavior<TRequest>(
                 string.Join("; ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}")));
             return Result.Fail(validationResult.ToValidationErrors());
         }
-        
+
         logger.LogDebug("Validation passed for {RequestName}", requestName);
         return await next();
     }

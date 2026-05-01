@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-Raijin.CombinatoricsService.SatSolver-b95f76ca-df93-46c1-8a3b-31e91a100244</UserSecretsId>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-Raijin.CombinatoricsService.SatSolver-b95f76ca-df93-46c1-8a3b-31e91a100244</UserSecretsId>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
-    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.18.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7"/>
+        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.18.1"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\ServiceDefaults\Raijin.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\Infrastructure\Raijin.CombinatoricsService.Infrastructure.csproj" />	    
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\ServiceDefaults\Raijin.ServiceDefaults.csproj"/>
+        <ProjectReference Include="..\Infrastructure\Raijin.CombinatoricsService.Infrastructure.csproj"/>
+    </ItemGroup>
 </Project>

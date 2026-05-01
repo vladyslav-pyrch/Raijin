@@ -7,7 +7,6 @@ using Raijin.CombinatoricsService.Domain.Problems;
 
 namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
-
 public sealed class ListProblemsHandler(
     IProblemRepository problemRepository
 ) : IRequestHandler<ListProblemsQuery, ListProblemsResult>
@@ -18,10 +17,10 @@ public sealed class ListProblemsHandler(
     )
     {
         ListProblemsResult result = await problemRepository.ListProblems(request.Page, request.PageSize, cancellationToken);
-        
+
         if (result.TotalCount > 0 && request.Page > result.TotalPages)
             return new NotFoundError($"Page {request.Page} does not exist. Total pages: {result.TotalPages}.");
-        
+
         return result;
     }
 }

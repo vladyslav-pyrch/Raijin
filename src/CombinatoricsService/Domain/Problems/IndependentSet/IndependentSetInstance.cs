@@ -13,5 +13,8 @@ public sealed record IndependentSetInstance(Graph Graph, int Size)
     ///     Returns a new instance with the target set size changed.
     /// </summary>
     public IndependentSetInstance WithSize(int size) =>
-        this with { Size = size };
+        this with
+        {
+            Size = size
+        };
 }

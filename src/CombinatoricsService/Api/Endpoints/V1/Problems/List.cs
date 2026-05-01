@@ -28,7 +28,7 @@ public sealed class ListProblemsEndpoint : IEndpoint
 
         if (result.IsSuccess)
         {
-            var value = result.Value;
+            ListProblemsResult? value = result.Value;
             return TypedResults.Ok(new ListProblemsResponse(
                 value.Items.Select(p => new ProblemSummaryResponse(
                     p.Id,

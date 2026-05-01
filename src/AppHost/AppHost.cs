@@ -8,8 +8,7 @@ IResourceBuilder<PostgresServerResource> applicationDbServer = builder
     .AddPostgres("raijin-db-server")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("raijin-db-data")
-    .WithPgWeb()
-    .PublishAsContainer();
+    .WithPgWeb();
 
 IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = applicationDbServer
     .AddDatabase("combinatorics-service-db");
@@ -25,25 +24,24 @@ builder
     .WithEnvironment("MAX_REFIRE_COUNT", "3")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
-    .WaitForCompletion(combinatoricsServiceMigrationWorker)
-    .PublishAsDockerFile();
+    .WaitForCompletion(combinatoricsServiceMigrationWorker);
 
 IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
     .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-service-api")
+    .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
-    .WaitForCompletion(combinatoricsServiceMigrationWorker)
-    .PublishAsDockerFile();
+    .WaitForCompletion(combinatoricsServiceMigrationWorker);
 
 IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
-    .AddViteApp("spa-frontend", "../Spa")
-    .WithReference(combinatoricsServiceApi) 
+    .AddViteApp("spa-frontend", "../spa")
+    .WithReference(combinatoricsServiceApi)
     .WaitFor(combinatoricsServiceApi)
-    .WithEnvironment("VITE_COMBINATORICS_API_URL", combinatoricsServiceApi.GetEndpoint("https"))
-    .PublishAsDockerFile();
+    .WithEnvironment("VITE_COMBINATORICS_API_URL", combinatoricsServiceApi.GetEndpoint("https"));
 
-combinatoricsServiceApi.WithEnvironment("Cors__AllowedOrigins__0", spaFrontend.GetEndpoint("http"));
+combinatoricsServiceApi
+    .WithEnvironment("Cors__AllowedOrigins__0", spaFrontend.GetEndpoint("http"));
 
 builder
     .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
@@ -53,7 +51,6 @@ builder
         return Task.CompletedTask;
     })
     .WaitFor(combinatoricsServiceApi)
-    .WithLifetime(ContainerLifetime.Persistent)
-    .PublishAsContainer();
+    .WithLifetime(ContainerLifetime.Persistent);
 
 builder.Build().Run();

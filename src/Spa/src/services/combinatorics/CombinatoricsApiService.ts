@@ -35,179 +35,179 @@ import type {
 // ─── Error ───────────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
-  readonly status: number;
-  readonly details: ProblemDetails;
+    readonly status: number;
+    readonly details: ProblemDetails;
 
-  constructor(
-    status: number,
-    details: ProblemDetails,
-  ) {
-    super(details.detail ?? details.title ?? `HTTP ${status}`);
-    this.name = 'ApiError';
-    this.status = status;
-    this.details = details;
-  }
+    constructor(
+        status: number,
+        details: ProblemDetails,
+    ) {
+        super(details.detail ?? details.title ?? `HTTP ${status}`);
+        this.name = 'ApiError';
+        this.status = status;
+        this.details = details;
+    }
 }
 
 // ─── Service ─────────────────────────────────────────────────────────────────
 
 export class CombinatoricsApiService {
-  private readonly baseUrl: string;
+    private readonly baseUrl: string;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
-
-  // ── Core helper ────────────────────────────────────────────────────────────
-
-  private async request<T = void>(
-    method: string,
-    path: string,
-    body?: unknown,
-  ): Promise<T> {
-    const headers: Record<string, string> = {
-      Accept: 'application/json',
-    };
-
-    if (body !== undefined) {
-      headers['Content-Type'] = 'application/json';
+    constructor(baseUrl: string) {
+        this.baseUrl = baseUrl;
     }
 
-    const url = `${this.baseUrl.replace(/\/$/, '')}${path}`;
+    // ── Core helper ────────────────────────────────────────────────────────────
 
-    const init: RequestInit = { method: method, headers: headers };
-    if (body !== undefined) {
-      init.body = JSON.stringify(body);
+    getProblem(id: string): Promise<GetProblemResponse> {
+        return this.request<GetProblemResponse>('GET', `/problems/${id}`);
     }
 
-    const response = await fetch(url, init);
+    // ── Problems ───────────────────────────────────────────────────────────────
 
-    if (response.status === 204 || response.status === 201) {
-      const text = await response.text();
-      return (text ? (JSON.parse(text) as T) : undefined) as T;
+    listProblems(page = 1, pageSize = 20): Promise<ListProblemsResponse> {
+        return this.request<ListProblemsResponse>(
+            'GET',
+            `/problems?page=${page}&pageSize=${pageSize}`,
+        );
     }
 
-    if (!response.ok) {
-      let details: ProblemDetails;
-      try {
-        details = (await response.json()) as ProblemDetails;
-      } catch {
-        details = { status: response.status, title: response.statusText };
-      }
-      throw new ApiError(response.status, details);
+    getSatEncoding(id: string): Promise<GetSatEncodingResponse> {
+        return this.request<GetSatEncodingResponse>(
+            'GET',
+            `/problems/${id}/sat-encoding`,
+        );
     }
 
-    return response.json() as Promise<T>;
-  }
+    getSatEncodingVariableMap(id: string): Promise<GetSatEncodingVariableMapResponse> {
+        return this.request<GetSatEncodingVariableMapResponse>(
+            'GET',
+            `/problems/${id}/sat-encoding/variable-map`,
+        );
+    }
 
-  // ── Problems ───────────────────────────────────────────────────────────────
+    updateProblem(id: string, request: UpdateProblemRequest): Promise<void> {
+        return this.request<void>('PATCH', `/problems/${id}`, request);
+    }
 
-  getProblem(id: string): Promise<GetProblemResponse> {
-    return this.request<GetProblemResponse>('GET', `/problems/${id}`);
-  }
+    /** Trigger reduction + solve. solver passed as query param. */
+    solve(id: string, solver: string): Promise<void> {
+        return this.request<void>('POST', `/problems/${id}/solve?solver=${encodeURIComponent(solver)}`);
+    }
 
-  listProblems(page = 1, pageSize = 20): Promise<ListProblemsResponse> {
-    return this.request<ListProblemsResponse>(
-      'GET',
-      `/problems?page=${page}&pageSize=${pageSize}`,
-    );
-  }
+    createBooleanProblem(request: CreateBooleanProblemRequest): Promise<CreateBooleanProblemResponse> {
+        return this.request<CreateBooleanProblemResponse>('POST', '/problems/bool', request);
+    }
 
-  getSatEncoding(id: string): Promise<GetSatEncodingResponse> {
-    return this.request<GetSatEncodingResponse>(
-      'GET',
-      `/problems/${id}/sat-encoding`,
-    );
-  }
+    // ── Boolean ────────────────────────────────────────────────────────────────
 
-  getSatEncodingVariableMap(id: string): Promise<GetSatEncodingVariableMapResponse> {
-    return this.request<GetSatEncodingVariableMapResponse>(
-      'GET',
-      `/problems/${id}/sat-encoding/variable-map`,
-    );
-  }
+    async getBooleanInstance(id: string): Promise<BooleanProblemInstanceDto> {
+        const res = await this.request<GetBooleanInstanceResponse>('GET', `/problems/${id}/bool/instance`);
+        return res.instance;
+    }
 
-  updateProblem(id: string, request: UpdateProblemRequest): Promise<void> {
-    return this.request<void>('PATCH', `/problems/${id}`, request);
-  }
+    getBooleanSolution(id: string): Promise<GetBooleanSolutionResponse> {
+        return this.request<GetBooleanSolutionResponse>('GET', `/problems/${id}/bool/solution`);
+    }
 
-  /** Trigger reduction + solve. solver passed as query param. */
-  solve(id: string, solver: string): Promise<void> {
-    return this.request<void>('POST', `/problems/${id}/solve?solver=${encodeURIComponent(solver)}`);
-  }
+    createSatProblem(request: CreateSatProblemRequest): Promise<CreateSatProblemResponse> {
+        return this.request<CreateSatProblemResponse>('POST', '/problems/sat', request);
+    }
 
-  // ── Boolean ────────────────────────────────────────────────────────────────
+    // ── Boolean Satisfiability (SAT) ───────────────────────────────────────────
 
-  createBooleanProblem(request: CreateBooleanProblemRequest): Promise<CreateBooleanProblemResponse> {
-    return this.request<CreateBooleanProblemResponse>('POST', '/problems/bool', request);
-  }
+    async getSatInstance(id: string): Promise<SatInstanceDto> {
+        const res = await this.request<GetBooleanSatisfiabilityInstanceResponse>('GET', `/problems/${id}/sat/instance`);
+        return res.instance;
+    }
 
-  async getBooleanInstance(id: string): Promise<BooleanProblemInstanceDto> {
-    const res = await this.request<GetBooleanInstanceResponse>('GET', `/problems/${id}/bool/instance`);
-    return res.instance;
-  }
+    getSatSolution(id: string): Promise<GetBooleanSatisfiabilitySolutionResponse> {
+        return this.request<GetBooleanSatisfiabilitySolutionResponse>('GET', `/problems/${id}/sat/solution`);
+    }
 
-  getBooleanSolution(id: string): Promise<GetBooleanSolutionResponse> {
-    return this.request<GetBooleanSolutionResponse>('GET', `/problems/${id}/bool/solution`);
-  }
+    createCspProblem(request: CreateCspProblemRequest): Promise<CreateCspProblemResponse> {
+        return this.request<CreateCspProblemResponse>('POST', '/problems/csp', request);
+    }
 
-  // ── Boolean Satisfiability (SAT) ───────────────────────────────────────────
+    // ── CSP ────────────────────────────────────────────────────────────────────
 
-  createSatProblem(request: CreateSatProblemRequest): Promise<CreateSatProblemResponse> {
-    return this.request<CreateSatProblemResponse>('POST', '/problems/sat', request);
-  }
+    async getCspInstance(id: string): Promise<CspInstanceDto> {
+        const res = await this.request<GetCspInstanceResponse>('GET', `/problems/${id}/csp/instance`);
+        return res.instance;
+    }
 
-  async getSatInstance(id: string): Promise<SatInstanceDto> {
-    const res = await this.request<GetBooleanSatisfiabilityInstanceResponse>('GET', `/problems/${id}/sat/instance`);
-    return res.instance;
-  }
+    getCspSolution(id: string): Promise<GetCspSolutionResponse> {
+        return this.request<GetCspSolutionResponse>('GET', `/problems/${id}/csp/solution`);
+    }
 
-  getSatSolution(id: string): Promise<GetBooleanSatisfiabilitySolutionResponse> {
-    return this.request<GetBooleanSatisfiabilitySolutionResponse>('GET', `/problems/${id}/sat/solution`);
-  }
+    createVertexColoringProblem(request: CreateVertexColoringProblemRequest): Promise<CreateVertexColoringProblemResponse> {
+        return this.request<CreateVertexColoringProblemResponse>('POST', '/problems/vertex-coloring', request);
+    }
 
-  // ── CSP ────────────────────────────────────────────────────────────────────
+    // ── Vertex Coloring ────────────────────────────────────────────────────────
 
-  createCspProblem(request: CreateCspProblemRequest): Promise<CreateCspProblemResponse> {
-    return this.request<CreateCspProblemResponse>('POST', '/problems/csp', request);
-  }
+    async getVertexColoringInstance(id: string): Promise<VertexColoringInstanceDto> {
+        const res = await this.request<GetVertexColoringInstanceResponse>('GET', `/problems/${id}/vertex-coloring/instance`);
+        return res.instance;
+    }
 
-  async getCspInstance(id: string): Promise<CspInstanceDto> {
-    const res = await this.request<GetCspInstanceResponse>('GET', `/problems/${id}/csp/instance`);
-    return res.instance;
-  }
+    getVertexColoringSolution(id: string): Promise<GetVertexColoringSolutionResponse> {
+        return this.request<GetVertexColoringSolutionResponse>('GET', `/problems/${id}/vertex-coloring/solution`);
+    }
 
-  getCspSolution(id: string): Promise<GetCspSolutionResponse> {
-    return this.request<GetCspSolutionResponse>('GET', `/problems/${id}/csp/solution`);
-  }
+    createEdgeColoringProblem(request: CreateEdgeColoringProblemRequest): Promise<CreateEdgeColoringProblemResponse> {
+        return this.request<CreateEdgeColoringProblemResponse>('POST', '/problems/edge-coloring', request);
+    }
 
-  // ── Vertex Coloring ────────────────────────────────────────────────────────
+    // ── Edge Coloring ──────────────────────────────────────────────────────────
 
-  createVertexColoringProblem(request: CreateVertexColoringProblemRequest): Promise<CreateVertexColoringProblemResponse> {
-    return this.request<CreateVertexColoringProblemResponse>('POST', '/problems/vertex-coloring', request);
-  }
+    async getEdgeColoringInstance(id: string): Promise<EdgeColoringInstanceDto> {
+        const res = await this.request<GetEdgeColoringInstanceResponse>('GET', `/problems/${id}/edge-coloring/instance`);
+        return res.instance;
+    }
 
-  async getVertexColoringInstance(id: string): Promise<VertexColoringInstanceDto> {
-    const res = await this.request<GetVertexColoringInstanceResponse>('GET', `/problems/${id}/vertex-coloring/instance`);
-    return res.instance;
-  }
+    getEdgeColoringSolution(id: string): Promise<GetEdgeColoringSolutionResponse> {
+        return this.request<GetEdgeColoringSolutionResponse>('GET', `/problems/${id}/edge-coloring/solution`);
+    }
 
-  getVertexColoringSolution(id: string): Promise<GetVertexColoringSolutionResponse> {
-    return this.request<GetVertexColoringSolutionResponse>('GET', `/problems/${id}/vertex-coloring/solution`);
-  }
+    private async request<T = void>(
+        method: string,
+        path: string,
+        body?: unknown,
+    ): Promise<T> {
+        const headers: Record<string, string> = {
+            Accept: 'application/json',
+        };
 
-  // ── Edge Coloring ──────────────────────────────────────────────────────────
+        if (body !== undefined) {
+            headers['Content-Type'] = 'application/json';
+        }
 
-  createEdgeColoringProblem(request: CreateEdgeColoringProblemRequest): Promise<CreateEdgeColoringProblemResponse> {
-    return this.request<CreateEdgeColoringProblemResponse>('POST', '/problems/edge-coloring', request);
-  }
+        const url = `${this.baseUrl.replace(/\/$/, '')}${path}`;
 
-  async getEdgeColoringInstance(id: string): Promise<EdgeColoringInstanceDto> {
-    const res = await this.request<GetEdgeColoringInstanceResponse>('GET', `/problems/${id}/edge-coloring/instance`);
-    return res.instance;
-  }
+        const init: RequestInit = {method: method, headers: headers};
+        if (body !== undefined) {
+            init.body = JSON.stringify(body);
+        }
 
-  getEdgeColoringSolution(id: string): Promise<GetEdgeColoringSolutionResponse> {
-    return this.request<GetEdgeColoringSolutionResponse>('GET', `/problems/${id}/edge-coloring/solution`);
-  }
+        const response = await fetch(url, init);
+
+        if (response.status === 204 || response.status === 201) {
+            const text = await response.text();
+            return (text ? (JSON.parse(text) as T) : undefined) as T;
+        }
+
+        if (!response.ok) {
+            let details: ProblemDetails;
+            try {
+                details = (await response.json()) as ProblemDetails;
+            } catch {
+                details = {status: response.status, title: response.statusText};
+            }
+            throw new ApiError(response.status, details);
+        }
+
+        return response.json() as Promise<T>;
+    }
 }

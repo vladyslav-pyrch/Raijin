@@ -9,7 +9,7 @@ public class MigrationWorker(
     IServiceProvider serviceProvider,
     IHostApplicationLifetime hostApplicationLifetime,
     ILogger<MigrationWorker> logger
-    ) : BackgroundService
+) : BackgroundService
 {
     public const string ActivitySourceName = nameof(MigrationWorker);
     private static readonly ActivitySource ActivitySource = new(ActivitySourceName);

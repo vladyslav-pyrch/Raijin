@@ -12,9 +12,12 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
 {
     private JsonSerializerOptions JsonSerializerOptions => new(JsonSerializerDefaults.General)
     {
-        Converters = { boolExprJsonConverter }
+        Converters =
+        {
+            boolExprJsonConverter
+        }
     };
-    
+
     public async Task<Problem?> GetById(Guid id, CancellationToken cancellationToken)
     {
         ProblemModel? model = await dbContext.Problems
@@ -58,7 +61,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
 
     public async Task Update(Problem problem, CancellationToken cancellationToken)
     {
-        var existingModel = await dbContext.Problems
+        ProblemModel? existingModel = await dbContext.Problems
             .FirstOrDefaultAsync(p => p.Id == problem.Id, cancellationToken);
 
         if (existingModel is null)
@@ -85,7 +88,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
     public async Task<ListProblemsResult> ListProblems(int page, int pageSize, CancellationToken cancellationToken)
     {
         int totalCount = await dbContext.Problems.CountAsync(cancellationToken);
-        int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
         List<ProblemSummary> items = await dbContext.Problems
             .AsNoTracking()
@@ -106,21 +109,21 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
 
     public async Task<Problem?> GetOldestPendingWithLock(CancellationToken cancellationToken)
     {
-        var model = await dbContext.Problems
+        ProblemModel? model = await dbContext.Problems
             .FromSql(
                 $"""
-                SELECT * FROM "Problems"
-                WHERE "SolvingStatus" = 'Pending'
-                ORDER BY "UpdatedAt" ASC
-                LIMIT 1
-                FOR UPDATE SKIP LOCKED
-                """)
+                 SELECT * FROM "Problems"
+                 WHERE "SolvingStatus" = 'Pending'
+                 ORDER BY "UpdatedAt" ASC
+                 LIMIT 1
+                 FOR UPDATE SKIP LOCKED
+                 """)
             .AsTracking()
             .FirstOrDefaultAsync(cancellationToken);
 
         return model is null ? null : ToDomain(model);
     }
-    
+
 
     private ProblemModel ToModel(Problem problem) => new()
     {
@@ -155,7 +158,8 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         model.CreatedAt,
         model.UpdatedAt,
         model.Solver,
-        model.Instance.Deserialize<Instance>(JsonSerializerOptions) ?? throw new InvalidOperationException($"Failed to deserialize instance for problem {model.Id}."),
+        model.Instance.Deserialize<Instance>(JsonSerializerOptions) ??
+        throw new InvalidOperationException($"Failed to deserialize instance for problem {model.Id}."),
         model.Clauses.Count == 0 ? null : SatEncoding.Rehydrate(model.Clauses.Select(IEnumerable<int> (c) => c.Literals)),
         Enum.Parse<SolvingStatus>(model.SolvingStatus),
         Enum.Parse<Satisfiability>(model.Satisfiability),

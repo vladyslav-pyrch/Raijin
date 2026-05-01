@@ -3,48 +3,48 @@ import {api} from '../lib/api';
 import type {GetSatEncodingResponse} from '../services/combinatorics';
 
 interface UseSatEncodingResult {
-  encoding: GetSatEncodingResponse | null;
-  loading: boolean;
-  error: string | null;
-  refresh: () => void;
+    encoding: GetSatEncodingResponse | null;
+    loading: boolean;
+    error: string | null;
+    refresh: () => void;
 }
 
 export function useSatEncoding(id: string, enabled: boolean): UseSatEncodingResult {
-  const [encoding, setEncoding] = useState<GetSatEncodingResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [tick, setTick] = useState(0);
+    const [encoding, setEncoding] = useState<GetSatEncodingResponse | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [tick, setTick] = useState(0);
 
-  // Reset state when problem id changes — prevents cross-problem contamination
-  useEffect(() => {
-    setEncoding(null);
-    setError(null);
-  }, [id]);
+    // Reset state when problem id changes — prevents cross-problem contamination
+    useEffect(() => {
+        setEncoding(null);
+        setError(null);
+    }, [id]);
 
-  useEffect(() => {
-    if (!enabled) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    setEncoding(null);
-    api
-      .getSatEncoding(id)
-      .then((res) => {
-        if (!cancelled) setEncoding(res);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load SAT encoding');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id, enabled, tick]);
+    useEffect(() => {
+        if (!enabled) return;
+        let cancelled = false;
+        setLoading(true);
+        setError(null);
+        setEncoding(null);
+        api
+            .getSatEncoding(id)
+            .then((res) => {
+                if (!cancelled) setEncoding(res);
+            })
+            .catch((err: unknown) => {
+                if (!cancelled)
+                    setError(err instanceof Error ? err.message : 'Failed to load SAT encoding');
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [id, enabled, tick]);
 
-  const refresh = useCallback(() => setTick((t) => t + 1), []);
+    const refresh = useCallback(() => setTick((t) => t + 1), []);
 
-  return { encoding, loading, error, refresh };
+    return {encoding, loading, error, refresh};
 }

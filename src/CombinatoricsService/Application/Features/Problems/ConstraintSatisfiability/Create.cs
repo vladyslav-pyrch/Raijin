@@ -21,7 +21,7 @@ public sealed class CreateCspProblemHandler(
         CancellationToken cancellationToken)
     {
         List<string> variableNames = request.Instance.Variables.Select(v => v.Name).ToList();
-        
+
         List<ValidationError> duplicateErrors = variableNames
             .GroupBy(name => name, StringComparer.Ordinal)
             .Where(g => g.Count() > 1)
@@ -77,7 +77,7 @@ public sealed record CreateCspProblemCommand(
     CspInstanceDto Instance
 ) : IRequest<CreateCspProblemResult>;
 
-public sealed record CreateCspProblemResult(Guid ProblemId );
+public sealed record CreateCspProblemResult(Guid ProblemId);
 
 public sealed class CreateCspProblemValidator : AbstractValidator<CreateCspProblemCommand>
 {

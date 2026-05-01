@@ -34,13 +34,13 @@ public sealed class GetVertexColoringInstanceHandler(
         IReadOnlyList<EdgeDto> edges = instance.Graph.Edges
             .Select(e => new EdgeDto(e.Label, e.U.Id, e.V.Id))
             .ToList();
-        
+
         var graph = new GraphDto(vertices, edges);
         return new GetVertexColoringInstanceResult(new VertexColoringInstanceDto(graph, instance.ColourCount));
     }
 }
 
-public sealed record GetVertexColoringInstanceResult(VertexColoringInstanceDto Instance );
+public sealed record GetVertexColoringInstanceResult(VertexColoringInstanceDto Instance);
 
 public sealed class GetVertexColoringInstanceValidator : AbstractValidator<GetVertexColoringInstanceQuery>
 {

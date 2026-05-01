@@ -34,7 +34,7 @@ public sealed class GetEdgeColoringInstanceHandler(
         IReadOnlyList<EdgeDto> edges = instance.Graph.Edges
             .Select(e => new EdgeDto(e.Label, e.U.Id, e.V.Id))
             .ToList();
-        
+
         var graph = new GraphDto(vertices, edges);
 
         return new GetEdgeColoringInstanceResult(

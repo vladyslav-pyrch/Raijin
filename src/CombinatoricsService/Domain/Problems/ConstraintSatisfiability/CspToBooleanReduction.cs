@@ -17,19 +17,22 @@ internal static class CspToBooleanReduction
         foreach (DecisionVariable variable in csp.Variables)
         {
             BoolVar[] boolVars = variable.ToBoolVars();
-            
-            foreach (DecisionVariableStateAssignment stateAssignment in variable.States.Select(state => new DecisionVariableStateAssignment(variable.Name, state)))
+
+            foreach (DecisionVariableStateAssignment stateAssignment in variable.States.Select(state =>
+                         new DecisionVariableStateAssignment(variable.Name, state)))
                 symbolTable[stateAssignment] = stateAssignment.ToBoolVar();
-            
+
             decisionVariablesBoolVars.UnionWith(boolVars);
 
-            BoolExpr atLeastOneCondition = boolVars.Aggregate<BoolExpr>((acc, v) => acc.Or(v));
-            BoolExpr atMostOneCondition = boolVars.Length == 1 ? new ConstExpr(true) : boolVars.Select<BoolVar, BoolExpr>(boolVar => boolVar.Imply(
-                    boolVars.Where(bv => bv != boolVar).Aggregate<BoolExpr>((acc, bv) => acc.Or(bv)).Negated()
-                )
-            ).Aggregate((acc, v) => acc.And(v));
+            var atLeastOneCondition = boolVars.Aggregate<BoolExpr>((acc, v) => acc.Or(v));
+            BoolExpr atMostOneCondition = boolVars.Length == 1
+                ? new ConstExpr(true)
+                : boolVars.Select<BoolVar, BoolExpr>(boolVar => boolVar.Imply(
+                        boolVars.Where(bv => bv != boolVar).Aggregate<BoolExpr>((acc, bv) => acc.Or(bv)).Negated()
+                    )
+                ).Aggregate((acc, v) => acc.And(v));
             BoolExpr exactlyOneCondition = atLeastOneCondition.And(atMostOneCondition);
-            
+
             allClauses.Add(exactlyOneCondition);
         }
 

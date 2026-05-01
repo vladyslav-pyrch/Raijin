@@ -8,11 +8,7 @@ public sealed record Edge
     private static readonly Regex LabelRegex = new(
         VariableNamePatterns.VariableNameFull,
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
-        matchTimeout: TimeSpan.FromMilliseconds(100));
-
-    public string Label { get; }
-    public Vertex U { get; }
-    public Vertex V { get; }
+        TimeSpan.FromMilliseconds(100));
 
     public Edge(string label, Vertex u, Vertex v)
     {
@@ -25,4 +21,10 @@ public sealed record Edge
         U = u;
         V = v;
     }
+
+    public string Label { get; }
+
+    public Vertex U { get; }
+
+    public Vertex V { get; }
 }
