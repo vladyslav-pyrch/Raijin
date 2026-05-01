@@ -2,18 +2,18 @@ import {useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {api} from '../lib/api';
 import {INSTANCE_TYPES, type InstanceTypeValue} from '../lib/constants';
-import {circleLayout, GraphEditorForm} from '../components/forms/GraphEditorForm';
+import {GraphEditorForm, layoutFromVertexDtos} from '../components/forms/GraphEditorForm';
 import {BooleanInstanceForm} from '../components/forms/BooleanInstanceForm';
 import {SatInstanceForm} from '../components/forms/SatInstanceForm';
 import {CspInstanceForm} from '../components/forms/CspInstanceForm';
 import {ErrorStack, useErrorStack} from '../components/ErrorStack';
 import type {AnyInstanceData} from '../hooks/useInstance';
 import type {
-    BooleanProblemInstanceDto,
-    CspInstanceDto,
-    EdgeColoringInstanceDto,
-    SatInstanceDto,
-    VertexColoringInstanceDto,
+  BooleanProblemInstanceDto,
+  CspInstanceDto,
+  EdgeColoringInstanceDto,
+  SatInstanceDto,
+  VertexColoringInstanceDto,
 } from '../services/combinatorics';
 
 // ─── Fork prefill (passed via router state) ───────────────────────────────────
@@ -156,7 +156,7 @@ export function CreateProblemPage({ onProblemChanged }: CreateProblemPageProps) 
       case 'edge-coloring': {
         const d = prefill.instance as VertexColoringInstanceDto | EdgeColoringInstanceDto;
         return {
-          initialVertices: circleLayout(d.graph.vertices.map((v) => v.id)),
+          initialVertices: layoutFromVertexDtos(d.graph.vertices),
           initialEdges: d.graph.edges,
           initialColorCount: d.colorCount,
         };

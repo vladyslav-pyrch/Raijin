@@ -4,16 +4,16 @@ import {Button} from '../Button';
 import {BooleanInstanceForm} from './BooleanInstanceForm';
 import {SatInstanceForm} from './SatInstanceForm';
 import {CspInstanceForm} from './CspInstanceForm';
-import {circleLayout, GraphEditorForm} from './GraphEditorForm';
+import {GraphEditorForm, layoutFromVertexDtos} from './GraphEditorForm';
 import {INSTANCE_TYPES, type InstanceTypeValue} from '../../lib/constants';
 import {api} from '../../lib/api';
 import type {AnyInstanceData} from '../../hooks/useInstance';
 import type {
-    BooleanProblemInstanceDto,
-    CspInstanceDto,
-    EdgeColoringInstanceDto,
-    SatInstanceDto,
-    VertexColoringInstanceDto,
+  BooleanProblemInstanceDto,
+  CspInstanceDto,
+  EdgeColoringInstanceDto,
+  SatInstanceDto,
+  VertexColoringInstanceDto,
 } from '../../services/combinatorics';
 
 // ─── Version name helper ──────────────────────────────────────────────────────
@@ -155,7 +155,7 @@ export function SetInstanceModal({
       case 'edge-coloring': {
         const d = prefill.instance as VertexColoringInstanceDto | EdgeColoringInstanceDto;
         return {
-          initialVertices: circleLayout(d.graph.vertices.map((v) => v.id)),
+          initialVertices: layoutFromVertexDtos(d.graph.vertices),
           initialEdges: d.graph.edges,
           initialColorCount: d.colorCount,
         };

@@ -25,7 +25,6 @@ import type {
     GetSatEncodingVariableMapResponse,
     GetVertexColoringInstanceResponse,
     GetVertexColoringSolutionResponse,
-    HttpValidationProblemDetails,
     ListProblemsResponse,
     ProblemDetails,
     SatInstanceDto,
@@ -37,11 +36,11 @@ import type {
 
 export class ApiError extends Error {
   readonly status: number;
-  readonly details: ProblemDetails | HttpValidationProblemDetails;
+  readonly details: ProblemDetails;
 
   constructor(
     status: number,
-    details: ProblemDetails | HttpValidationProblemDetails,
+    details: ProblemDetails,
   ) {
     super(details.detail ?? details.title ?? `HTTP ${status}`);
     this.name = 'ApiError';

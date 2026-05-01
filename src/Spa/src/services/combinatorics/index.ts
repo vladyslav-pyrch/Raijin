@@ -37,7 +37,6 @@ export type {
   GetVertexColoringInstanceResponse,
   GetVertexColoringSolutionResponse,
   GraphDto,
-  HttpValidationProblemDetails,
   ListProblemsResponse,
   ProblemDetails,
   ProblemSummaryResponse,

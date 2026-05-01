@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using FluentResults;
 using FluentValidation;
 using Raijin.CombinatoricsService.Application.Messaging;
@@ -17,20 +18,21 @@ public sealed class CreateEdgeColoringProblemHandler(
         CreateEdgeColoringProblemCommand request,
         CancellationToken cancellationToken)
     {
+        List<Vertex> vertices = request.Instance.Graph.Vertices.Select(dto => new Vertex(dto.Id, dto.X, dto.Y)).ToList();
+        FrozenDictionary<string, Vertex> verticesLookup = vertices.ToFrozenDictionary(dto => dto.Id);
+        List<Edge> edges = request.Instance.Graph.Edges.Select(e => new Edge(
+                e.Label,
+                verticesLookup[e.U],
+                verticesLookup[e.V]
+            )
+        ).ToList();
+        
         var problem = Problem.Create(
             Guid.CreateVersion7(),
             request.ProblemDetails.Name,
             request.ProblemDetails.Description,
             new EdgeColoringInstance(
-                new Graph(
-                    request.Instance.Graph.Vertices.Select(dto => new Vertex(dto.Id)).ToList(),
-                    request.Instance.Graph.Edges.Select(e => new Edge(
-                            e.Label,
-                            new Vertex(e.U),
-                            new Vertex(e.V)
-                        )
-                    ).ToList()
-                ),
+                new Graph(vertices, edges),
                 request.Instance.ColorCount
             )
         );

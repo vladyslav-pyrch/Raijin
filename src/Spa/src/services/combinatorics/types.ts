@@ -19,9 +19,6 @@ export interface ProblemDetails {
   status?: number | null;
   detail?: string | null;
   instance?: string | null;
-}
-
-export interface HttpValidationProblemDetails extends ProblemDetails {
   errors?: Record<string, string[]>;
 }
 
@@ -81,6 +78,8 @@ export interface UpdateProblemRequest {
 
 export interface VertexDto {
   id: string;
+  x: number;
+  y: number;
 }
 
 export interface EdgeDto {

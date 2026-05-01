@@ -42,6 +42,19 @@ function uid() {
   return `_v${++_uidCounter}`;
 }
 
+/**
+ * Restore GraphVertex[] from VertexDto[] that already carry stored coordinates.
+ * Use this when prefilling the editor from a saved graph instance.
+ */
+export function layoutFromVertexDtos(dtos: VertexDto[]): GraphVertex[] {
+  return dtos.map((v) => ({
+    id: uid(),
+    name: v.id,
+    x: v.x,
+    y: v.y,
+  }));
+}
+
 /** Lay out vertices in a circle for pre-fill when no positions are known. */
 export function circleLayout(ids: string[]): GraphVertex[] {
   const cx = SVG_W / 2;
@@ -385,7 +398,7 @@ export function GraphEditorForm({
     setError(null);
     if (vertices.length === 0) { setError('Add at least one vertex'); return; }
     if (colorCount < 1) { setError('Color count must be at least 1'); return; }
-    const graphVertices: VertexDto[] = vertices.map((v) => ({ id: v.name }));
+    const graphVertices: VertexDto[] = vertices.map((v) => ({ id: v.name, x: Math.round(v.x), y: Math.round(v.y) }));
     const graphEdges: EdgeDto[] = edges;
     await onSubmit({ graph: { vertices: graphVertices, edges: graphEdges }, colorCount });
   };

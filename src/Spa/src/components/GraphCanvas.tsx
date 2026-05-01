@@ -14,6 +14,10 @@ const INIT_VB = { x: 0, y: 0, w: SVG_W, h: SVG_H };
 
 export interface CanvasVertex {
   id: string;
+  /** Stored SVG x coordinate. When present, used as the initial position instead of circle layout. */
+  x?: number;
+  /** Stored SVG y coordinate. When present, used as the initial position instead of circle layout. */
+  y?: number;
 }
 
 export interface CanvasEdge {
@@ -29,7 +33,7 @@ interface ViewBox {
   h: number;
 }
 
-// ─── Layout helper ────────────────────────────────────────────────────────────
+// ─── Layout helpers ───────────────────────────────────────────────────────────
 
 export function circleLayoutPositions(ids: string[]): Record<string, { x: number; y: number }> {
   const cx = SVG_W / 2;
@@ -42,6 +46,24 @@ export function circleLayoutPositions(ids: string[]): Record<string, { x: number
       x: cx + r * Math.cos((2 * Math.PI * i) / n - Math.PI / 2),
       y: cy + r * Math.sin((2 * Math.PI * i) / n - Math.PI / 2),
     };
+  });
+  return result;
+}
+
+/**
+ * Build initial position map for a vertex set.
+ * Uses stored x/y from each vertex when available; falls back to circle layout
+ * for any vertex that has no stored coordinates.
+ */
+function initPositions(vs: CanvasVertex[]): Record<string, { x: number; y: number }> {
+  const missing = vs.filter((v) => v.x === undefined || v.y === undefined);
+  const circle = missing.length > 0 ? circleLayoutPositions(missing.map((v) => v.id)) : {};
+  const result: Record<string, { x: number; y: number }> = {};
+  vs.forEach((v) => {
+    result[v.id] =
+      v.x !== undefined && v.y !== undefined
+        ? { x: v.x, y: v.y }
+        : (circle[v.id] ?? { x: SVG_W / 2, y: SVG_H / 2 });
   });
   return result;
 }
@@ -84,10 +106,10 @@ export function GraphCanvas({
   // Positions maintained internally; reset when vertex set changes
   const vertexKey = vertices.map((v) => v.id).join(',');
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>(() =>
-    circleLayoutPositions(vertices.map((v) => v.id)),
+    initPositions(vertices),
   );
   useEffect(() => {
-    setPositions(circleLayoutPositions(vertices.map((v) => v.id)));
+    setPositions(initPositions(vertices));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vertexKey]);
 

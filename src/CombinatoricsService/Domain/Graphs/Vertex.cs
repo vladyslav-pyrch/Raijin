@@ -11,8 +11,12 @@ public sealed record Vertex
         matchTimeout: TimeSpan.FromMilliseconds(100));
 
     public string Id { get; }
+    
+    public float X { get; init; }
+    
+    public float Y { get; init; }
 
-    public Vertex(string id)
+    public Vertex(string id, float x, float y)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
@@ -20,5 +24,7 @@ public sealed record Vertex
             throw new ArgumentException($"Vertex id '{id}' is not a valid variable name.", nameof(id));
 
         Id = id;
+        X = x;
+        Y = y;
     }
 }
