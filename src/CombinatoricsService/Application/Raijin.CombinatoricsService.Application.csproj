@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <Folder Include="Features\Problems\IndependetSet\" />
-    <Folder Include="Features\Problems\Scheduling\" />
   </ItemGroup>
 
 </Project>
