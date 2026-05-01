@@ -1,12 +1,19 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Raijin.CombinatoricsService.Api.Extensions;
 using Raijin.CombinatoricsService.Application;
 using Raijin.CombinatoricsService.Infrastructure;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.AddServiceDefaults();
+
+// Trust X-Forwarded-Proto from NGINX ingress so HTTPS redirect works behind the proxy
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Error handling
 builder.Services.AddProblemDetails();
@@ -53,6 +60,9 @@ app.UseExceptionHandler();
 // Logging
 app.UseHttpLogging();
 
+// Resolve forwarded headers before HTTPS redirect
+app.UseForwardedHeaders();
+
 // Edge security
 app.UseHsts();
 app.UseHttpsRedirection();
@@ -73,7 +83,6 @@ app.UseResponseCaching();
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 
-if (app.Environment.IsDevelopment())
-    app.MapOpenApi();
+app.MapOpenApi();
 
 app.Run();
