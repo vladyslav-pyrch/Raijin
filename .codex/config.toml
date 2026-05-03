@@ -1,0 +1,9 @@
+[mcp_servers.aspire]
+args = [
+    "agent",
+    "mcp",
+]
+command = "aspire"
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
