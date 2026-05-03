@@ -1,18 +1,22 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/CombinatoricsService/MigrationWorker/Raijin.CombinatoricsService.MigrationWorker.csproj", "src/CombinatoricsService/MigrationWorker/"]
-COPY ["src/ServiceDefaults/Raijin.ServiceDefaults.csproj", "src/ServiceDefaults/"]
-COPY ["src/CombinatoricsService/Infrastructure/Raijin.CombinatoricsService.Infrastructure.csproj", "src/CombinatoricsService/Infrastructure/"]
-COPY ["src/CombinatoricsService/Application/Raijin.CombinatoricsService.Application.csproj", "src/CombinatoricsService/Application/"]
-COPY ["src/CombinatoricsService/Domain/Raijin.CombinatoricsService.Domain.csproj", "src/CombinatoricsService/Domain/"]
-RUN dotnet restore "src/CombinatoricsService/MigrationWorker/Raijin.CombinatoricsService.MigrationWorker.csproj"
-COPY . .
-WORKDIR "/src/src/CombinatoricsService/MigrationWorker"
+COPY ["src/CombinatoricsService/MigrationWorker/Raijin.CombinatoricsService.MigrationWorker.csproj", "CombinatoricsService/MigrationWorker/"]
+COPY ["src/ServiceDefaults/Raijin.ServiceDefaults.csproj", "ServiceDefaults/"]
+COPY ["src/CombinatoricsService/Infrastructure/Raijin.CombinatoricsService.Infrastructure.csproj", "CombinatoricsService/Infrastructure/"]
+COPY ["src/CombinatoricsService/Application/Raijin.CombinatoricsService.Application.csproj", "CombinatoricsService/Application/"]
+COPY ["src/CombinatoricsService/Domain/Raijin.CombinatoricsService.Domain.csproj", "CombinatoricsService/Domain/"]
+RUN dotnet restore "CombinatoricsService/MigrationWorker/Raijin.CombinatoricsService.MigrationWorker.csproj"
+COPY ["src/CombinatoricsService/MigrationWorker/.", "CombinatoricsService/MigrationWorker/"]
+COPY ["src/ServiceDefaults/.", "ServiceDefaults/"]
+COPY ["src/CombinatoricsService/Infrastructure/.", "CombinatoricsService/Infrastructure/"]
+COPY ["src/CombinatoricsService/Application/.", "CombinatoricsService/Application/"]
+COPY ["src/CombinatoricsService/Domain/.", "CombinatoricsService/Domain/"]
+WORKDIR "/src/CombinatoricsService/MigrationWorker"
 RUN dotnet build "./Raijin.CombinatoricsService.MigrationWorker.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
