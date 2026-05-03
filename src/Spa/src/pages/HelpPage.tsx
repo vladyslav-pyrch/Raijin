@@ -133,7 +133,7 @@ export function HelpPage() {
                 <Section title="Problem Type: Boolean Satisfiability (SAT)">
                     <p className="mb-2 text-neutral-500 dark:text-neutral-400">
                         Input in <strong>DIMACS-like text format</strong>: one clause per line, literals
-                        separated by spaces. Negate a literal with <Code>~</Code> or <Code>!</Code> prefix.
+                        separated by spaces. Negate a literal with <Code>~</Code> prefix.
                     </p>
                     <p className="text-xs mb-1 text-neutral-500 dark:text-neutral-400">Example:</p>
                     <Pre>{'x1 ~x2 x3\n~x1 x4\nx2 ~x3'}</Pre>
