@@ -41,7 +41,8 @@ var satSolverContainerAppName = 'ca-${namePrefix}-sat'
 var migrationJobName = 'caj-${namePrefix}-migrate'
 
 var databaseConnectionSecretName = 'database-connection-string'
-var postgresHost = postgresContainerApp.properties.configuration.ingress.fqdn
+var postgresEndpoint = postgresContainerApp.properties.configuration.ingress.fqdn
+var postgresHost = first(split(replace(postgresEndpoint, 'tcp://', ''), ':'))
 var databaseConnectionString = 'Host=${postgresHost};Port=5432;Database=${databaseName};Username=${databaseUser};Password=${postgresAdminPassword}'
 var spaOrigin = 'https://${staticWebApp.properties.defaultHostname}'
 
