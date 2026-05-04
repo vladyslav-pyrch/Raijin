@@ -170,9 +170,34 @@ jobs:
           output_query="properties.outputs"
           acr_name="$(az deployment group show --resource-group "$RESOURCE_GROUP_NAME" --name "core-${GITHUB_RUN_ID}" --query "$output_query.acrName.value" -o tsv)"
           acr_login_server="$(az deployment group show --resource-group "$RESOURCE_GROUP_NAME" --name "core-${GITHUB_RUN_ID}" --query "$output_query.acrLoginServer.value" -o tsv)"
+          postgres_container_app_name="$(az deployment group show --resource-group "$RESOURCE_GROUP_NAME" --name "core-${GITHUB_RUN_ID}" --query "$output_query.postgresContainerAppName.value" -o tsv)"
 
           echo "ACR_NAME=$acr_name" >> "$GITHUB_ENV"
           echo "ACR_LOGIN_SERVER=$acr_login_server" >> "$GITHUB_ENV"
+          echo "POSTGRES_CONTAINER_APP_NAME=$postgres_container_app_name" >> "$GITHUB_ENV"
+
+      - name: Wait for Postgres container app
+        shell: bash
+        run: |
+          for attempt in {1..60}; do
+            running_status="$(az containerapp show \
+              --name "$POSTGRES_CONTAINER_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP_NAME" \
+              --query "properties.runningStatus" \
+              -o tsv)"
+
+            echo "Postgres container app status: $running_status"
+
+            if [ "$running_status" = "Running" ]; then
+              sleep 20
+              exit 0
+            fi
+
+            sleep 10
+          done
+
+          echo "Postgres container app did not reach Running before the timeout."
+          exit 1
 
       - name: Login to Azure Container Registry
         run: az acr login --name "$ACR_NAME"

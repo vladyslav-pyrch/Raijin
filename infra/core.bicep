@@ -42,9 +42,9 @@ var privateSubnetName = 'snet-${namePrefix}-private-aca'
 var publicContainerAppsEnvironmentName = 'cae-${namePrefix}-public'
 var privateContainerAppsEnvironmentName = 'cae-${namePrefix}-private'
 var staticWebAppName = 'stapp-${namePrefix}-${suffix}'
-var storageAccountName = take('raijinst${suffix}', 24)
+var storageAccountName = take('raijinnfs${suffix}', 24)
 var postgresFileShareName = 'postgres-data'
-var postgresEnvironmentStorageName = 'postgres-data'
+var postgresEnvironmentStorageName = 'postgres-data-nfs'
 var postgresContainerAppName = 'ca-${namePrefix}-postgres'
 
 var tags = {
@@ -98,6 +98,11 @@ resource privateSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = 
   name: privateSubnetName
   properties: {
     addressPrefix: privateContainerAppsSubnetPrefix
+    serviceEndpoints: [
+      {
+        service: 'Microsoft.Storage'
+      }
+    ]
     delegations: [
       {
         name: 'container-apps-delegation'
@@ -195,15 +200,25 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: storageAccountName
   location: location
   tags: tags
-  kind: 'StorageV2'
+  kind: 'FileStorage'
   sku: {
-    name: 'Standard_LRS'
+    name: 'Premium_LRS'
   }
   properties: {
     allowBlobPublicAccess: false
     minimumTlsVersion: 'TLS1_2'
     publicNetworkAccess: 'Enabled'
-    supportsHttpsTrafficOnly: true
+    supportsHttpsTrafficOnly: false
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Deny'
+      virtualNetworkRules: [
+        {
+          action: 'Allow'
+          id: privateSubnet.id
+        }
+      ]
+    }
   }
 }
 
@@ -216,8 +231,10 @@ resource postgresFileShare 'Microsoft.Storage/storageAccounts/fileServices/share
   parent: fileService
   name: postgresFileShareName
   properties: {
-    enabledProtocols: 'SMB'
-    shareQuota: 16
+    accessTier: 'Premium'
+    enabledProtocols: 'NFS'
+    rootSquash: 'NoRootSquash'
+    shareQuota: 100
   }
 }
 
@@ -225,11 +242,10 @@ resource postgresEnvironmentStorage 'Microsoft.App/managedEnvironments/storages@
   parent: privateContainerAppsEnvironment
   name: postgresEnvironmentStorageName
   properties: {
-    azureFile: {
+    nfsAzureFile: {
       accessMode: 'ReadWrite'
-      accountKey: storageAccount.listKeys().keys[0].value
-      accountName: storageAccount.name
-      shareName: postgresFileShare.name
+      server: '${storageAccount.name}.${environment().suffixes.storage}'
+      shareName: '/${storageAccount.name}/${postgresFileShare.name}'
     }
   }
 }
@@ -320,7 +336,7 @@ resource postgresContainerApp 'Microsoft.App/containerApps@2025-01-01' = {
         {
           name: 'postgres-data'
           storageName: postgresEnvironmentStorage.name
-          storageType: 'AzureFile'
+          storageType: 'NfsAzureFile'
         }
       ]
     }

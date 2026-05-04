@@ -11,7 +11,7 @@ This repo deploys Raijin with GitHub Actions, Bicep, Azure Container Apps, Azure
 - `spa` is deployed to Azure Static Web Apps using the default generated hostname.
 - No custom domains are configured.
 
-The database container uses an Azure Files share for `/var/lib/postgresql/data`. This keeps the cost profile low while avoiding a fully ephemeral database container. It is still not a substitute for a managed production database.
+The database container uses an Azure Files NFS share for `/var/lib/postgresql/data`. NFS is required because the official Postgres image needs Unix permission operations during `initdb`; an SMB Azure Files mount fails with `Operation not permitted`. This is still not a substitute for a managed production database.
 
 ## GitHub Configuration
 
