@@ -35,13 +35,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Normalize SPA path
-        shell: bash
-        run: |
-          if [ -d src/Spa ]; then
-            rsync -a src/Spa/ src/spa/
-          fi
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -260,7 +253,7 @@ jobs:
           exit 1
 
       - name: Install SPA dependencies
-        run: npm ci --prefix src/spa
+        run: npm install --prefix src/spa
 
       - name: Build SPA for deployed API
         env:
