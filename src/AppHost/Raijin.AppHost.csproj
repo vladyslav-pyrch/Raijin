@@ -6,21 +6,22 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <UserSecretsId>80092dc8-e4ac-48e0-b8fe-38548e98a5e9</UserSecretsId>
+        <NoWarn>$(NoWarn);ASPIREAZURE002</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.2.4"/>
-        <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.4"/>
-        <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.2.4"/>
-        <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.2.4"/>
-        <PackageReference Include="Aspire.Hosting.Redis" Version="13.2.4"/>
-        <PackageReference Include="Scalar.Aspire" Version="0.9.32"/>
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.2.4" />
+        <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.4" />
+        <PackageReference Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.2.4" />
+        <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.2.4" />
+        <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.2.4" />
+        <PackageReference Include="Scalar.Aspire" Version="0.9.32" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CombinatoricsService\Api\Raijin.CombinatoricsService.Api.csproj"/>
-        <ProjectReference Include="..\CombinatoricsService\MigrationWorker\Raijin.CombinatoricsService.MigrationWorker.csproj"/>
-        <ProjectReference Include="..\CombinatoricsService\SatSolver\Raijin.CombinatoricsService.SatSolver.csproj"/>
-        <ProjectReference Include="..\Spa\spa.esproj"/>
+        <ProjectReference Include="..\CombinatoricsService\Api\Raijin.CombinatoricsService.Api.csproj" />
+        <ProjectReference Include="..\CombinatoricsService\MigrationWorker\Raijin.CombinatoricsService.MigrationWorker.csproj" />
+        <ProjectReference Include="..\CombinatoricsService\SatSolver\Raijin.CombinatoricsService.SatSolver.csproj" />
+        <ProjectReference Include="..\Spa\spa.esproj" />
     </ItemGroup>
 </Project>

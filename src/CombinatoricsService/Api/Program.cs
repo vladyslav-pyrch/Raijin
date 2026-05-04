@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.HttpOverrides;
 using Raijin.CombinatoricsService.Api.Extensions;
 using Raijin.CombinatoricsService.Application;
 using Raijin.CombinatoricsService.Infrastructure;
@@ -6,14 +5,6 @@ using Raijin.CombinatoricsService.Infrastructure;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-
-// Trust X-Forwarded-Proto from NGINX ingress so HTTPS redirect works behind the proxy
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownIPNetworks.Clear();
-    options.KnownProxies.Clear();
-});
 
 // Error handling
 builder.Services.AddProblemDetails();

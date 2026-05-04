@@ -11,15 +11,15 @@ IResourceBuilder<PostgresServerResource> applicationDbServer = builder
     .WithPgWeb();
 
 IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = applicationDbServer
-    .AddDatabase("combinatorics-service-db");
+    .AddDatabase("combinatorics-db");
 
 IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
-    .AddProject<Raijin_CombinatoricsService_MigrationWorker>("combinatorics-service-migration-worker")
+    .AddProject<Raijin_CombinatoricsService_MigrationWorker>("combinatorics-migration-worker")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb);
 
 builder
-    .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-service-sat-solver")
+    .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-sat-solver")
     .WithEnvironment("MAX_JOBS_COUNT", "3")
     .WithEnvironment("MAX_REFIRE_COUNT", "3")
     .WithReference(combinatoricsServiceDb)
@@ -27,7 +27,7 @@ builder
     .WaitForCompletion(combinatoricsServiceMigrationWorker);
 
 IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
-    .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-service-api")
+    .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-api")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
     .WithReference(combinatoricsServiceDb)

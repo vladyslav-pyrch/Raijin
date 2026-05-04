@@ -85,6 +85,6 @@ public static class InfrastructureModule
     }
 
     private static string GetDatabaseConnectionString(IServiceProvider provider) =>
-        provider.GetRequiredService<IConfiguration>().GetConnectionString("combinatorics-service-db")
+        provider.GetRequiredService<IConfiguration>().GetConnectionString("combinatorics-db")
         ?? throw new InvalidOperationException("Database connection string is not configured.");
 }
