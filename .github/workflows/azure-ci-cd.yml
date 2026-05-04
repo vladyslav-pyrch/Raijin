@@ -111,7 +111,7 @@ jobs:
         run: |
           environment_name="${{ inputs.environment_name }}"
           location="${{ inputs.location }}"
-          resource_group="${{ vars.AZURE_RESOURCE_GROUP_NAME }}"
+          resource_group="${{ vars.AZURE_RESOURCE_GROUP_NAME || secrets.AZURE_RESOURCE_GROUP_NAME }}"
 
           if [ -z "$environment_name" ]; then
             environment_name="prod"
