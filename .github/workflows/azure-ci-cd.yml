@@ -55,7 +55,7 @@ jobs:
           cache-dependency-path: src/spa/package-lock.json
 
       - name: Install SPA dependencies
-        run: npm ci --prefix src/spa
+        run: npm install --prefix src/spa
 
       - name: Restore backend
         run: dotnet restore Raijin.slnx
