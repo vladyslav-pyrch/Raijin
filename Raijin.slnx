@@ -2,7 +2,7 @@
     <Folder Name="/src/">
         <Project Path="src/AppHost/Raijin.AppHost.csproj"/>
         <Project Path="src/ServiceDefaults/Raijin.ServiceDefaults.csproj"/>
-        <Project Path="src/Spa/spa.esproj">
+        <Project Path="src/spa/spa.esproj">
             <Build/>
             <Deploy/>
         </Project>
