@@ -22,6 +22,6 @@
         <ProjectReference Include="..\CombinatoricsService\Api\Raijin.CombinatoricsService.Api.csproj" />
         <ProjectReference Include="..\CombinatoricsService\MigrationWorker\Raijin.CombinatoricsService.MigrationWorker.csproj" />
         <ProjectReference Include="..\CombinatoricsService\SatSolver\Raijin.CombinatoricsService.SatSolver.csproj" />
-        <ProjectReference Include="..\Spa\spa.esproj" />
+        <ProjectReference Include="..\spa\spa.esproj" />
     </ItemGroup>
 </Project>

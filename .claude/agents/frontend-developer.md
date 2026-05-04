@@ -4,7 +4,7 @@ React 19 + TypeScript + Vite 8 + Tailwind CSS v4 specialist for the Raijin SPA.
 
 ## Project location
 
-`src/Spa/` — Vite project. Entry: `src/main.tsx`. Build: `npm run build`.
+`src/spa/` — Vite project. Entry: `src/main.tsx`. Build: `npm run build`.
 
 ---
 
