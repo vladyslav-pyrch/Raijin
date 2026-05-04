@@ -22,6 +22,10 @@ permissions:
   contents: read
   id-token: write
 
+concurrency:
+  group: azure-${{ github.event.inputs.environment_name || 'prod' }}
+  cancel-in-progress: false
+
 env:
   NODE_VERSION: 24.x
   POSTGRES_IMAGE: postgres:17.6
@@ -154,15 +158,25 @@ jobs:
       - name: Deploy core infrastructure
         shell: bash
         run: |
-          az deployment group create \
-            --name "core-${GITHUB_RUN_ID}" \
-            --resource-group "$RESOURCE_GROUP_NAME" \
-            --template-file infra/core.bicep \
-            --parameters \
-              environmentName="$ENVIRONMENT_NAME" \
-              location="$AZURE_LOCATION" \
-              postgresAdminPassword="$POSTGRES_PASSWORD" \
-              postgresImage="$POSTGRES_IMAGE"
+          for attempt in {1..12}; do
+            if az deployment group create \
+              --name "core-${GITHUB_RUN_ID}" \
+              --resource-group "$RESOURCE_GROUP_NAME" \
+              --template-file infra/core.bicep \
+              --parameters \
+                environmentName="$ENVIRONMENT_NAME" \
+                location="$AZURE_LOCATION" \
+                postgresAdminPassword="$POSTGRES_PASSWORD" \
+                postgresImage="$POSTGRES_IMAGE"; then
+              exit 0
+            fi
+
+            echo "Core deployment attempt $attempt failed. Azure may still be finishing a previous network operation; waiting before retry."
+            sleep 30
+          done
+
+          echo "Core infrastructure deployment failed after retries."
+          exit 1
 
       - name: Read core outputs
         shell: bash
@@ -224,17 +238,27 @@ jobs:
       - name: Deploy application resources
         shell: bash
         run: |
-          az deployment group create \
-            --name "apps-${GITHUB_RUN_ID}" \
-            --resource-group "$RESOURCE_GROUP_NAME" \
-            --template-file infra/apps.bicep \
-            --parameters \
-              environmentName="$ENVIRONMENT_NAME" \
-              location="$AZURE_LOCATION" \
-              apiImage="$API_IMAGE" \
-              migrationWorkerImage="$MIGRATION_IMAGE" \
-              satSolverImage="$SAT_SOLVER_IMAGE" \
-              postgresAdminPassword="$POSTGRES_PASSWORD"
+          for attempt in {1..6}; do
+            if az deployment group create \
+              --name "apps-${GITHUB_RUN_ID}" \
+              --resource-group "$RESOURCE_GROUP_NAME" \
+              --template-file infra/apps.bicep \
+              --parameters \
+                environmentName="$ENVIRONMENT_NAME" \
+                location="$AZURE_LOCATION" \
+                apiImage="$API_IMAGE" \
+                migrationWorkerImage="$MIGRATION_IMAGE" \
+                satSolverImage="$SAT_SOLVER_IMAGE" \
+                postgresAdminPassword="$POSTGRES_PASSWORD"; then
+              exit 0
+            fi
+
+            echo "Application deployment attempt $attempt failed. Waiting before retry."
+            sleep 30
+          done
+
+          echo "Application resource deployment failed after retries."
+          exit 1
 
       - name: Read application outputs
         shell: bash
