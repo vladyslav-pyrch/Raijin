@@ -12,12 +12,12 @@ public sealed class BoolExprJsonConverter(IBoolExprParser parser)
     public override BoolExpr Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         string? exprString = reader.GetString();
-        
+
         if (exprString == null)
             throw new JsonException("Expression string is null.");
 
         Result<BoolExpr> boolExprResult = parser.Parse(exprString);
-        
+
         if (boolExprResult.IsFailed)
             throw new JsonException(string.Join("; ", boolExprResult.Errors.Select(e => e.Message)));
 

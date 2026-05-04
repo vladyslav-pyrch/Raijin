@@ -8,14 +8,12 @@ public sealed record SatVariable
     private static readonly Regex NameOnlyRegex = new(
         VariableNamePatterns.VariableNameFull,
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
-        matchTimeout: TimeSpan.FromMilliseconds(100));
+        TimeSpan.FromMilliseconds(100));
 
     public static readonly Regex LiteralRegex = new(
         VariableNamePatterns.LiteralFull,
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
-        matchTimeout: TimeSpan.FromMilliseconds(100));
-
-    public string Name { get; }
+        TimeSpan.FromMilliseconds(100));
 
     public SatVariable(string name)
     {
@@ -26,6 +24,8 @@ public sealed record SatVariable
 
         Name = name;
     }
+
+    public string Name { get; }
 
     public static bool IsValidLiteralString(string literal) => LiteralRegex.IsMatch(literal);
 }

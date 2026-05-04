@@ -36,7 +36,7 @@ internal sealed class CryptominisatSolver(
 
         try
         {
-            var arguments = new CryptominisatArgumentsBuilder().WithVerbosity(0);
+            CryptominisatArgumentsBuilder arguments = new CryptominisatArgumentsBuilder().WithVerbosity(0);
 
             if (_options.TimeoutSeconds.HasValue)
                 arguments = arguments.WithMaxTime(_options.TimeoutSeconds.Value);
@@ -70,7 +70,7 @@ internal sealed class CryptominisatSolver(
         SatEncoding satEncoding,
         CancellationToken cancellationToken)
     {
-        string fileName = $"problem_{Path.GetFileNameWithoutExtension(Path.GetRandomFileName())}.cnf";
+        var fileName = $"problem_{Path.GetFileNameWithoutExtension(Path.GetRandomFileName())}.cnf";
         string filePath = Path.Combine(_options.CnfDirectory ?? "./problems", fileName);
 
         try

@@ -5,6 +5,16 @@
 
 # dotenv files
 .env
+.env.local
+.env.*.local
+
+# Ignore all .env.* variations
+.env.*
+
+# BUT allow example/template files
+!.env.example
+!.env.example.*
+!.env.example.local
 
 # User-specific files
 *.rsuser
@@ -482,3 +492,4 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+.azure

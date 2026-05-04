@@ -35,8 +35,13 @@ internal static class TseitinTransform
             _ => throw new InvalidOperationException($"Unsupported BoolExpr node type: {node.GetType().Name}")
         };
 
-    private static Literal Pos(SatVariable v) => new(v, Negated: false);
-    private static Literal Neg(Literal lit) => lit with { Negated = !lit.Negated };
+    private static Literal Pos(SatVariable v) => new(v, false);
+
+    private static Literal Neg(Literal lit) => lit with
+    {
+        Negated = !lit.Negated
+    };
+
     private static string NewPrefix() => Path.GetRandomFileName().Replace(".", ""); // random prefix for auxiliary variable naming
 
     private static Literal TransformVariable(BoolVar variable, Dictionary<BoolVar, SatVariable> symbolTable)

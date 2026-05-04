@@ -45,7 +45,7 @@ internal sealed class CadicalSolver(
 
         try
         {
-            var arguments = new CadicalArgumentsBuilder()
+            CadicalArgumentsBuilder arguments = new CadicalArgumentsBuilder()
                 .WithNoColors()
                 .WithQuiet();
 
@@ -91,7 +91,7 @@ internal sealed class CadicalSolver(
         SatEncoding satEncoding,
         CancellationToken cancellationToken)
     {
-        string fileName = $"problem_{Path.GetFileNameWithoutExtension(Path.GetRandomFileName())}.cnf";
+        var fileName = $"problem_{Path.GetFileNameWithoutExtension(Path.GetRandomFileName())}.cnf";
         string filePath = Path.Combine(_options.CnfDirectory ?? "./problems", fileName);
 
         try

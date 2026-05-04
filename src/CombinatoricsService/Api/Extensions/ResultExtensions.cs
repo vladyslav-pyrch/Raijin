@@ -7,14 +7,14 @@ public static class ResultExtensions
 {
     public static IResult ToProblemResult(this ResultBase result)
     {
-        var errorsWithStatus = result.Errors
+        List<(IError error, int status)> errorsWithStatus = result.Errors
             .Select(e => (error: e, status: GetHttpStatus(e)))
             .ToList();
 
-        var (primaryError, statusCode) = errorsWithStatus.MaxBy(x => x.status);
+        (IError primaryError, int statusCode) = errorsWithStatus.MaxBy(x => x.status);
 
         return Results.Problem(
-            detail: primaryError.Message,
+            primaryError.Message,
             statusCode: statusCode,
             title: GetTitle(statusCode),
             type: GetType(statusCode),

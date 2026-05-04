@@ -83,7 +83,10 @@ internal sealed class CryptominisatCli(
             CreateNoWindow = true
         };
 
-        return new Process { StartInfo = processStartInfo };
+        return new Process
+        {
+            StartInfo = processStartInfo
+        };
     }
 
     private static string BuildArguments(string cnfFilePath, CryptominisatArgumentsBuilder arguments)

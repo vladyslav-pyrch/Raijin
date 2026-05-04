@@ -6,4 +6,3 @@ public record VertexColoringToCspReductionResult(
     CspInstance CspInstance,
     IReadOnlyDictionary<VertexColorAssignment, DecisionVariableStateAssignment> SymbolTable
 );
-

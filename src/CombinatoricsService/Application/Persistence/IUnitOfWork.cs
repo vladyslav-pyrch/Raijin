@@ -1,8 +1,8 @@
 namespace Raijin.CombinatoricsService.Application.Persistence;
 
 /// <summary>
-/// Write-only unit of work. Call <see cref="Commit"/> after all repository
-/// mutations to flush pending changes to the store.
+///     Write-only unit of work. Call <see cref="Commit" /> after all repository
+///     mutations to flush pending changes to the store.
 /// </summary>
 public interface IUnitOfWork
 {

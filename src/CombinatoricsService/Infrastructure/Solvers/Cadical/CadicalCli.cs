@@ -82,7 +82,10 @@ internal sealed class CadicalCli(
             CreateNoWindow = true
         };
 
-        return new Process { StartInfo = processStartInfo };
+        return new Process
+        {
+            StartInfo = processStartInfo
+        };
     }
 
     private static string BuildArguments(string cnfFilePath, CadicalArgumentsBuilder arguments)

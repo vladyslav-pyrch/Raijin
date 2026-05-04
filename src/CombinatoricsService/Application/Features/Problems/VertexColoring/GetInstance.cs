@@ -29,18 +29,18 @@ public sealed class GetVertexColoringInstanceHandler(
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a vertex coloring instance.");
 
         IReadOnlyList<VertexDto> vertices = instance.Graph.Vertices
-            .Select(v => new VertexDto(v.Id))
+            .Select(v => new VertexDto(v.Id, v.X, v.Y))
             .ToList();
         IReadOnlyList<EdgeDto> edges = instance.Graph.Edges
             .Select(e => new EdgeDto(e.Label, e.U.Id, e.V.Id))
             .ToList();
-        
+
         var graph = new GraphDto(vertices, edges);
         return new GetVertexColoringInstanceResult(new VertexColoringInstanceDto(graph, instance.ColourCount));
     }
 }
 
-public sealed record GetVertexColoringInstanceResult(VertexColoringInstanceDto Instance );
+public sealed record GetVertexColoringInstanceResult(VertexColoringInstanceDto Instance);
 
 public sealed class GetVertexColoringInstanceValidator : AbstractValidator<GetVertexColoringInstanceQuery>
 {

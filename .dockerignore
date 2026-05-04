@@ -1,6 +1,12 @@
-﻿**/.dockerignore
+﻿**/.agents
+**/.aspire
+**/.claude
+**/.codex
+**/.dockerignore
+**/.secrets
 **/.env
 **/.git
+**/.github
 **/.gitignore
 **/.project
 **/.settings

@@ -5,18 +5,18 @@ namespace Raijin.CombinatoricsService.Infrastructure.Solvers.Cadical;
 internal enum CadicalPreset { Default, Plain, Sat, Unsat }
 
 /// <summary>
-/// Fluent builder for CaDiCaL CLI arguments.
-/// Only options that are explicitly set are emitted; the executable uses its own defaults for the rest.
+///     Fluent builder for CaDiCaL CLI arguments.
+///     Only options that are explicitly set are emitted; the executable uses its own defaults for the rest.
 /// </summary>
 internal sealed class CadicalArgumentsBuilder
 {
-    private bool _noWitness;
-    private bool _quiet;
-    private int? _verbose;
     private long? _conflictLimit;
     private long? _decisionLimit;
     private bool _noColors;
+    private bool _noWitness;
     private CadicalPreset? _preset;
+    private bool _quiet;
+    private int? _verbose;
 
     public CadicalArgumentsBuilder WithNoWitness()
     {

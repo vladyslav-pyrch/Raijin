@@ -49,7 +49,7 @@ public sealed class SolvePendingProblemsJob(
         {
             await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
 
-            IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
             Result result = await mediator.Send(new SolveNextPendingProblemCommand(), cancellationToken);
 

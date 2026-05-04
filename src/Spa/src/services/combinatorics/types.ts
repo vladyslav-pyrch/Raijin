@@ -5,276 +5,275 @@
  * 0 = Unknown, 1 = Satisfiable, 2 = Unsatisfiable
  */
 export const Satisfiability = {
-  Unknown: 0,
-  Satisfiable: 1,
-  Unsatisfiable: 2,
+    Unknown: 0,
+    Satisfiable: 1,
+    Unsatisfiable: 2,
 } as const;
 export type Satisfiability = (typeof Satisfiability)[keyof typeof Satisfiability];
 
 // ─── Error types ─────────────────────────────────────────────────────────────
 
 export interface ProblemDetails {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-}
-
-export interface HttpValidationProblemDetails extends ProblemDetails {
-  errors?: Record<string, string[]>;
+    type?: string | null;
+    title?: string | null;
+    status?: number | null;
+    detail?: string | null;
+    instance?: string | null;
+    errors?: Record<string, string[]>;
 }
 
 // ─── Problem ─────────────────────────────────────────────────────────────────
 
 export interface GetProblemResponse {
-  id: string;
-  name: string;
-  description: string;
-  solver: string | null;
-  instanceType: string | null;
-  solvingStatus: string;
-  satisfiability: string;
-  createdAt: string;
-  updatedAt: string;
-  completedAt: string | null;
+    id: string;
+    name: string;
+    description: string;
+    solver: string | null;
+    instanceType: string | null;
+    solvingStatus: string;
+    satisfiability: string;
+    createdAt: string;
+    updatedAt: string;
+    completedAt: string | null;
 }
 
 export interface ProblemSummaryResponse {
-  id: string;
-  name: string;
-  instanceType: string | null;
-  solvingStatus: string;
-  satisfiability: string;
-  createdAt: string;
+    id: string;
+    name: string;
+    instanceType: string | null;
+    solvingStatus: string;
+    satisfiability: string;
+    createdAt: string;
 }
 
 export interface ListProblemsResponse {
-  items: ProblemSummaryResponse[];
-  page: number;
-  pageSize: number;
-  totalPages: number;
-  totalCount: number;
+    items: ProblemSummaryResponse[];
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalCount: number;
 }
 
 export interface GetSatEncodingResponse {
-  numberOfVariables: number;
-  numberOfClauses: number;
-  clauses: number[][];
+    numberOfVariables: number;
+    numberOfClauses: number;
+    clauses: number[][];
 }
 
 export interface VariableMapEntryResponse {
-  name: string;
-  index: number;
+    name: string;
+    index: number;
 }
 
 export interface GetSatEncodingVariableMapResponse {
-  variables: VariableMapEntryResponse[];
+    variables: VariableMapEntryResponse[];
 }
 
 export interface UpdateProblemRequest {
-  name?: string | null;
-  description?: string | null;
+    name?: string | null;
+    description?: string | null;
 }
 
 // ─── Graph primitives ─────────────────────────────────────────────────────────
 
 export interface VertexDto {
-  id: string;
+    id: string;
+    x: number;
+    y: number;
 }
 
 export interface EdgeDto {
-  label: string;
-  u: string;
-  v: string;
+    label: string;
+    u: string;
+    v: string;
 }
 
 export interface GraphDto {
-  vertices: VertexDto[];
-  edges: EdgeDto[];
+    vertices: VertexDto[];
+    edges: EdgeDto[];
 }
 
 // ─── Vertex Coloring ─────────────────────────────────────────────────────────
 
 export interface VertexColoringInstanceDto {
-  graph: GraphDto;
-  colorCount: number;
+    graph: GraphDto;
+    colorCount: number;
 }
 
 export interface VertexColorAssignmentDto {
-  vertexId: string;
-  color: number;
+    vertexId: string;
+    color: number;
 }
 
 export interface VertexColoringSolutionDto {
-  colorAssignments: VertexColorAssignmentDto[];
+    colorAssignments: VertexColorAssignmentDto[];
 }
 
 export interface GetVertexColoringSolutionResponse {
-  solution: VertexColoringSolutionDto | null;
-  satisfiability: Satisfiability;
+    solution: VertexColoringSolutionDto | null;
+    satisfiability: Satisfiability;
 }
 
 export interface GetVertexColoringInstanceResponse {
-  instance: VertexColoringInstanceDto;
+    instance: VertexColoringInstanceDto;
 }
 
 export interface CreateVertexColoringProblemRequest {
-  name?: string;
-  description?: string | null;
-  instance?: VertexColoringInstanceDto;
+    name?: string;
+    description?: string | null;
+    instance?: VertexColoringInstanceDto;
 }
 
 export interface CreateVertexColoringProblemResponse {
-  problemId: string;
+    problemId: string;
 }
 
 // ─── Edge Coloring ───────────────────────────────────────────────────────────
 
 export interface EdgeColoringInstanceDto {
-  graph: GraphDto;
-  colorCount: number;
+    graph: GraphDto;
+    colorCount: number;
 }
 
 export interface EdgeColorAssignmentDto {
-  edgeLabel: string;
-  color: number;
+    edgeLabel: string;
+    color: number;
 }
 
 export interface EdgeColoringSolutionDto {
-  colorAssignments: EdgeColorAssignmentDto[];
+    colorAssignments: EdgeColorAssignmentDto[];
 }
 
 export interface GetEdgeColoringSolutionResponse {
-  solution: EdgeColoringSolutionDto | null;
-  satisfiability: Satisfiability;
+    solution: EdgeColoringSolutionDto | null;
+    satisfiability: Satisfiability;
 }
 
 export interface GetEdgeColoringInstanceResponse {
-  instance: EdgeColoringInstanceDto;
+    instance: EdgeColoringInstanceDto;
 }
 
 export interface CreateEdgeColoringProblemRequest {
-  name?: string;
-  description?: string | null;
-  instance?: EdgeColoringInstanceDto;
+    name?: string;
+    description?: string | null;
+    instance?: EdgeColoringInstanceDto;
 }
 
 export interface CreateEdgeColoringProblemResponse {
-  problemId: string;
+    problemId: string;
 }
 
 // ─── CSP ─────────────────────────────────────────────────────────────────────
 
 export interface DecisionVariableDto {
-  name: string;
-  states: string[];
+    name: string;
+    states: string[];
 }
 
 export interface CspInstanceDto {
-  variables: DecisionVariableDto[];
-  constraints: string[];
+    variables: DecisionVariableDto[];
+    constraints: string[];
 }
 
 export interface DecisionVariableStateAssignmentDto {
-  name: string;
-  assignedState: string;
+    name: string;
+    assignedState: string;
 }
 
 export interface CspBooleanVariableAssignmentDto {
-  variableName: string;
-  value: boolean;
+    variableName: string;
+    value: boolean;
 }
 
 export interface CspSolutionDto {
-  configuration: DecisionVariableStateAssignmentDto[];
-  auxiliaryAssignments: CspBooleanVariableAssignmentDto[];
+    configuration: DecisionVariableStateAssignmentDto[];
+    auxiliaryAssignments: CspBooleanVariableAssignmentDto[];
 }
 
 export interface GetCspSolutionResponse {
-  solution: CspSolutionDto | null;
-  satisfiability: Satisfiability;
+    solution: CspSolutionDto | null;
+    satisfiability: Satisfiability;
 }
 
 export interface GetCspInstanceResponse {
-  instance: CspInstanceDto;
+    instance: CspInstanceDto;
 }
 
 export interface CreateCspProblemRequest {
-  name?: string;
-  description?: string | null;
-  instance?: CspInstanceDto;
+    name?: string;
+    description?: string | null;
+    instance?: CspInstanceDto;
 }
 
 export interface CreateCspProblemResponse {
-  problemId: string;
+    problemId: string;
 }
 
 // ─── Boolean ─────────────────────────────────────────────────────────────────
 
 export interface BooleanProblemInstanceDto {
-  formula: string;
+    formula: string;
 }
 
 export interface BooleanVariableAssignmentDto {
-  variableName: string;
-  value: boolean;
+    variableName: string;
+    value: boolean;
 }
 
 export interface BooleanSolutionDto {
-  assignments: BooleanVariableAssignmentDto[];
+    assignments: BooleanVariableAssignmentDto[];
 }
 
 export interface GetBooleanSolutionResponse {
-  solution: BooleanSolutionDto | null;
-  satisfiability: Satisfiability;
+    solution: BooleanSolutionDto | null;
+    satisfiability: Satisfiability;
 }
 
 export interface GetBooleanInstanceResponse {
-  instance: BooleanProblemInstanceDto;
+    instance: BooleanProblemInstanceDto;
 }
 
 export interface CreateBooleanProblemRequest {
-  name?: string;
-  description?: string | null;
-  instance?: BooleanProblemInstanceDto;
+    name?: string;
+    description?: string | null;
+    instance?: BooleanProblemInstanceDto;
 }
 
 export interface CreateBooleanProblemResponse {
-  problemId: string;
+    problemId: string;
 }
 
 // ─── Boolean Satisfiability (SAT) ────────────────────────────────────────────
 
 /** Each inner array is a clause; each string is a literal name, e.g. "x1" or "~y2" (negated). */
 export interface SatInstanceDto {
-  clauses: string[][];
+    clauses: string[][];
 }
 
 export interface SatVariableAssignmentDto {
-  variableName: string;
-  value: boolean;
+    variableName: string;
+    value: boolean;
 }
 
 export interface BooleanSatisfiabilitySolutionDto {
-  assignments: SatVariableAssignmentDto[];
+    assignments: SatVariableAssignmentDto[];
 }
 
 export interface GetBooleanSatisfiabilitySolutionResponse {
-  solution: BooleanSatisfiabilitySolutionDto | null;
-  satisfiability: Satisfiability;
+    solution: BooleanSatisfiabilitySolutionDto | null;
+    satisfiability: Satisfiability;
 }
 
 export interface GetBooleanSatisfiabilityInstanceResponse {
-  instance: SatInstanceDto;
+    instance: SatInstanceDto;
 }
 
 export interface CreateSatProblemRequest {
-  name?: string;
-  description?: string | null;
-  instance?: SatInstanceDto;
+    name?: string;
+    description?: string | null;
+    instance?: SatInstanceDto;
 }
 
 export interface CreateSatProblemResponse {
-  problemId: string;
+    problemId: string;
 }

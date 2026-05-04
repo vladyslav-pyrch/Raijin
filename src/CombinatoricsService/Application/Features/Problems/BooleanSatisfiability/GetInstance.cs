@@ -38,7 +38,7 @@ public sealed class GetBooleanSatisfiabilityInstanceHandler(
 public sealed record GetBooleanSatisfiabilityInstanceQuery(Guid ProblemId)
     : IRequest<GetBooleanSatisfiabilityInstanceResult>;
 
-public sealed record GetBooleanSatisfiabilityInstanceResult(SatInstanceDto Instance );
+public sealed record GetBooleanSatisfiabilityInstanceResult(SatInstanceDto Instance);
 
 public sealed class GetBooleanSatisfiabilityInstanceValidator
     : AbstractValidator<GetBooleanSatisfiabilityInstanceQuery>

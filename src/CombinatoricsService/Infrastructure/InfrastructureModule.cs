@@ -18,6 +18,9 @@ namespace Raijin.CombinatoricsService.Infrastructure;
 
 public static class InfrastructureModule
 {
+    private const string CombinatoricsDatabaseConnectionName = "combinatorics-db";
+    private const string CombinatoricsDatabaseConnectionStringKey = "COMBINATORICS_DB_CONNECTION_STRING";
+
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
     public static void AddInfrastructure(this IServiceCollection services,
@@ -84,7 +87,12 @@ public static class InfrastructureModule
         services.AddTransient<ISatSolver, CadicalSolver>();
     }
 
-    private static string GetDatabaseConnectionString(IServiceProvider provider) =>
-        provider.GetRequiredService<IConfiguration>().GetConnectionString("combinatorics-service-db")
-        ?? throw new InvalidOperationException("Database connection string is not configured.");
+    private static string GetDatabaseConnectionString(IServiceProvider provider)
+    {
+        IConfiguration configuration = provider.GetRequiredService<IConfiguration>();
+
+        return configuration.GetConnectionString(CombinatoricsDatabaseConnectionName)
+            ?? configuration[CombinatoricsDatabaseConnectionStringKey]
+            ?? throw new InvalidOperationException("Database connection string is not configured.");
+    }
 }

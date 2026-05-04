@@ -9,7 +9,7 @@ public class MigrationWorker(
     IServiceProvider serviceProvider,
     IHostApplicationLifetime hostApplicationLifetime,
     ILogger<MigrationWorker> logger
-    ) : BackgroundService
+) : BackgroundService
 {
     public const string ActivitySourceName = nameof(MigrationWorker);
     private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
@@ -24,7 +24,8 @@ public class MigrationWorker(
 
             using IServiceScope scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<CombinatoricsServiceDbContext>();
-
+            
+            await dbContext.Database.EnsureDeletedAsync(cancellationToken);
             await RunMigrationAsync(dbContext, cancellationToken);
             logger.LogInformation("CombinatoricsService database migration completed successfully");
 

@@ -11,191 +11,193 @@ internal enum RestartStrategy { Auto, Geom, Glue, Luby }
 internal enum SlsType { Walksat, Yalsat, Ccnr, CcnrYalsat }
 
 /// <summary>
-/// Fluent builder for CryptoMiniSat CLI arguments.
-/// Only options that are explicitly set are emitted; the executable uses its own defaults for the rest.
+///     Fluent builder for CryptoMiniSat CLI arguments.
+///     Only options that are explicitly set are emitted; the executable uses its own defaults for the rest.
 /// </summary>
 internal sealed class CryptominisatArgumentsBuilder
 {
-    // Core
-    private int? _verb;
-    private double? _maxTime;
-    private long? _maxConfl;
-    private int? _random;
-    private int? _threads;
-    private double? _mult;
-    private double? _nextm;
-    private double? _memOutMult;
-    private int? _maxSol;
-    private bool? _nonStop;
-
-    // Polarity & branching
-    private PolarityMode? _polar;
-    private string? _branchStr;
-    private bool _noBanSol;
-
-    // Restart
-    private RestartStrategy? _restart;
-    private int? _rstFirst;
-    private int? _glueHist;
-    private int? _lwrBndBlkRest;
-    private double? _locgMult;
-    private int? _ratioGlueGeom;
-    private bool? _blockingGlue;
-    private int? _glueCut0;
-    private int? _glueCut1;
     private double? _adjustGlue;
-    private int? _everyLev1;
-    private int? _everyLev2;
-    private int? _lev1UseWithin;
-
-    // SCC & probing
-    private bool? _scc;
-    private bool? _transRed;
-    private bool? _inTree;
-    private int? _inTreeMaxM;
-    private bool? _otfHyper;
-
-    // Simplification
-    private bool? _schedSimp;
-    private bool? _preSimp;
     private bool? _allPreSimp;
-    private int? _maxNumSimpPerSolve;
-    private string? _schedule;
-    private string? _preSchedule;
-    private bool? _occSimp;
-    private int? _confBtwSimp;
-    private double? _confBtwSimpInc;
-
-    // Ternary resolution
-    private bool? _tern;
-    private int? _ternTimeLim;
-    private int? _ternKeep;
-    private double? _ternCreate;
-    private bool? _ternBinCreate;
-
-    // Occurrence simplification
-    private int? _occRedMax;
-    private int? _occRedMaxMb;
-    private int? _occIrredMaxMb;
-    private bool? _strengthen;
-    private int? _weakenTimeLim;
-    private int? _subsTimeLim;
-    private double? _subsTimeLimBinRatio;
-    private double? _subsTimeLimLongRatio;
-    private int? _strSTimeLim;
-    private int? _subLongGoThrough;
-
-    // BVA
-    private bool? _bva;
-    private int? _bvaEveryN;
-    private int? _bvaLim;
-    private bool? _bva2Lit;
-    private int? _bvaTo;
-
-    // Variable elimination
-    private bool? _varElim;
-    private int? _varElimTo;
-    private int? _varElimOver;
-    private bool? _emptyElim;
-    private int? _varElimMaxMb;
-    private double? _eRatio;
-    private bool? _varElimCheckRes;
-
-    // XOR & gates
-    private bool? _xor;
-    private int? _maxXorSize;
-    private int? _xorFindTout;
-    private int? _maxXorMat;
-    private bool? _gates;
-    private bool? _printGateDot;
-    private int? _gateFindTo;
-
-    // Minimization
-    private bool? _recur;
-    private bool? _moreMinim;
-    private int? _moreMoreMinim;
-    private bool? _moreMoreAlways;
-    private bool? _decBased;
-    private bool? _updateGlueOnAnalysis;
-    private int? _maxGlueHistLtLimited;
-    private int? _diffDecLevelChrono;
-
-    // SLS
-    private bool? _sls;
-    private SlsType? _slsType;
-    private int? _slsMaxMem;
-    private int? _slsEveryN;
-    private int? _yalsatMems;
-    private int? _walkSatRuns;
-    private bool? _slsGetPhase;
-    private bool? _slsCcnrAspire;
-    private int? _slsToBump;
-    private int? _slsToBumpMaxPerVar;
-    private int? _slsBumpType;
+    private string? _assump;
+    private bool? _autoDisableGauss;
+    private bool? _blockingGlue;
+    private string? _branchStr;
 
     // BreakID
     private bool? _breakId;
+    private int? _breakIdCls;
     private int? _breakIdEveryN;
-    private int? _breakIdMaxLits;
+    private bool? _breakIdMatrix;
     private int? _breakIdMaxCls;
+    private int? _breakIdMaxLits;
     private int? _breakIdMaxVars;
     private int? _breakIdTime;
-    private int? _breakIdCls;
-    private bool? _breakIdMatrix;
 
-    // Verbosity / output
-    private int? _verbStat;
-    private bool? _verbRestart;
-    private bool? _verbAllRestarts;
-    private bool? _printSol;
-    private int? _restartPrint;
+    // BVA
+    private bool? _bva;
+    private bool? _bva2Lit;
+    private int? _bvaEveryN;
+    private int? _bvaLim;
+    private int? _bvaTo;
+    private bool? _cardFind;
+    private bool? _clearInter;
+    private int? _confBtwSimp;
+    private double? _confBtwSimpInc;
+    private string? _debugLib;
+    private bool? _decBased;
+    private int? _diffDecLevelChrono;
 
     // Distillation
     private bool? _distill;
     private bool? _distillBin;
-    private int? _distillMaxM;
     private double? _distillIncConf;
-    private int? _distillMinConf;
-    private double? _distillTier0Ratio;
-    private double? _distillTier1Ratio;
     private double? _distillIrredAlsoRemRatio;
     private double? _distillIrredNoRemRatio;
+    private int? _distillMaxM;
+    private int? _distillMinConf;
     private int? _distillShuffleEveryN;
     private int? _distillSort;
-
-    // Memory & renumbering
-    private bool? _renumber;
-    private bool? _mustConsolidate;
-    private bool? _saveMem;
-    private bool? _mustRenumber;
+    private double? _distillTier0Ratio;
+    private double? _distillTier1Ratio;
+    private string? _dumpResult;
+    private bool? _emptyElim;
+    private double? _eRatio;
+    private int? _everyLev1;
+    private int? _everyLev2;
     private int? _fullWatchConsEveryN;
-
-    // Misc
-    private int? _strMaxT;
+    private int? _gateFindTo;
+    private bool? _gates;
+    private double? _gaussUsefulCutoff;
+    private int? _glueCut0;
+    private int? _glueCut1;
+    private int? _glueHist;
+    private bool? _idrup;
     private bool? _implicitManip;
-    private int? _implSubsTo;
     private int? _implStrTo;
-    private bool? _cardFind;
-    private int? _sync;
-    private bool? _clearInter;
+    private int? _implSubsTo;
+    private bool? _inTree;
+    private int? _inTreeMaxM;
+    private int? _lev1UseWithin;
+    private double? _locgMult;
+    private int? _lwrBndBlkRest;
+    private long? _maxConfl;
+    private int? _maxGlueHistLtLimited;
+    private int? _maxMatrixCols;
+    private int? _maxMatrixRows;
+    private int? _maxNumMatrices;
+    private int? _maxNumSimpPerSolve;
 
     // Gaussian elimination
     private int? _maxSccDepth;
-    private int? _maxMatrixRows;
-    private int? _maxMatrixCols;
-    private bool? _autoDisableGauss;
+    private int? _maxSol;
+    private double? _maxTime;
+    private int? _maxXorMat;
+    private int? _maxXorSize;
+    private double? _memOutMult;
     private int? _minMatrixRows;
-    private int? _maxNumMatrices;
-    private double? _gaussUsefulCutoff;
+    private bool? _moreMinim;
+    private bool? _moreMoreAlways;
+    private int? _moreMoreMinim;
+    private double? _mult;
+    private bool? _mustConsolidate;
+    private bool? _mustRenumber;
+    private double? _nextm;
+    private bool _noBanSol;
+    private bool? _nonStop;
+    private int? _occIrredMaxMb;
+
+    // Occurrence simplification
+    private int? _occRedMax;
+    private int? _occRedMaxMb;
+    private bool? _occSimp;
+    private bool? _otfHyper;
+
+    // Polarity & branching
+    private PolarityMode? _polar;
+    private string? _preSchedule;
+    private bool? _preSimp;
+    private bool? _printGateDot;
+    private bool? _printSol;
+    private bool? _printTimes;
+    private int? _random;
+    private int? _ratioGlueGeom;
+
+    // Minimization
+    private bool? _recur;
+
+    // Memory & renumbering
+    private bool? _renumber;
+
+    // Restart
+    private RestartStrategy? _restart;
+    private int? _restartPrint;
+    private int? _rstFirst;
+    private string? _sampling;
+    private bool? _saveMem;
+
+    // SCC & probing
+    private bool? _scc;
+
+    // Simplification
+    private bool? _schedSimp;
+    private string? _schedule;
+
+    // SLS
+    private bool? _sls;
+    private int? _slsBumpType;
+    private bool? _slsCcnrAspire;
+    private int? _slsEveryN;
+    private bool? _slsGetPhase;
+    private int? _slsMaxMem;
+    private int? _slsToBump;
+    private int? _slsToBumpMaxPerVar;
+    private SlsType? _slsType;
+    private bool? _strengthen;
+
+    // Misc
+    private int? _strMaxT;
+    private int? _strSTimeLim;
+    private int? _subLongGoThrough;
+    private int? _subsTimeLim;
+    private double? _subsTimeLimBinRatio;
+    private double? _subsTimeLimLongRatio;
+    private int? _sync;
+
+    // Ternary resolution
+    private bool? _tern;
+    private bool? _ternBinCreate;
+    private double? _ternCreate;
+    private int? _ternKeep;
+    private int? _ternTimeLim;
+    private int? _threads;
+    private bool? _transRed;
+    private bool? _updateGlueOnAnalysis;
+
+    // Variable elimination
+    private bool? _varElim;
+    private bool? _varElimCheckRes;
+    private int? _varElimMaxMb;
+    private int? _varElimOver;
+
+    private int? _varElimTo;
+
+    // Core
+    private int? _verb;
+    private bool? _verbAllRestarts;
+    private bool? _verbRestart;
+
+    // Verbosity / output
+    private int? _verbStat;
+    private int? _walkSatRuns;
+    private int? _weakenTimeLim;
+
+    // XOR & gates
+    private bool? _xor;
+    private int? _xorFindTout;
+    private int? _yalsatMems;
 
     // Output / proof
     private bool _zeroExitStatus;
-    private bool? _printTimes;
-    private bool? _idrup;
-    private string? _sampling;
-    private string? _assump;
-    private string? _dumpResult;
-    private string? _debugLib;
 
     // ── Core ──────────────────────────────────────────────────────────────────
 
@@ -1239,8 +1241,8 @@ internal sealed class CryptominisatArgumentsBuilder
     // ── Build ─────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Builds the argument string containing only explicitly set options.
-    /// The CNF file path must be appended separately by the caller.
+    ///     Builds the argument string containing only explicitly set options.
+    ///     The CNF file path must be appended separately by the caller.
     /// </summary>
     internal string Build()
     {
@@ -1447,12 +1449,12 @@ internal sealed class CryptominisatArgumentsBuilder
         if (_polar is null) return;
         string value = _polar.Value switch
         {
-            PolarityMode.True   => "true",
-            PolarityMode.False  => "false",
-            PolarityMode.Rnd    => "rnd",
-            PolarityMode.Auto   => "auto",
+            PolarityMode.True => "true",
+            PolarityMode.False => "false",
+            PolarityMode.Rnd => "rnd",
+            PolarityMode.Auto => "auto",
             PolarityMode.Stable => "stable",
-            _                   => throw new UnreachableException($"Unhandled {nameof(PolarityMode)}: {_polar.Value}")
+            _ => throw new UnreachableException($"Unhandled {nameof(PolarityMode)}: {_polar.Value}")
         };
         sb.Append("--polar ").Append(value).Append(' ');
     }
@@ -1466,7 +1468,7 @@ internal sealed class CryptominisatArgumentsBuilder
             RestartStrategy.Geom => "geom",
             RestartStrategy.Glue => "glue",
             RestartStrategy.Luby => "luby",
-            _                    => throw new UnreachableException($"Unhandled {nameof(RestartStrategy)}: {_restart.Value}")
+            _ => throw new UnreachableException($"Unhandled {nameof(RestartStrategy)}: {_restart.Value}")
         };
         sb.Append("--restart ").Append(value).Append(' ');
     }
@@ -1476,11 +1478,11 @@ internal sealed class CryptominisatArgumentsBuilder
         if (_slsType is null) return;
         string value = _slsType.Value switch
         {
-            SlsType.Walksat    => "walksat",
-            SlsType.Yalsat     => "yalsat",
-            SlsType.Ccnr       => "ccnr",
+            SlsType.Walksat => "walksat",
+            SlsType.Yalsat => "yalsat",
+            SlsType.Ccnr => "ccnr",
             SlsType.CcnrYalsat => "ccnr_yalsat",
-            _                  => throw new UnreachableException($"Unhandled {nameof(SlsType)}: {_slsType.Value}")
+            _ => throw new UnreachableException($"Unhandled {nameof(SlsType)}: {_slsType.Value}")
         };
         sb.Append("--slstype ").Append(value).Append(' ');
     }

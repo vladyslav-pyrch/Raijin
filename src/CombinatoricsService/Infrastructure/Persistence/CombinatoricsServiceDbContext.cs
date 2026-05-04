@@ -5,12 +5,12 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence;
 
 public class CombinatoricsServiceDbContext(DbContextOptions<CombinatoricsServiceDbContext> options) : DbContext(options)
 {
-  internal DbSet<ProblemModel> Problems { get; set; } = null!;
+    internal DbSet<ProblemModel> Problems { get; set; } = null!;
 
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
-  {
-    base.OnModelCreating(modelBuilder);
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
 
-    modelBuilder.ApplyConfigurationsFromAssembly(InfrastructureModule.Assembly);
-  }
+        modelBuilder.ApplyConfigurationsFromAssembly(InfrastructureModule.Assembly);
+    }
 }

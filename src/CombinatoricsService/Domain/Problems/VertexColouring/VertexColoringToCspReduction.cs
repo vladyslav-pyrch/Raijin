@@ -53,4 +53,3 @@ internal static class InternalExtensions
     public static DecisionVariableStateAssignment ToDecisionVariableStateAssignment(this VertexColorAssignment assignment) =>
         new(assignment.VertexId, assignment.Color.ToString());
 }
-

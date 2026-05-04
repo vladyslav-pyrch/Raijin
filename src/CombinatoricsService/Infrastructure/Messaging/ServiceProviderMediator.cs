@@ -15,13 +15,13 @@ public sealed class ServiceProviderMediator(IServiceProvider provider) : IMediat
         object handler = provider.GetRequiredService(requestHandlerType);
 
         Func<Task<Result<TResponse>>> handlerDelegate = () => ((dynamic)handler).Handle((dynamic)request, cancellationToken);
-        
+
         Type behaviorType = typeof(IPipelineBehavior<,>).MakeGenericType(requestType, responseType);
         IEnumerable<object> behaviors = provider.GetServices(behaviorType)
             .Where(service => service is not null)
             .Cast<object>()
             .Reverse();
-        
+
         Func<Task<Result<TResponse>>> pipeline = behaviors.Aggregate(handlerDelegate, (next, behavior) =>
         {
             return () => ((dynamic)behavior).Handle((dynamic)request, cancellationToken, next);
@@ -38,18 +38,18 @@ public sealed class ServiceProviderMediator(IServiceProvider provider) : IMediat
         object handler = provider.GetRequiredService(requestHandlerType);
 
         Func<Task<Result>> handlerDelegate = () => ((dynamic)handler).Handle((dynamic)request, cancellationToken);
-        
+
         Type behaviorType = typeof(IPipelineBehavior<>).MakeGenericType(requestType);
         IEnumerable<object> behaviors = provider.GetServices(behaviorType)
             .Where(service => service is not null)
             .Cast<object>()
             .Reverse();
-        
+
         Func<Task<Result>> pipeline = behaviors.Aggregate(handlerDelegate, (next, behavior) =>
         {
             return () => ((dynamic)behavior).Handle((dynamic)request, cancellationToken, next);
         });
-        
+
         return pipeline();
     }
 }

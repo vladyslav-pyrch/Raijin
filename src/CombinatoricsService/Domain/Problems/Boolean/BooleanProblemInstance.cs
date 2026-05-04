@@ -7,7 +7,7 @@ namespace Raijin.CombinatoricsService.Domain.Problems.Boolean;
 public sealed record BooleanProblemInstance(BoolExpr Root) : Instance
 {
     public override string ProblemType() => ProblemTypes.BooleanProblem;
-    
+
     internal override SatEncoding ReduceToSat() => TseitinTransform.Apply(this).Instance.ReduceToSat();
 
     internal override IReadOnlyDictionary<string, int> GetVariableMap()

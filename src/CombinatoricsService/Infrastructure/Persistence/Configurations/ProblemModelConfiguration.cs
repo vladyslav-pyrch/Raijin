@@ -17,7 +17,7 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
         builder.Property(problem => problem.Description)
             .IsRequired()
             .HasMaxLength(5000);
-        
+
         builder.Property(problem => problem.ProblemType)
             .IsRequired()
             .HasMaxLength(50);
@@ -52,7 +52,7 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
             clause.ToTable("Clauses");
 
             clause.HasKey(c => c.Id);
-            
+
             clause.WithOwner()
                 .HasForeignKey(encoding => encoding.ProblemId);
 

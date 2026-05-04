@@ -29,12 +29,12 @@ public sealed record EdgeColoringInstance(Graph Graph, int ColourCount) : Instan
             Index = Math.Abs(i),
             Value = i > 0
         }).ToArray();
-        
+
         EdgeColoringToCspReductionResult edgeColoringToCspResult = EdgeColoringToCspReduction.Apply(this);
         CspToBooleanReductionResult cspToBoolResult = CspToBooleanReduction.Apply(edgeColoringToCspResult.CspInstance);
         TseitinTransformResult tseitinResult = TseitinTransform.Apply(cspToBoolResult.Instance);
         DimacsReductionResult dimacsResult = DimacsReduction.Apply(tseitinResult.Instance);
-        
+
         Dictionary<int, EdgeColorAssignment> invertedSymbolTable = edgeColoringToCspResult.SymbolTable
             .ToDictionary(kvp => kvp.Key, kvp => dimacsResult.SymbolTable[tseitinResult.SymbolTable[cspToBoolResult.SymbolTable[kvp.Value]]])
             .Invert();

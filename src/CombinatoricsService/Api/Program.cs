@@ -4,8 +4,6 @@ using Raijin.CombinatoricsService.Infrastructure;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.AddServiceDefaults();
 
 // Error handling
@@ -53,6 +51,9 @@ app.UseExceptionHandler();
 // Logging
 app.UseHttpLogging();
 
+// Resolve forwarded headers before HTTPS redirect
+app.UseForwardedHeaders();
+
 // Edge security
 app.UseHsts();
 app.UseHttpsRedirection();
@@ -73,7 +74,6 @@ app.UseResponseCaching();
 app.MapDefaultEndpoints();
 app.MapEndpoints();
 
-if (app.Environment.IsDevelopment())
-    app.MapOpenApi();
+app.MapOpenApi();
 
 app.Run();

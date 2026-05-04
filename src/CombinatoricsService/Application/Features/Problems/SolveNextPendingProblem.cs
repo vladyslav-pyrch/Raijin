@@ -83,7 +83,7 @@ public sealed class SolveNextPendingProblemHandler(
             problem.Fail();
             logger.LogError(ex, "Problem {ProblemId} failed with exception.", problem.Id);
         }
-        
+
         await problemRepository.Update(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
 
