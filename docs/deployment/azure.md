@@ -1,17 +1,17 @@
 # Azure CI/CD Deployment
 
-This repo deploys Raijin with GitHub Actions, Bicep, Azure Container Apps, Azure Container Registry, and Azure Static Web Apps.
+This repo deploys Raijin with GitHub Actions, Bicep, Azure Container Apps, Azure Container Registry, Azure Database for PostgreSQL Flexible Server, and Azure Static Web Apps.
 
 ## Topology
 
-- `postgres:17.6` runs as a Container App in an internal Container Apps environment on the private subnet. Its TCP endpoint is reachable from the VNet, not from the public internet.
+- PostgreSQL runs on Azure Database for PostgreSQL Flexible Server using the burstable `Standard_B1ms` SKU, 32 GiB storage, 7-day backups, no high availability, and private VNet integration.
 - `CombinatoricsService.MigrationWorker` runs as a manual Container App Job in the same private environment and applies EF migrations.
 - `CombinatoricsService.SatSolver` runs as a private Container App in the same private environment.
 - `CombinatoricsService.Api` runs as a public Container App in a second Container Apps environment on the public subnet.
 - `spa` is deployed to Azure Static Web Apps using the default generated hostname.
 - No custom domains are configured.
 
-The database container uses an Azure Files NFS share for `/var/lib/postgresql/data`. NFS is required because the official Postgres image needs Unix permission operations during `initdb`; an SMB Azure Files mount fails with `Operation not permitted`. This is still not a substitute for a managed production database.
+The database is deployed into its own delegated subnet and private DNS zone. It is reachable from the VNet but not exposed publicly. This is the lowest-cost managed setup in this template, but it still bills for provisioned compute, storage, and backups.
 
 ## GitHub Configuration
 
@@ -29,7 +29,7 @@ Configure this repository secret:
 
 | Name | Purpose |
 | --- | --- |
-| `POSTGRES_PASSWORD` | Password injected into the postgres container and backend connection strings. |
+| `POSTGRES_PASSWORD` | Password for the PostgreSQL flexible server administrator and backend connection strings. |
 
 The Azure identity used by GitHub Actions needs enough permission to create the resource group, deploy resources, and create the ACR pull role assignment. The simplest setup is `Owner` at subscription scope. A narrower setup is `Contributor` plus `User Access Administrator` for the target subscription or resource group scope.
 
@@ -52,7 +52,7 @@ Manual runs can override:
 
 ## Infrastructure Files
 
-- `infra/core.bicep`: VNet, public/private subnets, Container Apps environments, ACR, managed identity, role assignment, storage, Static Web App, and postgres Container App.
+- `infra/core.bicep`: VNet, public/private app subnets, delegated PostgreSQL subnet, private DNS, PostgreSQL Flexible Server, Container Apps environments, ACR, managed identity, role assignment, and Static Web App.
 - `infra/apps.bicep`: API Container App, SAT solver Container App, and migration Container App Job.
 
 The API receives `Cors__AllowedOrigins__0` from the generated Static Web Apps hostname. The SPA receives `VITE_COMBINATORICS_API_URL` from the generated API hostname. Both use Azure-generated default domains.

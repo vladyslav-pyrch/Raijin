@@ -19,11 +19,11 @@ param satSolverImage string
 @description('Postgres administrator password used to build application connection strings.')
 param postgresAdminPassword string
 
-@description('Database name created by the postgres container.')
+@description('Database name created on the PostgreSQL flexible server.')
 param databaseName string = 'combinatorics'
 
-@description('Database user created by the postgres container.')
-param databaseUser string = 'postgres'
+@description('Postgres administrator login.')
+param databaseUser string = 'raijinadmin'
 
 var normalizedEnvironmentName = toLower(environmentName)
 var suffix = toLower(uniqueString(resourceGroup().id, normalizedEnvironmentName))
@@ -35,15 +35,13 @@ var containerPullIdentityName = 'mi-${namePrefix}-acr-pull'
 var publicContainerAppsEnvironmentName = 'cae-${namePrefix}-public'
 var privateContainerAppsEnvironmentName = 'cae-${namePrefix}-private'
 var staticWebAppName = 'stapp-${namePrefix}-${suffix}'
-var postgresContainerAppName = 'ca-${namePrefix}-postgres'
+var postgresServerName = 'psql-${namePrefix}-${suffix}'
 var apiContainerAppName = 'ca-${namePrefix}-api'
 var satSolverContainerAppName = 'ca-${namePrefix}-sat'
 var migrationJobName = 'caj-${namePrefix}-migrate'
 
 var databaseConnectionSecretName = 'database-connection-string'
-var postgresEndpoint = postgresContainerApp.properties.configuration.ingress.fqdn
-var postgresHost = first(split(replace(postgresEndpoint, 'tcp://', ''), ':'))
-var databaseConnectionString = 'Host=${postgresHost};Port=5432;Database=${databaseName};Username=${databaseUser};Password=${postgresAdminPassword}'
+var postgresHost = '${postgresServerName}.postgres.database.azure.com'
 var spaOrigin = 'https://${staticWebApp.properties.defaultHostname}'
 
 var tags = {
@@ -69,10 +67,6 @@ resource privateContainerAppsEnvironment 'Microsoft.App/managedEnvironments@2025
 
 resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' existing = {
   name: staticWebAppName
-}
-
-resource postgresContainerApp 'Microsoft.App/containerApps@2025-01-01' existing = {
-  name: postgresContainerAppName
 }
 
 resource apiContainerApp 'Microsoft.App/containerApps@2025-01-01' = {
@@ -111,7 +105,8 @@ resource apiContainerApp 'Microsoft.App/containerApps@2025-01-01' = {
       secrets: [
         {
           name: databaseConnectionSecretName
-          value: databaseConnectionString
+          #disable-next-line use-secure-value-for-secure-inputs // Connection string includes the secure postgresAdminPassword parameter and is stored as a Container Apps secret.
+          value: 'Host=${postgresHost};Port=5432;Database=${databaseName};Username=${databaseUser};Password=${postgresAdminPassword};Ssl Mode=Require'
         }
       ]
     }
@@ -204,7 +199,8 @@ resource satSolverContainerApp 'Microsoft.App/containerApps@2025-01-01' = {
       secrets: [
         {
           name: databaseConnectionSecretName
-          value: databaseConnectionString
+          #disable-next-line use-secure-value-for-secure-inputs // Connection string includes the secure postgresAdminPassword parameter and is stored as a Container Apps secret.
+          value: 'Host=${postgresHost};Port=5432;Database=${databaseName};Username=${databaseUser};Password=${postgresAdminPassword};Ssl Mode=Require'
         }
       ]
     }
@@ -274,7 +270,8 @@ resource migrationWorkerJob 'Microsoft.App/jobs@2025-01-01' = {
       secrets: [
         {
           name: databaseConnectionSecretName
-          value: databaseConnectionString
+          #disable-next-line use-secure-value-for-secure-inputs // Connection string includes the secure postgresAdminPassword parameter and is stored as a Container Apps secret.
+          value: 'Host=${postgresHost};Port=5432;Database=${databaseName};Username=${databaseUser};Password=${postgresAdminPassword};Ssl Mode=Require'
         }
       ]
       triggerType: 'Manual'
