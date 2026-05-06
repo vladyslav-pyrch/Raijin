@@ -19,17 +19,16 @@ env:
   DOTNET_NOLOGO: true
   NODE_VERSION: 24.x
   ASPIRE_ENVIRONMENT: Development
-  Azure__Location: westeurope
   Azure__CredentialSource: AzureCli
+  Azure__SubscriptionId: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  Azure__Location: westeurope
   Azure__ResourceGroup: raijin-dev
-
+  
 jobs:
   deploy:
     name: Deploy Development
     runs-on: ubuntu-latest
     environment: development
-    env:
-      Azure__SubscriptionId: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
     steps:
       - name: Checkout
