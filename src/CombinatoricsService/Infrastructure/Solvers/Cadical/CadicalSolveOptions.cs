@@ -4,9 +4,7 @@ internal sealed class CadicalSolveOptions
 {
     public const string SectionName = "Cadical";
 
-    public string FileName { get; set; } = "cadical";
+    public string ExecutableFilePath { get; set; } = "./cadical";
 
     public int? TimeoutSeconds { get; set; }
-
-    public string? CnfDirectory { get; set; }
 }

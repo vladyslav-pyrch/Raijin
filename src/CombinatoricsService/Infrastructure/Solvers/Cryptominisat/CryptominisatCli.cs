@@ -74,9 +74,8 @@ internal sealed class CryptominisatCli(
     {
         var processStartInfo = new ProcessStartInfo
         {
-            FileName = _options.FileName,
+            FileName = _options.ExecutableFilePath,
             Arguments = BuildArguments(cnfFilePath, arguments),
-
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,

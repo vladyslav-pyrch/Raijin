@@ -2,6 +2,28 @@
 USER $APP_UID
 WORKDIR /app
 
+FROM debian:bookworm AS sat_solver-builds
+
+WORKDIR /sat_solvers
+
+RUN apt-get update
+RUN apt-get install -y build-essential cmake git libgmp-dev pkg-config
+RUN git clone https://github.com/msoos/cryptominisat.git
+WORKDIR /sat_solvers/cryptominisat
+RUN git checkout release/v5.14.4
+RUN mkdir build
+WORKDIR /sat_solvers/cryptominisat/build
+RUN cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DSTATICCOMPILE=ON \
+    -DBUILD_SHARED_LIBS=OFF
+RUN make -j$(nproc)
+WORKDIR /sat_solvers
+RUN git clone https://github.com/arminbiere/cadical.git
+WORKDIR /sat_solvers/cadical
+RUN git checkout rel-3.0.0
+RUN ./configure && make
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
@@ -24,6 +46,20 @@ ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./Raijin.CombinatoricsService.SatSolver.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+USER $APP_UID
+
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+COPY --from=sat_solver-builds /sat_solvers/cryptominisat/build/ /app/lib/cryptominisat/
+COPY --from=sat_solver-builds /sat_solvers/cadical/build/ /app/lib/cadical/
+
+ENV Cryptominisat__ExecutableFilePath=/app/lib/cryptominisat/cryptominisat5
+ENV Cadical__ExecutableFilePath=/app/lib/cadical/cadical
+
 ENTRYPOINT ["dotnet", "Raijin.CombinatoricsService.SatSolver.dll"]

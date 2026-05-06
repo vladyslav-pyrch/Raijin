@@ -7,7 +7,7 @@ using Raijin.CombinatoricsService.SatSolver.Jobs;
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
-builder.Services.AddInfrastructure(quartzConfiguration: configurator =>
+builder.AddInfrastructure(quartzConfiguration: configurator =>
 {
     configurator.AddJob<SolvePendingProblemsJob>(jobConfigurator =>
     {

@@ -74,7 +74,7 @@ internal sealed class CadicalCli(
     {
         var processStartInfo = new ProcessStartInfo
         {
-            FileName = _options.FileName,
+            FileName = _options.ExecutableFilePath,
             Arguments = BuildArguments(cnfFilePath, arguments),
             RedirectStandardOutput = true,
             RedirectStandardError = true,

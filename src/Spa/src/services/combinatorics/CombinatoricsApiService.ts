@@ -55,7 +55,7 @@ export class CombinatoricsApiService {
     private readonly baseUrl: string;
 
     constructor(baseUrl: string) {
-        this.baseUrl = baseUrl;
+        this.baseUrl = baseUrl + "/api/combinatorics";
     }
 
     // ── Core helper ────────────────────────────────────────────────────────────

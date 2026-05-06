@@ -25,7 +25,6 @@ public class MigrationWorker(
             using IServiceScope scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<CombinatoricsServiceDbContext>();
             
-            await dbContext.Database.EnsureDeletedAsync(cancellationToken);
             await RunMigrationAsync(dbContext, cancellationToken);
             logger.LogInformation("CombinatoricsService database migration completed successfully");
 

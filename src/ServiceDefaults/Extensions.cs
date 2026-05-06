@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,17 +23,6 @@ public static class Extensions
     {
         builder.Services.AddLogging(loggingBuilder =>
         {
-            loggingBuilder.ClearProviders();
-            loggingBuilder.AddJsonConsole(options =>
-            {
-                options.IncludeScopes = true;
-                options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ"; // ISO 8601
-                options.UseUtcTimestamp = true;
-                options.JsonWriterOptions = new JsonWriterOptions
-                {
-                    Indented = true
-                };
-            });
             loggingBuilder.AddConfiguration();
         });
 
@@ -108,11 +96,11 @@ public static class Extensions
             OpenTelemetryBuilderOtlpExporterExtensions.UseOtlpExporter(builder.Services.AddOpenTelemetry());
 
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        //{
-        //    builder.Services.AddOpenTelemetry()
-        //       .UseAzureMonitor();
-        //}
+        // if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        // {
+        //     builder.Services.AddOpenTelemetry()
+        //        .UseAzureMonitor();
+        // }
 
         return builder;
     }

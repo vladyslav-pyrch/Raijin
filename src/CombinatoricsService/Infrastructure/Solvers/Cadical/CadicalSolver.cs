@@ -92,7 +92,7 @@ internal sealed class CadicalSolver(
         CancellationToken cancellationToken)
     {
         var fileName = $"problem_{Path.GetFileNameWithoutExtension(Path.GetRandomFileName())}.cnf";
-        string filePath = Path.Combine(_options.CnfDirectory ?? "./problems", fileName);
+        string filePath = Path.Combine(Path.GetTempPath(), fileName);
 
         try
         {

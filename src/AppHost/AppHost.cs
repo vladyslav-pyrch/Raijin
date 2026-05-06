@@ -1,56 +1,83 @@
-using Aspire.Hosting.JavaScript;
+using Azure.Provisioning.PostgreSql;
 using Projects;
 using Scalar.Aspire;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-IResourceBuilder<PostgresServerResource> applicationDbServer = builder
-    .AddPostgres("raijin-db-server")
-    .WithLifetime(ContainerLifetime.Persistent)
-    .WithDataVolume("raijin-db-data")
-    .WithPgWeb();
+builder.AddAzureContainerAppEnvironment("raijin-env");
 
-IResourceBuilder<PostgresDatabaseResource> combinatoricsServiceDb = applicationDbServer
-    .AddDatabase("combinatorics-db");
+var applicationDbServer = builder
+    .AddAzurePostgresFlexibleServer("raijin-postgres")
+    .ConfigureInfrastructure(config =>
+    {
+        PostgreSqlFlexibleServer flexibleServer = config.GetProvisionableResources()
+            .OfType<PostgreSqlFlexibleServer>()
+            .Single();
+        
+        flexibleServer.AvailabilityZone = "3";
+        flexibleServer.HighAvailability = new PostgreSqlFlexibleServerHighAvailability
+        {
+            Mode = PostgreSqlFlexibleServerHighAvailabilityMode.Disabled
+        };
+        flexibleServer.Sku = new PostgreSqlFlexibleServerSku
+        {
+            Name = "Standard_B1ms",
+            Tier = PostgreSqlFlexibleServerSkuTier.Burstable,
+        };
+        flexibleServer.Storage = new PostgreSqlFlexibleServerStorage
+        {
+            StorageSizeInGB = 32
+        };
+        flexibleServer.Backup = new PostgreSqlFlexibleServerBackupProperties
+        {
+            BackupRetentionDays = 7
+        };
+    })
+    .RunAsContainer(resourceBuilder =>
+    {
+        resourceBuilder.WithLifetime(ContainerLifetime.Persistent)
+            .WithImage("postgres:17.6")
+            .WithDataVolume("raijin-postgres-data")
+            .WithPgWeb();
+    });
 
-IResourceBuilder<ProjectResource> combinatoricsServiceMigrationWorker = builder
-    .AddProject<Raijin_CombinatoricsService_MigrationWorker>("combinatorics-migration-worker")
+var combinatoricsServiceDb = applicationDbServer
+    .AddDatabase("raijin-comb-db");
+
+var combinatoricsServiceMigrationWorker = builder
+    .AddProject<Raijin_CombinatoricsService_MigrationWorker>("raijin-comb-migrate")
     .WithReference(combinatoricsServiceDb)
-    .WaitFor(combinatoricsServiceDb);
+    .WaitFor(combinatoricsServiceDb)
+    .PublishAsAzureContainerAppJob();
 
-builder
-    .AddProject<Raijin_CombinatoricsService_SatSolver>("combinatorics-sat-solver")
+builder.AddDockerfile("raijin-comb-sat-solver", "../../", "./src/CombinatoricsService/SatSolver/Dockerfile")
+    .WithOtlpExporter()
     .WithEnvironment("MAX_JOBS_COUNT", "3")
-    .WithEnvironment("MAX_REFIRE_COUNT", "3")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
     .WaitForCompletion(combinatoricsServiceMigrationWorker);
 
-IResourceBuilder<ProjectResource> combinatoricsServiceApi = builder
-    .AddProject<Raijin_CombinatoricsService_Api>("combinatorics-api")
-    .WithExternalHttpEndpoints()
+var combinatoricsServiceApi = builder
+    .AddProject<Raijin_CombinatoricsService_Api>("raijin-comb-api")
     .WithHttpHealthCheck("/health")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
     .WaitForCompletion(combinatoricsServiceMigrationWorker);
 
-IResourceBuilder<JavaScriptAppResource> spaFrontend = builder
-    .AddViteApp("spa-frontend", "../spa")
+builder.AddProject<Raijin_Bff>("raijin-bff")
+    .WithHttpHealthCheck("/health")
+    .WithExternalHttpEndpoints()
     .WithReference(combinatoricsServiceApi)
-    .WaitFor(combinatoricsServiceApi)
-    .WithEnvironment("VITE_COMBINATORICS_API_URL", combinatoricsServiceApi.GetEndpoint("https"));
+    .WaitFor(combinatoricsServiceApi);
 
-combinatoricsServiceApi
-    .WithEnvironment("Cors__AllowedOrigins__0", spaFrontend.GetEndpoint("http"));
-
-builder
-    .AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
+builder.AddScalarApiReference(options => options.AllowSelfSignedCertificates = true)
     .WithApiReference(combinatoricsServiceApi, (options, _) =>
     {
         options.AddDocument("v1");
         return Task.CompletedTask;
     })
     .WaitFor(combinatoricsServiceApi)
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .ExcludeFromManifest();
 
 builder.Build().Run();

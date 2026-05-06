@@ -5,7 +5,7 @@ using Raijin.CombinatoricsService.MigrationWorker;
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
-builder.Services.AddPersistence();
+builder.AddPersistence();
 builder.Services.AddConverters();
 builder.Services.AddParsers();
 builder.Services.AddHostedService<MigrationWorker>();

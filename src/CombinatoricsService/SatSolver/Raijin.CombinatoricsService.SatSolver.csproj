@@ -17,19 +17,4 @@
         <ProjectReference Include="..\..\ServiceDefaults\Raijin.ServiceDefaults.csproj"/>
         <ProjectReference Include="..\Infrastructure\Raijin.CombinatoricsService.Infrastructure.csproj"/>
     </ItemGroup>
-
-    <ItemGroup>
-      <None Update="cadical">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="cryptominisat5">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="cryptominisat5.exe">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="cadical.exe">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
 </Project>

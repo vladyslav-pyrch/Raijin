@@ -1,8 +1,7 @@
 ﻿using System.Reflection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
+using Microsoft.Extensions.Hosting;
 using Quartz;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -18,19 +17,16 @@ namespace Raijin.CombinatoricsService.Infrastructure;
 
 public static class InfrastructureModule
 {
-    private const string CombinatoricsDatabaseConnectionName = "combinatorics-db";
-    private const string CombinatoricsDatabaseConnectionStringKey = "COMBINATORICS_DB_CONNECTION_STRING";
-
     public static Assembly Assembly => typeof(InfrastructureModule).Assembly;
 
-    public static void AddInfrastructure(this IServiceCollection services,
+    public static void AddInfrastructure(this IHostApplicationBuilder builder,
         Action<IServiceCollectionQuartzConfigurator>? quartzConfiguration = null)
     {
-        services.AddMessaging();
-        services.AddPersistence();
-        services.AddSolvers();
-        services.AddQuartz(quartzConfiguration);
-        services.AddConverters();
+        builder.AddPersistence();
+        builder.Services.AddMessaging();
+        builder.Services.AddSolvers();
+        builder.Services.AddQuartz(quartzConfiguration);
+        builder.Services.AddConverters();
     }
 
     public static void AddConverters(this IServiceCollection services)
@@ -43,17 +39,11 @@ public static class InfrastructureModule
         services.AddScoped<IMediator, ServiceProviderMediator>();
     }
 
-    public static void AddPersistence(this IServiceCollection services)
+    public static void AddPersistence(this IHostApplicationBuilder builder)
     {
-        services.AddDbContextPool<CombinatoricsServiceDbContext>((provider, builder) =>
-        {
-            NpgsqlDataSource dataSource = new NpgsqlDataSourceBuilder(GetDatabaseConnectionString(provider))
-                .Build();
-
-            builder.UseNpgsql(dataSource, optionsBuilder => optionsBuilder.MigrationsAssembly(Assembly));
-        });
-        services.AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>();
-        services.AddScoped<IProblemRepository, ProblemRepository>();
+        builder.AddAzureNpgsqlDbContext<CombinatoricsServiceDbContext>("raijin-comb-db", settings => settings.DisableRetry = true);
+        builder.Services.AddScoped<IUnitOfWork, CombinatoricsServiceUnitOfWork>();
+        builder.Services.AddScoped<IProblemRepository, ProblemRepository>();
     }
 
     private static void AddSolvers(this IServiceCollection services)
@@ -62,12 +52,10 @@ public static class InfrastructureModule
             .Configure((CryptominisatSolveOptions options, IConfiguration configuration) =>
             {
                 IConfigurationSection section = configuration.GetSection(CryptominisatSolveOptions.SectionName);
-                if (section[nameof(CryptominisatSolveOptions.FileName)] is { } fileName)
-                    options.FileName = fileName;
+                if (section[nameof(CryptominisatSolveOptions.ExecutableFilePath)] is { } fileName)
+                    options.ExecutableFilePath = fileName;
                 if (int.TryParse(section[nameof(CryptominisatSolveOptions.TimeoutSeconds)], out int timeout))
                     options.TimeoutSeconds = timeout;
-                if (section[nameof(CryptominisatSolveOptions.CnfDirectory)] is { } dir)
-                    options.CnfDirectory = dir;
             });
         services.AddTransient<ICryptominisatCli, CryptominisatCli>();
         services.AddTransient<ISatSolver, CryptominisatSolver>();
@@ -76,23 +64,12 @@ public static class InfrastructureModule
             .Configure((CadicalSolveOptions options, IConfiguration configuration) =>
             {
                 IConfigurationSection section = configuration.GetSection(CadicalSolveOptions.SectionName);
-                if (section[nameof(CadicalSolveOptions.FileName)] is { } fileName)
-                    options.FileName = fileName;
+                if (section[nameof(CadicalSolveOptions.ExecutableFilePath)] is { } fileName)
+                    options.ExecutableFilePath = fileName;
                 if (int.TryParse(section[nameof(CadicalSolveOptions.TimeoutSeconds)], out int timeout))
                     options.TimeoutSeconds = timeout;
-                if (section[nameof(CadicalSolveOptions.CnfDirectory)] is { } dir)
-                    options.CnfDirectory = dir;
             });
         services.AddTransient<ICadicalCli, CadicalCli>();
         services.AddTransient<ISatSolver, CadicalSolver>();
-    }
-
-    private static string GetDatabaseConnectionString(IServiceProvider provider)
-    {
-        IConfiguration configuration = provider.GetRequiredService<IConfiguration>();
-
-        return configuration.GetConnectionString(CombinatoricsDatabaseConnectionName)
-            ?? configuration[CombinatoricsDatabaseConnectionStringKey]
-            ?? throw new InvalidOperationException("Database connection string is not configured.");
     }
 }

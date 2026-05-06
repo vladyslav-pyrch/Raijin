@@ -16,8 +16,6 @@ public sealed class SolvePendingProblemsJob(
     public static readonly JobKey Key = new("solve-pending-problems-job");
     private readonly int _maxJobs = configuration.GetValue<int>("MAX_JOBS_COUNT");
 
-    private readonly int _maxRefire = configuration.GetValue<int>("MAX_REFIRE_COUNT");
-
     private SemaphoreSlim Semaphore
     {
         get
@@ -30,9 +28,6 @@ public sealed class SolvePendingProblemsJob(
 
     public async Task Execute(IJobExecutionContext context)
     {
-        if (context.RefireCount > _maxRefire)
-            return;
-
         bool acquired = await Semaphore.WaitAsync(TimeSpan.Zero, context.CancellationToken);
         if (!acquired)
             return;

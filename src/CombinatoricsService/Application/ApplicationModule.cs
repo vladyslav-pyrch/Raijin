@@ -11,23 +11,29 @@ public static class ApplicationModule
 {
     public static Assembly Assembly => typeof(ApplicationModule).Assembly;
 
-    public static IServiceCollection AddApplication(this IServiceCollection services) => services
-        .AddMessaging()
-        .AddParsers()
-        .AddValidatorsFromAssembly(Assembly);
+    public static void AddApplication(this IServiceCollection services)
+    {
+        services.AddMessaging();
+        services.AddParsers();
+        services.AddValidatorsFromAssembly(Assembly);
+    }
 
-    public static IServiceCollection AddParsers(this IServiceCollection services) => services
-        .AddSingleton<IBoolExprParser, BoolExprParser>();
+    public static void AddParsers(this IServiceCollection services)
+    {
+        services.AddSingleton<IBoolExprParser, BoolExprParser>();
+    }
 
-    private static IServiceCollection AddMessaging(this IServiceCollection services) => services
-        .AddGenericInterfaceImplementations(typeof(IRequestHandler<>))
-        .AddGenericInterfaceImplementations(typeof(IRequestHandler<,>))
-        .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>))
-        .AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>))
-        .AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>))
-        .AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
+    private static void AddMessaging(this IServiceCollection services)
+    {
+        services.AddGenericInterfaceImplementations(typeof(IRequestHandler<>));
+        services.AddGenericInterfaceImplementations(typeof(IRequestHandler<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<>), typeof(LoggingBehavior<>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<>), typeof(ValidationBehavior<>));
+    }
 
-    private static IServiceCollection AddGenericInterfaceImplementations(this IServiceCollection services,
+    private static void AddGenericInterfaceImplementations(this IServiceCollection services,
         Type genericInterfaceType)
     {
         IEnumerable<Type> types = Assembly.GetTypes()
@@ -42,7 +48,5 @@ public static class ApplicationModule
 
             services.AddScoped(genericInterfaceType.MakeGenericType(genericArguments), type);
         }
-
-        return services;
     }
 }
