@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -29,8 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      Azure__SubscriptionId: ${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}
-      Azure__ResourceGroup: ${{ vars.AZURE_RESOURCE_GROUP || secrets.AZURE_RESOURCE_GROUP }}
+      Azure__SubscriptionId: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
     steps:
       - name: Checkout
@@ -49,9 +51,9 @@ jobs:
       - name: Azure login
         uses: azure/login@v2
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID || secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID || secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       - name: Install Aspire CLI
         run: |
@@ -66,5 +68,3 @@ jobs:
           aspire deploy
           --apphost src/AppHost/Raijin.AppHost.csproj
           --environment "${{ env.ASPIRE_ENVIRONMENT }}"
-          --non-interactive
-          --nologo
