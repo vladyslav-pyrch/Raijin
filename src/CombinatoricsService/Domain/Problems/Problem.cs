@@ -36,6 +36,8 @@ public sealed class Problem
     public DateTime UpdatedAt { get; private set; }
 
     public DateTime? CompletedAt { get; private set; }
+    
+    public TimeSpan? ElapsedTime { get; private set; }
 
     public static Problem Create(Guid id, string name, string description, Instance instance)
     {
@@ -68,6 +70,7 @@ public sealed class Problem
         Satisfiability satisfiability,
         IReadOnlyList<int> assignment,
         DateTime? completedAt,
+        TimeSpan? elapsedTime,
         Solution? solution
     ) => new(id, name, description, instance, createdAt)
     {
@@ -78,6 +81,7 @@ public sealed class Problem
         Satisfiability = satisfiability,
         Assignment = assignment,
         CompletedAt = completedAt,
+        ElapsedTime = elapsedTime,
         Solution = solution
     };
 
@@ -146,7 +150,7 @@ public sealed class Problem
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Complete(Satisfiability satisfiability, IReadOnlyList<int> assignment)
+    public void Complete(Satisfiability satisfiability, IReadOnlyList<int> assignment, TimeSpan elapsedTime)
     {
         ArgumentNullException.ThrowIfNull(assignment);
         EnsureActiveStatus("complete");
@@ -159,24 +163,27 @@ public sealed class Problem
         SolvingStatus = SolvingStatus.Completed;
         CompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        ElapsedTime = elapsedTime;
     }
 
-    public void Fail()
+    public void Fail(TimeSpan elapsedTime)
     {
         EnsureActiveStatus("fail");
 
         SolvingStatus = SolvingStatus.Failed;
         CompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        ElapsedTime = elapsedTime;
     }
 
-    public void TimeOut()
+    public void TimeOut(TimeSpan elapsedTime)
     {
         EnsureActiveStatus("time out");
 
         SolvingStatus = SolvingStatus.TimedOut;
         CompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        ElapsedTime = elapsedTime;
     }
 
     private void EnsureActiveStatus(string action)

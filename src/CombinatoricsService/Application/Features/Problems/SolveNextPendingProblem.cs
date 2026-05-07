@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using FluentResults;
 using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Messaging;
@@ -40,14 +41,14 @@ public sealed class SolveNextPendingProblemHandler(
         ISatSolver? satSolver = problem.Solver is not null
             ? _satSolvers.FirstOrDefault(s => s.Name.Equals(problem.Solver, StringComparison.OrdinalIgnoreCase))
             : _satSolvers.FirstOrDefault();
-
+        
         if (satSolver is null)
         {
             logger.LogError(
                 "Problem {ProblemId} specifies solver '{Solver}' which is not registered.",
                 problem.Id,
                 problem.Solver);
-            problem.Fail();
+            problem.Fail(TimeSpan.FromSeconds(0));
             await problemRepository.Update(problem, cancellationToken);
             await unitOfWork.Commit(cancellationToken);
             return Result.Fail($"SAT solver '{problem.Solver}' is not registered.");
@@ -57,30 +58,36 @@ public sealed class SolveNextPendingProblemHandler(
             "Using solver '{Solver}' for problem {ProblemId}.",
             satSolver.Name,
             problem.Id);
-
+        
+        var sw = Stopwatch.StartNew();
+        
         try
         {
             Result<SatSolverResult> solveResult = await satSolver.Solve(problem.SatEncoding!, cancellationToken);
-
+            
+            sw.Stop(); 
+            
             if (solveResult.IsSuccess)
             {
-                problem.Complete(solveResult.Value.Satisfiability, solveResult.Value.Assignment);
+                problem.Complete(solveResult.Value.Satisfiability, solveResult.Value.Assignment, sw.Elapsed);
                 logger.LogInformation("Problem {ProblemId} completed successfully.", problem.Id);
             }
             else if (solveResult.HasError<SolverTimeoutError>())
             {
-                problem.TimeOut();
+                problem.TimeOut(sw.Elapsed);
                 logger.LogWarning("Problem {ProblemId} timed out.", problem.Id);
             }
             else
             {
-                problem.Fail();
+                problem.Fail(sw.Elapsed);
                 logger.LogWarning("Problem {ProblemId} failed: {Errors}", problem.Id, solveResult.Errors);
             }
         }
         catch (Exception ex)
         {
-            problem.Fail();
+            sw.Stop();
+            
+            problem.Fail(sw.Elapsed);
             logger.LogError(ex, "Problem {ProblemId} failed with exception.", problem.Id);
         }
 

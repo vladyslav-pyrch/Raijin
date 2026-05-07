@@ -29,6 +29,8 @@ internal class ProblemModel
     public DateTime UpdatedAt { get; set; }
 
     public DateTime? CompletedAt { get; set; }
+    
+    public TimeSpan? ElapsedTime { get; set; }
 
     public ICollection<ClauseModel> Clauses { get; set; } = [];
 }
