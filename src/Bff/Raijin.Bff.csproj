@@ -8,18 +8,7 @@
     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Yarp" Version="10.5.0" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="wwwroot\assets\Geist-Variable-CrgPqtmy.woff2" />
-    <_ContentIncludedByDefault Remove="wwwroot\assets\GeistMono-Variable-BNLlm6Cd.woff2" />
-    <_ContentIncludedByDefault Remove="wwwroot\assets\index-BNi8W83M.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\assets\index-Dl34Il-T.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\favicon.svg" />
-    <_ContentIncludedByDefault Remove="wwwroot\icons.svg" />
-    <_ContentIncludedByDefault Remove="wwwroot\index.html" />
-    <_ContentIncludedByDefault Remove="wwwroot\staticwebapp.config.json" />
-  </ItemGroup>
-
+  
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -33,9 +22,8 @@
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
 
-    <RemoveDir Directories="wwwroot" />
     <MakeDir Directories="wwwroot" />
-
+    
     <ItemGroup>
       <SpaDistFiles Include="$(SpaDist)**\*" />
     </ItemGroup>

@@ -36,7 +36,8 @@ public sealed record GetProblemResult(
     Satisfiability Satisfiability,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    DateTime? CompletedAt
+    DateTime? CompletedAt,
+    TimeSpan? ElapsedTime
 );
 
 public sealed class GetProblemValidator : AbstractValidator<GetProblemQuery>
