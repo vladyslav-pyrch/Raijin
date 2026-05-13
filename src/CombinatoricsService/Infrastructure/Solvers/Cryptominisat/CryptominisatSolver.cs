@@ -27,7 +27,16 @@ internal sealed class CryptominisatSolver(
             "Starting SAT solving with {VariableCount} variables and {ClauseCount} clauses",
             satEncoding.NumberOfVariables,
             satEncoding.NumberOfClauses);
+        
+        using CancellationTokenSource? timeoutCts = _options.TimeoutSeconds.HasValue
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : null;
 
+        if (timeoutCts is not null)
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds!.Value));
+
+        CancellationToken effectiveToken = timeoutCts?.Token ?? cancellationToken;
+        
         Result<string> filePathResult = await WriteCnfFileAsync(satEncoding, cancellationToken);
         if (filePathResult.IsFailed)
             return Result.Fail<SatSolverResult>(filePathResult.Errors);
@@ -36,18 +45,28 @@ internal sealed class CryptominisatSolver(
 
         try
         {
-            CryptominisatArgumentsBuilder arguments = new CryptominisatArgumentsBuilder().WithVerbosity(0);
-
-            if (_options.TimeoutSeconds.HasValue)
-                arguments = arguments.WithMaxTime(_options.TimeoutSeconds.Value);
+            CryptominisatArgumentsBuilder arguments = new CryptominisatArgumentsBuilder()
+                .WithVerbosity(0);
 
             Result<string> executionResult = await cli.ExecuteAsync(
                 filePath,
                 arguments,
-                cancellationToken);
+                effectiveToken);
 
             if (executionResult.IsFailed)
             {
+                bool wasTimeout = timeoutCts?.IsCancellationRequested == true
+                                  && !cancellationToken.IsCancellationRequested;
+
+                if (wasTimeout)
+                {
+                    logger.LogWarning(
+                        "CaDiCaL timed out after {TimeoutSeconds}s for file: {FilePath}",
+                        _options.TimeoutSeconds,
+                        filePath);
+                    return Result.Fail<SatSolverResult>(new SolverTimeoutError(_options.TimeoutSeconds!.Value));
+                }
+
                 logger.LogWarning("CryptoMiniSat execution failed: {Errors}", executionResult.Errors);
                 return Result.Fail<SatSolverResult>(executionResult.Errors);
             }

@@ -80,26 +80,42 @@ function ColorPickerRow({colorNumber, color, onChange}: ColorPickerRowProps) {
 
 // ─── Boolean assignment table ─────────────────────────────────────────────────
 
+const BOOLEAN_ASSIGNMENT_PAGE_SIZE = 100;
+
 function BoolTable({assignments}: { assignments: { variableName: string; value: boolean }[] }) {
+    const {page, totalPages, pageItems, setPage} = usePagination(assignments, BOOLEAN_ASSIGNMENT_PAGE_SIZE);
+
     return (
-        <table className="w-full text-sm border border-neutral-200 dark:border-neutral-700 rounded-md overflow-hidden">
-            <thead className="table-header">
-            <tr>
-                <th className="text-left px-3 py-2 text-xs font-medium text-neutral-500 dark:text-neutral-400">Variable</th>
-                <th className="text-left px-3 py-2 text-xs font-medium text-neutral-500 dark:text-neutral-400">Value</th>
-            </tr>
-            </thead>
-            <tbody>
-            {assignments.map((a) => (
-                <tr key={a.variableName} className="table-row">
-                    <td className="px-3 py-1.5 font-geist-mono text-xs text-neutral-900 dark:text-neutral-100">{a.variableName}</td>
-                    <td className={`px-3 py-1.5 text-xs font-semibold ${a.value ? 'text-success-500' : 'text-error-500'}`}>
-                        {a.value ? 'true' : 'false'}
-                    </td>
-                </tr>
-            ))}
-            </tbody>
-        </table>
+        <div className="space-y-2 text-xs">
+            <div className="overflow-auto max-h-64 border border-neutral-200 dark:border-neutral-700 rounded-md">
+                <table className="w-full">
+                    <thead className="table-header sticky top-0">
+                    <tr>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-500 dark:text-neutral-400">Variable</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-500 dark:text-neutral-400">Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {pageItems.map((a) => (
+                        <tr key={a.variableName} className="table-row">
+                            <td className="px-3 py-1.5 font-geist-mono text-neutral-900 dark:text-neutral-100">{a.variableName}</td>
+                            <td className={`px-3 py-1.5 font-semibold ${a.value ? 'text-success-500' : 'text-error-500'}`}>
+                                {a.value ? 'true' : 'false'}
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
+            <PaginationBar
+                page={page}
+                totalPages={totalPages}
+                totalItems={assignments.length}
+                pageSize={BOOLEAN_ASSIGNMENT_PAGE_SIZE}
+                onPage={setPage}
+                noun="variables"
+            />
+        </div>
     );
 }
 

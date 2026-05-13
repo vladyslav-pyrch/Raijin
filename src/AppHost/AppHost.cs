@@ -35,9 +35,9 @@ var applicationDbServer = builder
     })
     .RunAsContainer(resourceBuilder =>
     {
-        resourceBuilder.WithLifetime(ContainerLifetime.Session)
+        resourceBuilder.WithLifetime(ContainerLifetime.Persistent)
             .WithImage("postgres:17.6")
-            // .WithDataVolume("raijin-postgres-data")
+            .WithDataVolume("raijin-postgres-data")
             .WithPgWeb();
     });
 
