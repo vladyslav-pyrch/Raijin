@@ -3,7 +3,9 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Messaging.Behaviors;
-using Raijin.CombinatoricsService.Application.Parsing;
+using Raijin.CombinatoricsService.Application.Parsing.DimacsToGraph;
+using Raijin.CombinatoricsService.Application.Parsing.DimacsToSat;
+using Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 
 namespace Raijin.CombinatoricsService.Application;
 
@@ -20,7 +22,9 @@ public static class ApplicationModule
 
     public static void AddParsers(this IServiceCollection services)
     {
-        services.AddSingleton<IBoolExprParser, BoolExprParser>();
+        services.AddSingleton<IStringToBoolExprParser, StringToBoolExprParser>();
+        services.AddSingleton<IDimacsToGraphParser, DimacsToGraphParser>();
+        services.AddSingleton<IDimacsToSatParser, DimacsToSatParser>();
     }
 
     private static void AddMessaging(this IServiceCollection services)

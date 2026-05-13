@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Raijin.CombinatoricsService.Application.Features.Problems;
+using Raijin.CombinatoricsService.Application.Parsing.DimacsToSat;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
 using Raijin.CombinatoricsService.Infrastructure.Converters;
@@ -8,7 +9,7 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence.Models;
 
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Repositories;
 
-public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExprJsonConverter boolExprJsonConverter) : IProblemRepository
+public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExprJsonConverter boolExprJsonConverter, DimacsToSatParser dimacsToSatParser) : IProblemRepository
 {
     private JsonSerializerOptions JsonSerializerOptions => new(JsonSerializerDefaults.General)
     {
@@ -43,15 +44,25 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
             p.CompletedAt))
         .FirstOrDefaultAsync(cancellationToken);
 
-    public Task<GetSatEncodingResult?> GetSatEncodingByProblemId(Guid id, CancellationToken cancellationToken) => dbContext.Problems
-        .AsNoTracking()
-        .Where(p => p.Id == id)
-        .Select(p => p.Clauses) // Get the clauses of the SAT encoding
-        .Select(clauses => new GetSatEncodingResult(
-            clauses.SelectMany(c => c.Literals).DefaultIfEmpty().Max(), // Number of variables is the max variable index in the clauses
-            clauses.Count,
-            clauses.Select(c => (IReadOnlyList<int>)c.Literals.ToList()).ToList()))
-        .FirstOrDefaultAsync(cancellationToken);
+    public async Task<GetSatEncodingResult?> GetSatEncodingByProblemId(Guid id, CancellationToken cancellationToken)
+    {
+        string? dimacsEncoding = await dbContext.Problems
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => p.DimacsEncoding) // Get the clauses of the SAT encoding
+            .FirstOrDefaultAsync(cancellationToken);
+        
+        if (dimacsEncoding is null)
+            return null;
+        
+        IEnumerable<IEnumerable<int>> clauses = dimacsToSatParser.ParseForSatEncoding(dimacsEncoding).ToArray();
+
+        return new GetSatEncodingResult(
+            clauses.SelectMany(c => c).DefaultIfEmpty().Max(), // Number of variables is the max variable index in the clauses
+            clauses.Count(),
+            clauses.Select(c => c.ToList()).ToList()
+        );
+    }
 
     public Task Add(Problem problem, CancellationToken cancellationToken)
     {
@@ -78,11 +89,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         existingModel.Assignment = problem.Assignment.ToArray();
         existingModel.UpdatedAt = problem.UpdatedAt;
         existingModel.CompletedAt = problem.CompletedAt;
-
-        if (problem.SatEncoding is null)
-            existingModel.Clauses.Clear();
-        else
-            existingModel.Clauses = ToClausesModel(problem.SatEncoding, problem.Id);
+        existingModel.DimacsEncoding = problem.SatEncoding?.ToDimacs();
     }
 
     public async Task<ListProblemsResult> ListProblems(int page, int pageSize, CancellationToken cancellationToken)
@@ -140,16 +147,8 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         CreatedAt = problem.CreatedAt,
         UpdatedAt = problem.UpdatedAt,
         CompletedAt = problem.CompletedAt,
-        Clauses = problem.SatEncoding is null ? [] : ToClausesModel(problem.SatEncoding, problem.Id)
+        DimacsEncoding = problem.SatEncoding?.ToDimacs()
     };
-
-    private static ICollection<ClauseModel> ToClausesModel(SatEncoding encoding, Guid problemId) => encoding.Clauses
-        .Select(clause => new ClauseModel
-        {
-            ProblemId = problemId,
-            Literals = clause.ToArray()
-        })
-        .ToList();
 
     private Problem ToDomain(ProblemModel model) => Problem.Rehydrate(
         model.Id,
@@ -160,7 +159,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         model.Solver,
         model.Instance.Deserialize<Instance>(JsonSerializerOptions) ??
         throw new InvalidOperationException($"Failed to deserialize instance for problem {model.Id}."),
-        model.Clauses.Count == 0 ? null : SatEncoding.Rehydrate(model.Clauses.Select(IEnumerable<int> (c) => c.Literals)),
+        model.DimacsEncoding is null ? null : SatEncoding.Rehydrate(dimacsToSatParser.ParseForSatEncoding(model.DimacsEncoding)),
         Enum.Parse<SolvingStatus>(model.SolvingStatus),
         Enum.Parse<Satisfiability>(model.Satisfiability),
         model.Assignment,

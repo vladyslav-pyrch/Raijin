@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentResults;
-using Raijin.CombinatoricsService.Application.Parsing;
+using Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
 namespace Raijin.CombinatoricsService.Infrastructure.Converters;
 
-public sealed class BoolExprJsonConverter(IBoolExprParser parser)
+public sealed class BoolExprJsonConverter(IStringToBoolExprParser parser)
     : JsonConverter<BoolExpr>
 {
     public override BoolExpr Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

@@ -10,14 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <_ContentIncludedByDefault Remove="wwwroot\assets\Geist-Variable-CrgPqtmy.woff2" />
-    <_ContentIncludedByDefault Remove="wwwroot\assets\GeistMono-Variable-BNLlm6Cd.woff2" />
-    <_ContentIncludedByDefault Remove="wwwroot\assets\index-BNi8W83M.js" />
-    <_ContentIncludedByDefault Remove="wwwroot\assets\index-Dl34Il-T.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\favicon.svg" />
-    <_ContentIncludedByDefault Remove="wwwroot\icons.svg" />
-    <_ContentIncludedByDefault Remove="wwwroot\index.html" />
-    <_ContentIncludedByDefault Remove="wwwroot\staticwebapp.config.json" />
+    <Content Remove="wwwroot\**" />
+    <_ContentIncludedByDefault Remove="wwwroot\**" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -43,6 +37,11 @@
     <Copy
       SourceFiles="@(SpaDistFiles)"
       DestinationFiles="@(SpaDistFiles->'wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <ItemGroup>
+      <GeneratedSpaAssets Include="wwwroot\**\*" />
+      <Content Include="@(GeneratedSpaAssets)" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
   </Target>
 
 </Project>

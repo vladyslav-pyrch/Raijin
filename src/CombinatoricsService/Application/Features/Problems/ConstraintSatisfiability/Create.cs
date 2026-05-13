@@ -2,7 +2,7 @@ using FluentResults;
 using FluentValidation;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
-using Raijin.CombinatoricsService.Application.Parsing;
+using Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -11,7 +11,7 @@ using Raijin.CombinatoricsService.Domain.Problems.ConstraintSatisfiability;
 namespace Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
 
 public sealed class CreateCspProblemHandler(
-    IBoolExprParser parser,
+    IStringToBoolExprParser parser,
     IProblemRepository problemRepository,
     IUnitOfWork unitOfWork
 ) : IRequestHandler<CreateCspProblemCommand, CreateCspProblemResult>

@@ -1,58 +1,49 @@
 using FluentResults;
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
-namespace Raijin.CombinatoricsService.Application.Parsing;
+namespace Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 
-/// <summary>
-///     Parses a Boolean expression string into an immutable <see cref="BoolExpr" /> AST
-///     using the Shunting-Yard algorithm.
-/// </summary>
-public sealed class BoolExprParser : IBoolExprParser
+public sealed class StringToBoolExprParser : IStringToBoolExprParser
 {
-    private static readonly Dictionary<TokenType, int> Precedences = new()
+    private static readonly Dictionary<BoolTokenType, int> Precedences = new()
     {
         {
-            TokenType.Not, 5
+            BoolTokenType.Not, 5 },
+        {
+            BoolTokenType.And, 4
         },
         {
-            TokenType.And, 4
+            BoolTokenType.Or, 3
         },
         {
-            TokenType.Or, 3
+            BoolTokenType.Xor, 2
         },
         {
-            TokenType.Xor, 2
+            BoolTokenType.Implication, 1
         },
         {
-            TokenType.Implication, 1
+            BoolTokenType.ImplicationBackward, 1
         },
         {
-            TokenType.ImplicationBackward, 1
-        },
-        {
-            TokenType.Equivalence, 0
+            BoolTokenType.Equivalence, 0
         }
     };
 
-    private static readonly HashSet<TokenType> RightAssociativeOperators =
+    private static readonly HashSet<BoolTokenType> RightAssociativeOperators =
     [
-        TokenType.Not,
-        TokenType.Implication,
-        TokenType.ImplicationBackward
+        BoolTokenType.Not,
+        BoolTokenType.Implication,
+        BoolTokenType.ImplicationBackward
     ];
 
-    /// <inheritdoc />
     public Result<BoolExpr> Parse(string expression)
     {
         if (string.IsNullOrWhiteSpace(expression))
             return Result.Fail(new Error("The expression is empty"));
 
-        List<Token> tokenList = BoolExprLexer.Tokenize(expression).ToList();
-
-        // Aggregate ALL unknown token errors before any structural parsing
-        List<IError> unknownErrors = tokenList
-            .Where(t => t.Type == TokenType.Unknown)
-            .Select(t => (IError)new Error($"Problem at {t.Index}. Unknown token '{t.Value}'"))
+        List<BoolToken> tokenList = StringToBoolExprLexer.Tokenize(expression).ToList();
+        IEnumerable<BoolToken> unknownTokens = tokenList.Where(t => t.Type == BoolTokenType.Unknown);
+        List<IError> unknownErrors = unknownTokens.Select(IError (t) => new Error($"Problem at {t.Index}. Unknown token '{t.Value}'"))
             .ToList();
 
         if (unknownErrors.Count > 0)
@@ -66,13 +57,13 @@ public sealed class BoolExprParser : IBoolExprParser
         return postfixResult.Value.ToExpression();
     }
 
-    private static bool IsOperator(Token token) => Precedences.ContainsKey(token.Type);
+    private static bool IsOperator(BoolToken boolToken) => Precedences.ContainsKey(boolToken.Type);
 
-    private static bool IsRightAssociative(TokenType type) => RightAssociativeOperators.Contains(type);
+    private static bool IsRightAssociative(BoolTokenType type) => RightAssociativeOperators.Contains(type);
 
-    private static bool IsLeftAssociative(TokenType type) => !IsRightAssociative(type);
+    private static bool IsLeftAssociative(BoolTokenType type) => !IsRightAssociative(type);
 
-    private sealed class Tokens(List<Token> tokens)
+    private sealed class Tokens(List<BoolToken> tokens)
     {
         private int _position;
 
@@ -80,67 +71,67 @@ public sealed class BoolExprParser : IBoolExprParser
 
         public Result<PostfixTokens> ShuntingYard()
         {
-            List<Token> postfix = [];
-            Stack<Token> stack = [];
+            List<BoolToken> postfix = [];
+            Stack<BoolToken> stack = [];
 
             while (HasMore)
             {
-                Token? previous = PreviousToken();
-                Token? next = NextToken();
-                Token token = PopToken()!;
+                BoolToken? previous = PreviousToken();
+                BoolToken? next = NextToken();
+                BoolToken boolToken = PopToken()!;
 
-                if (token is { Type: TokenType.Not } &&
+                if (boolToken is { Type: BoolTokenType.Not } &&
                     next is null or
-                        { Type: not TokenType.Variable and not TokenType.LeftBracket and not TokenType.Not })
+                        { Type: not BoolTokenType.Variable and not BoolTokenType.LeftBracket and not BoolTokenType.Not })
                     return Result.Fail(new Error(
-                        $"Problem at {token.Index}. 'not' (~ or !) operator must be followed by a variable, a left parenthesis, or another 'not' operator"
+                        $"Problem at {boolToken.Index}. 'not' (~ or !) operator must be followed by a variable, a left parenthesis, or another 'not' operator"
                     ));
 
-                if (previous != null && IsOperator(previous) && IsOperator(token) && token.Type != TokenType.Not)
-                    return Result.Fail(new Error($"Problem at {token.Index}. Two operators in a row"));
+                if (previous != null && IsOperator(previous) && IsOperator(boolToken) && boolToken.Type != BoolTokenType.Not)
+                    return Result.Fail(new Error($"Problem at {boolToken.Index}. Two operators in a row"));
 
-                switch (token.Type)
+                switch (boolToken.Type)
                 {
-                    case TokenType.Variable or TokenType.True or TokenType.False:
+                    case BoolTokenType.Variable or BoolTokenType.True or BoolTokenType.False:
                     {
-                        postfix.Add(token);
+                        postfix.Add(boolToken);
                         break;
                     }
-                    case TokenType.LeftBracket:
+                    case BoolTokenType.LeftBracket:
                     {
-                        stack.Push(token);
+                        stack.Push(boolToken);
                         break;
                     }
-                    case TokenType.RightBracket:
+                    case BoolTokenType.RightBracket:
                     {
-                        while (stack.Count > 0 && stack.Peek() is { Type: not TokenType.LeftBracket })
+                        while (stack.Count > 0 && stack.Peek() is { Type: not BoolTokenType.LeftBracket })
                             postfix.Add(stack.Pop());
 
-                        if (stack.Count == 0 || stack.Peek() is { Type: not TokenType.LeftBracket })
-                            return Result.Fail(new Error($"Problem at {token.Index}. Mismatched parentheses"));
+                        if (stack.Count == 0 || stack.Peek() is { Type: not BoolTokenType.LeftBracket })
+                            return Result.Fail(new Error($"Problem at {boolToken.Index}. Mismatched parentheses"));
                         stack.Pop();
                         break;
                     }
-                    case TokenType.And or TokenType.Or or TokenType.Not or TokenType.Implication
-                        or TokenType.ImplicationBackward or TokenType.Equivalence or TokenType.Xor:
+                    case BoolTokenType.And or BoolTokenType.Or or BoolTokenType.Not or BoolTokenType.Implication
+                        or BoolTokenType.ImplicationBackward or BoolTokenType.Equivalence or BoolTokenType.Xor:
                     {
                         while (stack.Count > 0 && IsOperator(stack.Peek()) &&
-                               (IsLeftAssociative(token.Type) &&
-                                Precedences[token.Type] <= Precedences[stack.Peek().Type] ||
-                                IsRightAssociative(token.Type) &&
-                                Precedences[token.Type] < Precedences[stack.Peek().Type]))
+                               (IsLeftAssociative(boolToken.Type) &&
+                                Precedences[boolToken.Type] <= Precedences[stack.Peek().Type] ||
+                                IsRightAssociative(boolToken.Type) &&
+                                Precedences[boolToken.Type] < Precedences[stack.Peek().Type]))
                             postfix.Add(stack.Pop());
-                        stack.Push(token);
+                        stack.Push(boolToken);
                         break;
                     }
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(token), $"Unexpected token type {token.Type}");
+                        throw new ArgumentOutOfRangeException(nameof(boolToken), $"Unexpected token type {boolToken.Type}");
                 }
             }
 
             while (stack.Count > 0)
             {
-                if (stack.Peek() is { Type: TokenType.LeftBracket or TokenType.RightBracket })
+                if (stack.Peek() is { Type: BoolTokenType.LeftBracket or BoolTokenType.RightBracket })
                     return Result.Fail(new Error($"Problem at {stack.Peek().Index}. Mismatched parentheses"));
                 postfix.Add(stack.Pop());
             }
@@ -148,97 +139,97 @@ public sealed class BoolExprParser : IBoolExprParser
             return Result.Ok(new PostfixTokens(postfix));
         }
 
-        private Token? PopToken() => _position < tokens.Count ? tokens[_position++] : null;
+        private BoolToken? PopToken() => _position < tokens.Count ? tokens[_position++] : null;
 
-        private Token? PreviousToken() => _position > 0 ? tokens[_position - 1] : null;
+        private BoolToken? PreviousToken() => _position > 0 ? tokens[_position - 1] : null;
 
-        private Token? NextToken() => _position < tokens.Count - 1 ? tokens[_position + 1] : null;
+        private BoolToken? NextToken() => _position < tokens.Count - 1 ? tokens[_position + 1] : null;
     }
 
-    private sealed class PostfixTokens(List<Token> tokens)
+    private sealed class PostfixTokens(List<BoolToken> tokens)
     {
         public Result<BoolExpr> ToExpression()
         {
             var stack = new Stack<BoolExpr>();
-            foreach (Token token in tokens)
+            foreach (BoolToken token in tokens)
                 switch (token.Type)
                 {
-                    case TokenType.True:
+                    case BoolTokenType.True:
                         stack.Push(new ConstExpr(true));
                         break;
-                    case TokenType.False:
+                    case BoolTokenType.False:
                         stack.Push(new ConstExpr(false));
                         break;
-                    case TokenType.Variable:
+                    case BoolTokenType.Variable:
                         stack.Push(new BoolVar(token.Value));
                         break;
-                    case TokenType.Not when stack.Count < 1:
+                    case BoolTokenType.Not when stack.Count < 1:
                         return Result.Fail(new Error(
                             $"Problem at {token.Index}. Not enough operands for 'not' (! or ~) operator"));
-                    case TokenType.Not:
+                    case BoolTokenType.Not:
                         stack.Push(new Not(stack.Pop()));
                         break;
-                    case TokenType.And when stack.Count < 2:
+                    case BoolTokenType.And when stack.Count < 2:
                         return Result.Fail(new Error(
                             $"Problem at {token.Index}. Not enough operands for 'and' (& or *) operator"));
-                    case TokenType.And:
+                    case BoolTokenType.And:
                     {
                         BoolExpr right = stack.Pop();
                         BoolExpr left = stack.Pop();
                         stack.Push(new And(left, right));
                         break;
                     }
-                    case TokenType.Or when stack.Count < 2:
+                    case BoolTokenType.Or when stack.Count < 2:
                         return Result.Fail(new Error(
                             $"Problem at {token.Index}. Not enough operands for 'or' (| or +) operator"));
-                    case TokenType.Or:
+                    case BoolTokenType.Or:
                     {
                         BoolExpr right = stack.Pop();
                         BoolExpr left = stack.Pop();
                         stack.Push(new Or(left, right));
                         break;
                     }
-                    case TokenType.Xor when stack.Count < 2:
+                    case BoolTokenType.Xor when stack.Count < 2:
                         return Result.Fail(new Error(
                             $"Problem at {token.Index}. Not enough operands for 'xor' (^) operator"));
-                    case TokenType.Xor:
+                    case BoolTokenType.Xor:
                     {
                         BoolExpr right = stack.Pop();
                         BoolExpr left = stack.Pop();
                         stack.Push(new Xor(left, right));
                         break;
                     }
-                    case TokenType.Implication when stack.Count < 2:
+                    case BoolTokenType.Implication when stack.Count < 2:
                         return Result.Fail(new Error(
                             $"Problem at {token.Index}. Not enough operands for 'implication' (=> or ->) operator"));
-                    case TokenType.Implication:
+                    case BoolTokenType.Implication:
                     {
                         BoolExpr right = stack.Pop();
                         BoolExpr left = stack.Pop();
                         stack.Push(new Imply(left, right));
                         break;
                     }
-                    case TokenType.ImplicationBackward when stack.Count < 2:
+                    case BoolTokenType.ImplicationBackward when stack.Count < 2:
                         return Result.Fail(new Error(
                             $"Problem at {token.Index}. Not enough operands for 'implication_backward' (<= or <-) operator"));
-                    case TokenType.ImplicationBackward:
+                    case BoolTokenType.ImplicationBackward:
                     {
                         BoolExpr right = stack.Pop();
                         BoolExpr left = stack.Pop();
                         stack.Push(new Imply(right, left));
                         break;
                     }
-                    case TokenType.Equivalence when stack.Count < 2:
+                    case BoolTokenType.Equivalence when stack.Count < 2:
                         return Result.Fail(new Error(
                             $"Problem at {token.Index}. Not enough operands for 'equivalence' (<->, <=>, or =) operator"));
-                    case TokenType.Equivalence:
+                    case BoolTokenType.Equivalence:
                     {
                         BoolExpr right = stack.Pop();
                         BoolExpr left = stack.Pop();
                         stack.Push(new Equal(left, right));
                         break;
                     }
-                    case TokenType.LeftBracket or TokenType.RightBracket or TokenType.Unknown:
+                    case BoolTokenType.LeftBracket or BoolTokenType.RightBracket or BoolTokenType.Unknown:
                     default:
                         throw new ArgumentOutOfRangeException(nameof(token), $"Unexpected token type {token.Type}");
                 }

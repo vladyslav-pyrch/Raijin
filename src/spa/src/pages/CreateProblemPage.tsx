@@ -9,11 +9,11 @@ import {CspInstanceForm} from '../components/forms/CspInstanceForm';
 import {ErrorStack, useErrorStack} from '../components/ErrorStack';
 import type {AnyInstanceData} from '../hooks/useInstance';
 import type {
-  BooleanProblemInstanceDto,
-  CspInstanceDto,
-  EdgeColoringInstanceDto,
-  SatInstanceDto,
-  VertexColoringInstanceDto,
+    BooleanProblemInstanceDto,
+    CspInstanceDto,
+    EdgeColoringInstanceDto,
+    SatInstanceDto,
+    VertexColoringInstanceDto,
 } from '../services/combinatorics';
 
 // ─── Fork prefill (passed via router state) ───────────────────────────────────
@@ -99,6 +99,17 @@ export function CreateProblemPage({onProblemChanged}: CreateProblemPageProps) {
         });
     };
 
+    const handleSatDimacsSubmit = async (file: File) => {
+        await wrap(async () => {
+            const res = await api.createSatProblemFromDimacs({
+                name: name.trim(),
+                description: description || null,
+                file,
+            });
+            return res.problemId;
+        });
+    };
+
     const handleCspSubmit = async (instance: CspInstanceDto) => {
         await wrap(async () => {
             const res = await api.createCspProblem({
@@ -124,6 +135,21 @@ export function CreateProblemPage({onProblemChanged}: CreateProblemPageProps) {
         });
     };
 
+    const handleVertexColoringDimacsSubmit = async (inst: {
+        file: File;
+        colorCount: number;
+    }) => {
+        await wrap(async () => {
+            const res = await api.createVertexColoringProblemFromDimacs({
+                name: name.trim(),
+                description: description || null,
+                file: inst.file,
+                colorCount: inst.colorCount,
+            });
+            return res.problemId;
+        });
+    };
+
     const handleEdgeColoringSubmit = async (inst: {
         graph: import('../services/combinatorics').GraphDto;
         colorCount: number
@@ -133,6 +159,21 @@ export function CreateProblemPage({onProblemChanged}: CreateProblemPageProps) {
                 name: name.trim(),
                 description: description || null,
                 instance: inst,
+            });
+            return res.problemId;
+        });
+    };
+
+    const handleEdgeColoringDimacsSubmit = async (inst: {
+        file: File;
+        colorCount: number;
+    }) => {
+        await wrap(async () => {
+            const res = await api.createEdgeColoringProblemFromDimacs({
+                name: name.trim(),
+                description: description || null,
+                file: inst.file,
+                colorCount: inst.colorCount,
             });
             return res.problemId;
         });
@@ -191,6 +232,7 @@ export function CreateProblemPage({onProblemChanged}: CreateProblemPageProps) {
                     <SatInstanceForm
                         loading={loading}
                         onSubmit={handleSatSubmit}
+                        onDimacsSubmit={handleSatDimacsSubmit}
                         {...(prefillProps as { initialText?: string })}
                     />
                 );
@@ -207,6 +249,7 @@ export function CreateProblemPage({onProblemChanged}: CreateProblemPageProps) {
                     <GraphEditorForm
                         loading={loading}
                         onSubmit={handleVertexColoringSubmit}
+                        onDimacsSubmit={handleVertexColoringDimacsSubmit}
                         {...(prefillProps as object)}
                     />
                 );
@@ -215,6 +258,7 @@ export function CreateProblemPage({onProblemChanged}: CreateProblemPageProps) {
                     <GraphEditorForm
                         loading={loading}
                         onSubmit={handleEdgeColoringSubmit}
+                        onDimacsSubmit={handleEdgeColoringDimacsSubmit}
                         {...(prefillProps as object)}
                     />
                 );

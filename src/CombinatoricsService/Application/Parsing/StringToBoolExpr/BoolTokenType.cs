@@ -1,6 +1,6 @@
-namespace Raijin.CombinatoricsService.Application.Parsing;
+namespace Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 
-internal enum TokenType
+internal enum BoolTokenType
 {
     True,
     False,

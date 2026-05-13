@@ -132,8 +132,12 @@ export function HelpPage() {
                 {/* SAT */}
                 <Section title="Problem Type: Boolean Satisfiability (SAT)">
                     <p className="mb-2 text-neutral-500 dark:text-neutral-400">
-                        Input in <strong>DIMACS-like text format</strong>: one clause per line, literals
-                        separated by spaces. Negate a literal with <Code>~</Code> prefix.
+                        Input SAT clauses manually, or switch to <strong>File</strong> mode and upload a
+                        DIMACS CNF file with <Code>.cnf</Code> extension.
+                    </p>
+                    <p className="mb-2 text-neutral-500 dark:text-neutral-400">
+                        Manual input uses one clause per line, literals separated by spaces. Negate a literal
+                        with <Code>~</Code> prefix.
                     </p>
                     <p className="text-xs mb-1 text-neutral-500 dark:text-neutral-400">Example:</p>
                     <Pre>{'x1 ~x2 x3\n~x1 x4\nx2 ~x3'}</Pre>
@@ -169,7 +173,9 @@ export function HelpPage() {
                 {/* Graph coloring */}
                 <Section title="Problem Types: Vertex Coloring &amp; Edge Coloring">
                     <p className="mb-2 text-neutral-500 dark:text-neutral-400">
-                        Both types use the interactive graph editor:
+                        Both types support the interactive graph editor, or <strong>File</strong> mode with
+                        a DIMACS graph file using <Code>.col</Code> extension. File mode still requires
+                        a color count.
                     </p>
                     <ul className="list-disc list-inside space-y-1 text-xs mb-3 text-neutral-500 dark:text-neutral-400">
                         <li>

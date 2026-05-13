@@ -30,5 +30,5 @@ internal class ProblemModel
 
     public DateTime? CompletedAt { get; set; }
 
-    public ICollection<ClauseModel> Clauses { get; set; } = [];
+    public string? DimacsEncoding { get; set; }
 }
