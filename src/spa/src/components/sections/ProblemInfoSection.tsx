@@ -19,6 +19,56 @@ function fmt(dateStr: string | null | undefined) {
     return new Date(dateStr).toLocaleString();
 }
 
+function fmtTimeSpan(timeSpan: string | null | undefined) {
+    if (!timeSpan) return <span className="text-neutral-400 dark:text-neutral-500">—</span>;
+    
+    const negative = timeSpan.startsWith("-");
+    const raw = negative ? timeSpan.slice(1) : timeSpan;
+
+    // Split off days if present (contains a '.' before the first ':')
+    let days = 0;
+    let timePart = raw;
+
+    const dotIndex = raw.indexOf(".");
+    const colonIndex = raw.indexOf(":");
+
+    if (dotIndex !== -1 && (colonIndex === -1 || dotIndex < colonIndex)) {
+        days = parseInt(raw.slice(0, dotIndex), 10);
+        timePart = raw.slice(dotIndex + 1);
+    }
+
+    // timePart is now hh:mm:ss[.fffffff]
+    const [hhmmss, fracStr = "0"] = timePart.split(".");
+    const [hh, mm, ss] = hhmmss!.split(":").map(Number);
+
+    // C# ticks = 100ns, 7 digits. Pad/truncate to 7 digits then take first 3 for ms
+    const fracPadded = fracStr.padEnd(7, "0").slice(0, 7);
+    const ms = Math.round(parseInt(fracPadded, 10) / 10_000); // ticks → ms
+
+    type Unit = { value: number; label: string };
+
+    const units: Unit[] = [
+        { value: days, label: "d" },
+        { value: hh!,   label: "h" },
+        { value: mm!,   label: "m" },
+        { value: ss!,   label: "s" },
+        { value: ms,   label: "ms" },
+    ];
+
+    // Trim leading and trailing zero units, keep everything in between
+    const firstNonZero = units.findIndex((u) => u.value !== 0);
+    const lastNonZero  = units.findLastIndex((u) => u.value !== 0);
+
+    if (firstNonZero === -1) return "0ms";
+
+    const formatted = units
+        .slice(firstNonZero, lastNonZero + 1)
+        .map((u) => `${u.value}${u.label}`)
+        .join(" ");
+
+    return negative ? `-${formatted}` : formatted;
+}
+
 interface ProblemInfoSectionProps {
     problem: GetProblemResponse;
 }
@@ -51,6 +101,7 @@ export function ProblemInfoSection({problem}: ProblemInfoSectionProps) {
                 <Row label="Created">{fmt(problem.createdAt)}</Row>
                 <Row label="Updated">{fmt(problem.updatedAt)}</Row>
                 <Row label="Completed">{fmt(problem.completedAt)}</Row>
+                <Row label="Duration">{fmtTimeSpan(problem.elapsedTime)}</Row>
             </div>
         </section>
     );

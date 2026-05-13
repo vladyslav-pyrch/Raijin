@@ -35,6 +35,7 @@ export interface GetProblemResponse {
     createdAt: string;
     updatedAt: string;
     completedAt: string | null;
+    elapsedTime: string | null;
 }
 
 export interface ProblemSummaryResponse {

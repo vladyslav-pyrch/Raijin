@@ -29,7 +29,7 @@
 
     <RemoveDir Directories="wwwroot" />
     <MakeDir Directories="wwwroot" />
-
+    
     <ItemGroup>
       <SpaDistFiles Include="$(SpaDist)**\*" />
     </ItemGroup>

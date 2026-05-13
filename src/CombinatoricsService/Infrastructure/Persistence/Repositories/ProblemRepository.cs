@@ -41,7 +41,8 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
             Enum.Parse<Satisfiability>(p.Satisfiability),
             p.CreatedAt,
             p.UpdatedAt,
-            p.CompletedAt))
+            p.CompletedAt,
+            p.ElapsedTime))
         .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<GetSatEncodingResult?> GetSatEncodingByProblemId(Guid id, CancellationToken cancellationToken)
@@ -89,6 +90,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         existingModel.Assignment = problem.Assignment.ToArray();
         existingModel.UpdatedAt = problem.UpdatedAt;
         existingModel.CompletedAt = problem.CompletedAt;
+        existingModel.ElapsedTime = problem.ElapsedTime;
         existingModel.DimacsEncoding = problem.SatEncoding?.ToDimacs();
     }
 
@@ -147,6 +149,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         CreatedAt = problem.CreatedAt,
         UpdatedAt = problem.UpdatedAt,
         CompletedAt = problem.CompletedAt,
+        ElapsedTime = problem.ElapsedTime,
         DimacsEncoding = problem.SatEncoding?.ToDimacs()
     };
 
@@ -164,6 +167,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         Enum.Parse<Satisfiability>(model.Satisfiability),
         model.Assignment,
         model.CompletedAt,
+        model.ElapsedTime,
         model.Solution?.Deserialize<Solution>()
     );
 }

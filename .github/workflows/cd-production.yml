@@ -26,6 +26,7 @@ env:
   Azure__SubscriptionId: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   Azure__Location: westeurope
   Azure__ResourceGroup: raijin-prod
+  RAIJIN_COMB_MIGRATE_CONTAINERAPP: raijin-comb-migrate
 
 jobs:
   deploy:
@@ -69,3 +70,9 @@ jobs:
           aspire deploy
           --apphost src/AppHost/Raijin.AppHost.csproj
           --environment "${{ env.ASPIRE_ENVIRONMENT }}"
+
+      - name: Run migration job
+        run: >
+          az containerapp job start \
+                --name "${{ env.RAIJIN_COMB_MIGRATE_CONTAINERAPP }}" \
+                --resource-group "${{ env.Azure__ResourceGroup }}"

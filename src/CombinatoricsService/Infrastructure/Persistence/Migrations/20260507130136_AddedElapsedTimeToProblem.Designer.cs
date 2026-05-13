@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Raijin.CombinatoricsService.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using Raijin.CombinatoricsService.Infrastructure.Persistence;
 namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CombinatoricsServiceDbContext))]
-    partial class CombinatoricsServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507130136_AddedElapsedTimeToProblem")]
+    partial class AddedElapsedTimeToProblem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,9 +46,6 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(5000)
                         .HasColumnType("character varying(5000)");
-
-                    b.Property<string>("DimacsEncoding")
-                        .HasColumnType("text");
 
                     b.Property<TimeSpan?>("ElapsedTime")
                         .HasColumnType("interval");
@@ -87,6 +87,34 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Problems");
+                });
+
+            modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ProblemModel", b =>
+                {
+                    b.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ClauseModel", "Clauses", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid");
+
+                            b1.PrimitiveCollection<int[]>("Literals")
+                                .IsRequired()
+                                .HasColumnType("integer[]");
+
+                            b1.Property<Guid>("ProblemId")
+                                .HasColumnType("uuid");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("ProblemId");
+
+                            b1.ToTable("Clauses", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProblemId");
+                        });
+
+                    b.Navigation("Clauses");
                 });
 #pragma warning restore 612, 618
         }
