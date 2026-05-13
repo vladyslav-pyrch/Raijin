@@ -21,17 +21,94 @@ internal static class TseitinTransform
     private static Literal Transform(
         BoolExpr node,
         List<Clause> clauses,
-        Dictionary<BoolVar, SatVariable> symbolTable) =>
+        Dictionary<BoolVar, SatVariable> symbolTable)
+    {
+        Dictionary<BoolExpr, Literal> results = new(ReferenceEqualityComparer.Instance);
+        Stack<TransformFrame> stack = [];
+
+        stack.Push(new TransformFrame(node, false));
+
+        while (stack.Count > 0)
+        {
+            TransformFrame frame = stack.Pop();
+
+            if (results.ContainsKey(frame.Node))
+                continue;
+
+            if (frame.ChildrenTransformed)
+            {
+                results[frame.Node] = TransformComposite(frame.Node, clauses, results);
+                continue;
+            }
+
+            switch (frame.Node)
+            {
+                case BoolVar v:
+                    results[frame.Node] = TransformVariable(v, symbolTable);
+                    break;
+                case ConstExpr c:
+                    results[frame.Node] = TransformConst(c, clauses);
+                    break;
+                case Not n:
+                    stack.Push(new TransformFrame(n, true));
+                    PushIfMissing(n.Node, stack, results);
+                    break;
+                case And a:
+                    stack.Push(new TransformFrame(a, true));
+                    PushIfMissing(a.RightNode, stack, results);
+                    PushIfMissing(a.LeftNode, stack, results);
+                    break;
+                case Or o:
+                    stack.Push(new TransformFrame(o, true));
+                    PushIfMissing(o.RightNode, stack, results);
+                    PushIfMissing(o.LeftNode, stack, results);
+                    break;
+                case Imply i:
+                    stack.Push(new TransformFrame(i, true));
+                    PushIfMissing(i.Conclusion, stack, results);
+                    PushIfMissing(i.Premise, stack, results);
+                    break;
+                case Xor x:
+                    stack.Push(new TransformFrame(x, true));
+                    PushIfMissing(x.RightNode, stack, results);
+                    PushIfMissing(x.LeftNode, stack, results);
+                    break;
+                case Equal e:
+                    stack.Push(new TransformFrame(e, true));
+                    PushIfMissing(e.RightNode, stack, results);
+                    PushIfMissing(e.LeftNode, stack, results);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported BoolExpr node type: {frame.Node.GetType().Name}");
+            }
+        }
+
+        return results[node];
+    }
+
+    private readonly record struct TransformFrame(BoolExpr Node, bool ChildrenTransformed);
+
+    private static void PushIfMissing(
+        BoolExpr node,
+        Stack<TransformFrame> stack,
+        Dictionary<BoolExpr, Literal> results)
+    {
+        if (!results.ContainsKey(node))
+            stack.Push(new TransformFrame(node, false));
+    }
+
+    private static Literal TransformComposite(
+        BoolExpr node,
+        List<Clause> clauses,
+        Dictionary<BoolExpr, Literal> results) =>
         node switch
         {
-            BoolVar v => TransformVariable(v, symbolTable),
-            ConstExpr c => TransformConst(c, clauses),
-            Not n => TransformNot(n, clauses, symbolTable),
-            And a => TransformAnd(a, clauses, symbolTable),
-            Or o => TransformOr(o, clauses, symbolTable),
-            Imply i => TransformImply(i, clauses, symbolTable),
-            Xor x => TransformXor(x, clauses, symbolTable),
-            Equal e => TransformEqual(e, clauses, symbolTable),
+            Not n => TransformNot(n, results[n.Node], clauses),
+            And a => TransformAnd(a, results[a.LeftNode], results[a.RightNode], clauses),
+            Or o => TransformOr(o, results[o.LeftNode], results[o.RightNode], clauses),
+            Imply i => TransformImply(i, results[i.Premise], results[i.Conclusion], clauses),
+            Xor x => TransformXor(x, results[x.LeftNode], results[x.RightNode], clauses),
+            Equal e => TransformEqual(e, results[e.LeftNode], results[e.RightNode], clauses),
             _ => throw new InvalidOperationException($"Unsupported BoolExpr node type: {node.GetType().Name}")
         };
 
@@ -63,9 +140,8 @@ internal static class TseitinTransform
     }
 
     // g ↔ ¬a  →  (g ∨ a) ∧ (¬g ∨ ¬a)
-    private static Literal TransformNot(Not node, List<Clause> clauses, Dictionary<BoolVar, SatVariable> symbolTable)
+    private static Literal TransformNot(Not node, Literal operand, List<Clause> clauses)
     {
-        Literal operand = Transform(node.Node, clauses, symbolTable);
         var g = new SatVariable($"{NewPrefix()}-not::{GetName(node, operand)}");
         Literal gLit = Pos(g);
         clauses.Add(new Clause([gLit, operand]));
@@ -74,10 +150,8 @@ internal static class TseitinTransform
     }
 
     // g ↔ (a ∧ b)  →  (¬g ∨ a) ∧ (¬g ∨ b) ∧ (g ∨ ¬a ∨ ¬b)
-    private static Literal TransformAnd(And node, List<Clause> clauses, Dictionary<BoolVar, SatVariable> symbolTable)
+    private static Literal TransformAnd(And node, Literal left, Literal right, List<Clause> clauses)
     {
-        Literal left = Transform(node.LeftNode, clauses, symbolTable);
-        Literal right = Transform(node.RightNode, clauses, symbolTable);
         var g = new SatVariable($"{NewPrefix()}-and::{GetName(node, left)}::{GetName(node, right)}");
         Literal gLit = Pos(g);
         clauses.Add(new Clause([Neg(gLit), left]));
@@ -87,10 +161,8 @@ internal static class TseitinTransform
     }
 
     // g ↔ (a ∨ b)  →  (g ∨ ¬a) ∧ (g ∨ ¬b) ∧ (¬g ∨ a ∨ b)
-    private static Literal TransformOr(Or node, List<Clause> clauses, Dictionary<BoolVar, SatVariable> symbolTable)
+    private static Literal TransformOr(Or node, Literal left, Literal right, List<Clause> clauses)
     {
-        Literal left = Transform(node.LeftNode, clauses, symbolTable);
-        Literal right = Transform(node.RightNode, clauses, symbolTable);
         var g = new SatVariable($"{NewPrefix()}-or::{GetName(node, left)}::{GetName(node, right)}");
         Literal gLit = Pos(g);
         clauses.Add(new Clause([gLit, Neg(left)]));
@@ -100,10 +172,8 @@ internal static class TseitinTransform
     }
 
     // g ↔ (a → b)  →  (g ∨ a) ∧ (g ∨ ¬b) ∧ (¬g ∨ ¬a ∨ b)
-    private static Literal TransformImply(Imply node, List<Clause> clauses, Dictionary<BoolVar, SatVariable> symbolTable)
+    private static Literal TransformImply(Imply node, Literal premise, Literal conclusion, List<Clause> clauses)
     {
-        Literal premise = Transform(node.Premise, clauses, symbolTable);
-        Literal conclusion = Transform(node.Conclusion, clauses, symbolTable);
         var g = new SatVariable($"{NewPrefix()}-imply::{GetName(node, premise)}::{GetName(node, conclusion)}");
         Literal gLit = Pos(g);
         clauses.Add(new Clause([gLit, premise]));
@@ -113,10 +183,8 @@ internal static class TseitinTransform
     }
 
     // g ↔ (a ⊕ b)  →  (¬g ∨ a ∨ b) ∧ (¬g ∨ ¬a ∨ ¬b) ∧ (g ∨ ¬a ∨ b) ∧ (g ∨ a ∨ ¬b)
-    private static Literal TransformXor(Xor node, List<Clause> clauses, Dictionary<BoolVar, SatVariable> symbolTable)
+    private static Literal TransformXor(Xor node, Literal left, Literal right, List<Clause> clauses)
     {
-        Literal left = Transform(node.LeftNode, clauses, symbolTable);
-        Literal right = Transform(node.RightNode, clauses, symbolTable);
         var g = new SatVariable($"{NewPrefix()}-xor::{GetName(node, left)}::{GetName(node, right)}");
         Literal gLit = Pos(g);
         clauses.Add(new Clause([Neg(gLit), left, right]));
@@ -127,10 +195,8 @@ internal static class TseitinTransform
     }
 
     // g ↔ (a ↔ b)  →  (g ∨ ¬a ∨ ¬b) ∧ (g ∨ a ∨ b) ∧ (¬g ∨ ¬a ∨ b) ∧ (¬g ∨ a ∨ ¬b)
-    private static Literal TransformEqual(Equal node, List<Clause> clauses, Dictionary<BoolVar, SatVariable> symbolTable)
+    private static Literal TransformEqual(Equal node, Literal left, Literal right, List<Clause> clauses)
     {
-        Literal left = Transform(node.LeftNode, clauses, symbolTable);
-        Literal right = Transform(node.RightNode, clauses, symbolTable);
         var g = new SatVariable($"{NewPrefix()}-equal::{GetName(node, left)}::{GetName(node, right)}");
         Literal gLit = Pos(g);
         clauses.Add(new Clause([gLit, Neg(left), Neg(right)]));

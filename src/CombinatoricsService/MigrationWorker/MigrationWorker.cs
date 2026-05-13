@@ -34,7 +34,7 @@ public class MigrationWorker(
         catch (Exception ex)
         {
             activity?.AddException(ex);
-            logger.LogError(ex, "CombinatoricsService database migration failed");
+            logger.LogCritical(ex, "CombinatoricsService database migration failed");
             throw;
         }
 
@@ -46,9 +46,26 @@ public class MigrationWorker(
         IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
-            // Run migration in a transaction to avoid partial migration if it fails.
-            await dbContext.Database.MigrateAsync(cancellationToken);
-            // await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+            try
+            {
+                // Try normal migration first
+                await dbContext.Database.MigrateAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // Log the failure
+                Console.WriteLine("Migration failed. Dropping and recreating database...");
+                Console.WriteLine(ex);
+
+                // Drop database
+                await dbContext.Database.EnsureDeletedAsync(cancellationToken);
+
+                // Recreate empty database
+                await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+
+                // Apply migrations again
+                await dbContext.Database.MigrateAsync(cancellationToken);
+            }
         });
     }
 

@@ -24,6 +24,7 @@ interface ViewBox {
 }
 
 type Mode = 'add' | 'move';
+type GraphInputMode = 'manual' | 'file';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,7 @@ function clientToSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x:
 
 interface GraphEditorFormProps {
     onSubmit: (instance: { graph: GraphDto; colorCount: number }) => Promise<void>;
+    onDimacsSubmit?: (instance: { file: File; colorCount: number }) => Promise<void>;
     loading: boolean;
     initialVertices?: GraphVertex[];
     initialEdges?: GraphEdge[];
@@ -93,6 +95,7 @@ interface GraphEditorFormProps {
 
 export function GraphEditorForm({
                                     onSubmit,
+                                    onDimacsSubmit,
                                     loading,
                                     initialVertices,
                                     initialEdges,
@@ -101,6 +104,8 @@ export function GraphEditorForm({
     const [vertices, setVertices] = useState<GraphVertex[]>(initialVertices ?? []);
     const [edges, setEdges] = useState<GraphEdge[]>(initialEdges ?? []);
     const [colorCount, setColorCount] = useState(initialColorCount ?? 3);
+    const [inputMode, setInputMode] = useState<GraphInputMode>('manual');
+    const [file, setFile] = useState<File | null>(null);
     const [mode, setMode] = useState<Mode>('add');
     const [error, setError] = useState<string | null>(null);
 
@@ -397,6 +402,28 @@ export function GraphEditorForm({
 
     const handleSubmit = async () => {
         setError(null);
+        if (inputMode === 'file') {
+            if (!onDimacsSubmit) {
+                setError('File upload is not available here');
+                return;
+            }
+            if (colorCount < 1) {
+                setError('Color count must be at least 1');
+                return;
+            }
+            if (!file) {
+                setError('Choose a .col file');
+                return;
+            }
+            if (!file.name.toLowerCase().endsWith('.col')) {
+                setError('Graph DIMACS file must use .col extension');
+                return;
+            }
+
+            await onDimacsSubmit({file, colorCount});
+            return;
+        }
+
         if (vertices.length === 0) {
             setError('Add at least one vertex');
             return;
@@ -416,6 +443,27 @@ export function GraphEditorForm({
 
     return (
         <div className="space-y-3">
+            {onDimacsSubmit && (
+                <div className="inline-flex rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-surface-secondary p-1">
+                    {(['manual', 'file'] as GraphInputMode[]).map((mode) => (
+                        <button
+                            key={mode}
+                            type="button"
+                            onClick={() => {
+                                setInputMode(mode);
+                                setError(null);
+                            }}
+                            className={`btn btn-sm capitalize ${inputMode === mode ? 'btn-primary' : 'btn-ghost'}`}
+                            disabled={loading}
+                        >
+                            {mode === 'manual' ? 'Manual' : 'File'}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {inputMode === 'manual' ? (
+                <>
             {/* Toolbar */}
             <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Mode:</span>
@@ -611,6 +659,35 @@ export function GraphEditorForm({
           {vertices.length} vertices · {edges.length} edges
         </span>
             </div>
+                </>
+            ) : (
+                <div className="space-y-4">
+                    <div>
+                        <label className="label">DIMACS graph file</label>
+                        <input
+                            type="file"
+                            accept=".col"
+                            className="input w-full cursor-pointer"
+                            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                            disabled={loading}
+                        />
+                        <p className="text-neutral-400 dark:text-neutral-500 text-xs mt-1">
+                            Upload a DIMACS graph file with <code
+                            className="font-geist-mono bg-neutral-100 dark:bg-surface-tertiary px-1 rounded">.col</code> extension.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400">Color count:</label>
+                        <input
+                            type="number" min={1} value={colorCount}
+                            onChange={(e) => setColorCount(Number(e.target.value))}
+                            className="input w-20"
+                            disabled={loading}
+                        />
+                    </div>
+                </div>
+            )}
 
             {error && <p className="text-error-500 text-xs">{error}</p>}
 
@@ -619,7 +696,7 @@ export function GraphEditorForm({
                     onClick={handleSubmit} disabled={loading}
                     className="btn btn-primary disabled:opacity-50"
                 >
-                    {loading ? 'Saving…' : 'Create'}
+                    {loading ? 'Saving…' : inputMode === 'file' ? 'Upload File' : 'Create'}
                 </button>
             </div>
         </div>

@@ -125,6 +125,13 @@ export interface CreateVertexColoringProblemRequest {
     instance?: VertexColoringInstanceDto;
 }
 
+export interface CreateVertexColoringProblemFromDimacsRequest {
+    name?: string;
+    description?: string | null;
+    colorCount: number;
+    file: File;
+}
+
 export interface CreateVertexColoringProblemResponse {
     problemId: string;
 }
@@ -158,6 +165,13 @@ export interface CreateEdgeColoringProblemRequest {
     name?: string;
     description?: string | null;
     instance?: EdgeColoringInstanceDto;
+}
+
+export interface CreateEdgeColoringProblemFromDimacsRequest {
+    name?: string;
+    description?: string | null;
+    colorCount: number;
+    file: File;
 }
 
 export interface CreateEdgeColoringProblemResponse {
@@ -273,6 +287,12 @@ export interface CreateSatProblemRequest {
     name?: string;
     description?: string | null;
     instance?: SatInstanceDto;
+}
+
+export interface CreateSatProblemFromDimacsRequest {
+    name?: string;
+    description?: string | null;
+    file: File;
 }
 
 export interface CreateSatProblemResponse {

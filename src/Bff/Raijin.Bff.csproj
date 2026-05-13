@@ -8,7 +8,12 @@
     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Yarp" Version="10.5.0" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <Content Remove="wwwroot\**" />
+    <_ContentIncludedByDefault Remove="wwwroot\**" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -22,6 +27,7 @@
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
 
+    <RemoveDir Directories="wwwroot" />
     <MakeDir Directories="wwwroot" />
     
     <ItemGroup>
@@ -31,6 +37,11 @@
     <Copy
       SourceFiles="@(SpaDistFiles)"
       DestinationFiles="@(SpaDistFiles->'wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <ItemGroup>
+      <GeneratedSpaAssets Include="wwwroot\**\*" />
+      <Content Include="@(GeneratedSpaAssets)" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
   </Target>
 
 </Project>

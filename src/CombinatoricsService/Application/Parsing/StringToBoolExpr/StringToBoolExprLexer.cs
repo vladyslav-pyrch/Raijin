@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Raijin.CombinatoricsService.Domain.Patterns;
 
-namespace Raijin.CombinatoricsService.Application.Parsing;
+namespace Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 
-internal static class BoolExprLexer
+internal static class StringToBoolExprLexer
 {
     [StringSyntax(StringSyntaxAttribute.Regex)]
     private static readonly string TruePattern = @"(?<true>\s*true\s*)";
@@ -49,34 +49,34 @@ internal static class BoolExprLexer
         LeftBracketPattern, RightBracketPattern, AndPattern, OrPattern, NotPattern, ImplicationPattern, XorPattern,
         EquivalencePattern, ImplicationBackwardPattern, UnknownPattern));
 
-    public static IEnumerable<Token> Tokenize(string booleanExpression)
+    public static IEnumerable<BoolToken> Tokenize(string booleanExpression)
     {
         foreach (Match match in ExpressionRegex.Matches(booleanExpression))
             if (match.Groups["true"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.True);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.True);
             else if (match.Groups["false"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.False);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.False);
             else if (match.Groups["var"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.Variable);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.Variable);
             else if (match.Groups["l_bracket"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.LeftBracket);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.LeftBracket);
             else if (match.Groups["r_bracket"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.RightBracket);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.RightBracket);
             else if (match.Groups["and"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.And);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.And);
             else if (match.Groups["or"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.Or);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.Or);
             else if (match.Groups["not"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.Not);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.Not);
             else if (match.Groups["equal"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.Equivalence);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.Equivalence);
             else if (match.Groups["xor"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.Xor);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.Xor);
             else if (match.Groups["imply"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.Implication);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.Implication);
             else if (match.Groups["imply_backward"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.ImplicationBackward);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.ImplicationBackward);
             else if (match.Groups["unknown"].Success)
-                yield return new Token(match.Value.Trim(), match.Index, TokenType.Unknown);
+                yield return new BoolToken(match.Value.Trim(), match.Index, BoolTokenType.Unknown);
     }
 }

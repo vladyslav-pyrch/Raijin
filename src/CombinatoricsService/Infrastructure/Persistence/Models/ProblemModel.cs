@@ -32,5 +32,5 @@ internal class ProblemModel
     
     public TimeSpan? ElapsedTime { get; set; }
 
-    public ICollection<ClauseModel> Clauses { get; set; } = [];
+    public string? DimacsEncoding { get; set; }
 }

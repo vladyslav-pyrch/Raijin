@@ -4,10 +4,13 @@ import type {
     CreateBooleanProblemResponse,
     CreateCspProblemRequest,
     CreateCspProblemResponse,
+    CreateEdgeColoringProblemFromDimacsRequest,
     CreateEdgeColoringProblemRequest,
     CreateEdgeColoringProblemResponse,
+    CreateSatProblemFromDimacsRequest,
     CreateSatProblemRequest,
     CreateSatProblemResponse,
+    CreateVertexColoringProblemFromDimacsRequest,
     CreateVertexColoringProblemRequest,
     CreateVertexColoringProblemResponse,
     CspInstanceDto,
@@ -115,6 +118,14 @@ export class CombinatoricsApiService {
         return this.request<CreateSatProblemResponse>('POST', '/problems/sat', request);
     }
 
+    createSatProblemFromDimacs(request: CreateSatProblemFromDimacsRequest): Promise<CreateSatProblemResponse> {
+        return this.request<CreateSatProblemResponse>(
+            'POST',
+            '/problems/sat-dimacs',
+            this.createDimacsFormData(request),
+        );
+    }
+
     // ── Boolean Satisfiability (SAT) ───────────────────────────────────────────
 
     async getSatInstance(id: string): Promise<SatInstanceDto> {
@@ -145,6 +156,14 @@ export class CombinatoricsApiService {
         return this.request<CreateVertexColoringProblemResponse>('POST', '/problems/vertex-coloring', request);
     }
 
+    createVertexColoringProblemFromDimacs(request: CreateVertexColoringProblemFromDimacsRequest): Promise<CreateVertexColoringProblemResponse> {
+        return this.request<CreateVertexColoringProblemResponse>(
+            'POST',
+            '/problems/vertex-coloring-dimacs',
+            this.createDimacsFormData(request),
+        );
+    }
+
     // ── Vertex Coloring ────────────────────────────────────────────────────────
 
     async getVertexColoringInstance(id: string): Promise<VertexColoringInstanceDto> {
@@ -158,6 +177,14 @@ export class CombinatoricsApiService {
 
     createEdgeColoringProblem(request: CreateEdgeColoringProblemRequest): Promise<CreateEdgeColoringProblemResponse> {
         return this.request<CreateEdgeColoringProblemResponse>('POST', '/problems/edge-coloring', request);
+    }
+
+    createEdgeColoringProblemFromDimacs(request: CreateEdgeColoringProblemFromDimacsRequest): Promise<CreateEdgeColoringProblemResponse> {
+        return this.request<CreateEdgeColoringProblemResponse>(
+            'POST',
+            '/problems/edge-coloring-dimacs',
+            this.createDimacsFormData(request),
+        );
     }
 
     // ── Edge Coloring ──────────────────────────────────────────────────────────
@@ -181,14 +208,16 @@ export class CombinatoricsApiService {
         };
 
         if (body !== undefined) {
-            headers['Content-Type'] = 'application/json';
+            if (!(body instanceof FormData)) {
+                headers['Content-Type'] = 'application/json';
+            }
         }
 
         const url = `${this.baseUrl.replace(/\/$/, '')}${path}`;
 
         const init: RequestInit = {method: method, headers: headers};
         if (body !== undefined) {
-            init.body = JSON.stringify(body);
+            init.body = body instanceof FormData ? body : JSON.stringify(body);
         }
 
         const response = await fetch(url, init);
@@ -209,5 +238,30 @@ export class CombinatoricsApiService {
         }
 
         return response.json() as Promise<T>;
+    }
+
+    private createDimacsFormData(request: {
+        name?: string;
+        description?: string | null;
+        colorCount?: number;
+        file: File;
+    }): FormData {
+        const formData = new FormData();
+
+        if (request.name !== undefined) {
+            formData.append('Name', request.name);
+        }
+
+        if (request.description !== undefined && request.description !== null) {
+            formData.append('Description', request.description);
+        }
+
+        if (request.colorCount !== undefined) {
+            formData.append('ColorCount', String(request.colorCount));
+        }
+
+        formData.append('File', request.file);
+
+        return formData;
     }
 }
