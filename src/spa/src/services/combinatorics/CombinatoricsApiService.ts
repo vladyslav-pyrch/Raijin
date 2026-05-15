@@ -14,6 +14,7 @@ import type {
     CreateVertexColoringProblemRequest,
     CreateVertexColoringProblemResponse,
     CspInstanceDto,
+    DeleteProblemResponse,
     EdgeColoringInstanceDto,
     GetBooleanInstanceResponse,
     GetBooleanSatisfiabilityInstanceResponse,
@@ -92,6 +93,10 @@ export class CombinatoricsApiService {
 
     updateProblem(id: string, request: UpdateProblemRequest): Promise<void> {
         return this.request<void>('PATCH', `/problems/${id}`, request);
+    }
+
+    deleteProblem(id: string): Promise<DeleteProblemResponse> {
+        return this.request<DeleteProblemResponse>('DELETE', `/problems/${id}`);
     }
 
     /** Trigger reduction + solve. solver passed as query param. */
