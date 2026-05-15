@@ -94,6 +94,17 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         existingModel.DimacsEncoding = problem.SatEncoding?.ToDimacs();
     }
 
+    public async Task Delete(Guid id, CancellationToken cancellationToken)
+    {
+        ProblemModel? existingModel = await dbContext.Problems
+            .FirstOrDefaultAsync(problem => problem.Id == id, cancellationToken);
+
+        if (existingModel is null)
+            throw new InvalidOperationException($"Problem {id} not found.");
+
+        dbContext.Problems.Remove(existingModel);
+    }
+
     public async Task<ListProblemsResult> ListProblems(int page, int pageSize, CancellationToken cancellationToken)
     {
         int totalCount = await dbContext.Problems.CountAsync(cancellationToken);

@@ -75,6 +75,8 @@ export interface UpdateProblemRequest {
     description?: string | null;
 }
 
+export type DeleteProblemResponse = void;
+
 // ─── Graph primitives ─────────────────────────────────────────────────────────
 
 export interface VertexDto {

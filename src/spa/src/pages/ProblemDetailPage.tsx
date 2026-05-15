@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useProblem} from '../hooks/useProblem';
 import {useSatEncoding} from '../hooks/useSatEncoding';
@@ -16,6 +17,8 @@ import {InstanceSection} from '../components/sections/InstanceSection';
 import {SatEncodingSection} from '../components/sections/SatEncodingSection';
 import {VariableMapSection} from '../components/sections/VariableMapSection';
 import {SolutionSection} from '../components/sections/SolutionSection';
+import {Modal} from '../components/Modal';
+import {Button} from '../components/Button';
 
 interface ProblemDetailPageProps {
     onProblemChanged: () => void;
@@ -46,6 +49,8 @@ export function ProblemDetailPage({onProblemChanged}: ProblemDetailPageProps) {
     );
 
     const {errors, addError, dismiss} = useErrorStack();
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -78,6 +83,20 @@ export function ProblemDetailPage({onProblemChanged}: ProblemDetailPageProps) {
             instance,
         };
         navigate('/create', {state: {fork}});
+    };
+
+    const handleDelete = async () => {
+        try {
+            setDeleting(true);
+            await api.deleteProblem(problemId);
+            onProblemChanged();
+            navigate('/');
+        } catch (err) {
+            addError(err instanceof Error ? err.message : 'Delete failed');
+            setDeleteModalOpen(false);
+        } finally {
+            setDeleting(false);
+        }
     };
 
     // ── Loading / error states ────────────────────────────────────────────────
@@ -131,6 +150,11 @@ export function ProblemDetailPage({onProblemChanged}: ProblemDetailPageProps) {
                         <button onClick={handleEdit} className="btn btn-secondary btn-sm">
                             Edit
                         </button>
+                        {problem.solvingStatus !== 'Running' && (
+                            <button onClick={() => setDeleteModalOpen(true)} className="btn btn-destructive btn-sm">
+                                Delete
+                            </button>
+                        )}
                         {canFork && (
                             <button onClick={handleNewVersion} className="btn btn-secondary btn-sm">
                                 New version
@@ -174,6 +198,29 @@ export function ProblemDetailPage({onProblemChanged}: ProblemDetailPageProps) {
                     instance={instance}
                 />
             </div>
+
+            <Modal
+                open={deleteModalOpen}
+                title="Delete problem"
+                onClose={() => {
+                    if (!deleting) setDeleteModalOpen(false);
+                }}
+            >
+                <div className="space-y-5">
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                        Delete <span className="font-medium text-neutral-900 dark:text-neutral-100">{problem.name}</span>?
+                        This cannot be undone.
+                    </p>
+                    <div className="flex justify-end gap-2">
+                        <Button onClick={() => setDeleteModalOpen(false)} disabled={deleting}>
+                            No
+                        </Button>
+                        <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+                            {deleting ? 'Deleting…' : 'Yes'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
