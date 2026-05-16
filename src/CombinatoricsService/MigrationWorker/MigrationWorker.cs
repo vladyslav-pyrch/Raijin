@@ -28,6 +28,7 @@ public class MigrationWorker(
             await RunMigrationAsync(dbContext, cancellationToken);
             logger.LogInformation("CombinatoricsService database migration completed successfully");
 
+            logger.LogInformation("Starting CombinatoricsService database seeding");
             await SeedDataAsync(dbContext, cancellationToken);
             logger.LogInformation("CombinatoricsService database seeding completed successfully");
         }
@@ -41,7 +42,7 @@ public class MigrationWorker(
         hostApplicationLifetime.StopApplication();
     }
 
-    private static async Task RunMigrationAsync(DbContext dbContext, CancellationToken cancellationToken)
+    private async Task RunMigrationAsync(DbContext dbContext, CancellationToken cancellationToken)
     {
         IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
@@ -53,18 +54,18 @@ public class MigrationWorker(
             }
             catch (Exception ex)
             {
-                // Log the failure
-                Console.WriteLine("Migration failed. Dropping and recreating database...");
-                Console.WriteLine(ex);
+                logger.LogWarning(
+                    ex,
+                    "Database migration failed. Dropping and recreating database before retrying migrations.");
 
-                // Drop database
                 await dbContext.Database.EnsureDeletedAsync(cancellationToken);
+                logger.LogWarning("Database dropped after failed migration attempt.");
 
-                // Recreate empty database
                 await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+                logger.LogInformation("Database recreated after failed migration attempt.");
 
-                // Apply migrations again
                 await dbContext.Database.MigrateAsync(cancellationToken);
+                logger.LogInformation("Database migrations reapplied after recreate fallback.");
             }
         });
     }

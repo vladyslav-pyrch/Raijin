@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Graphs;
@@ -11,7 +12,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.VertexColori
 
 public sealed class CreateVertexColoringProblemHandler(
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<CreateVertexColoringProblemHandler> logger
 ) : IRequestHandler<CreateVertexColoringProblemCommand, CreateVertexColoringProblemResult>
 {
     public async Task<Result<CreateVertexColoringProblemResult>> Handle(
@@ -39,6 +41,14 @@ public sealed class CreateVertexColoringProblemHandler(
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem created. ProblemId={ProblemId} ProblemType={ProblemType} VertexCount={VertexCount} EdgeCount={EdgeCount} ColorCount={ColorCount}",
+            problem.Id,
+            "vertex-coloring",
+            vertices.Count,
+            edges.Count,
+            request.Instance.ColorCount);
 
         return new CreateVertexColoringProblemResult(problem.Id);
     }

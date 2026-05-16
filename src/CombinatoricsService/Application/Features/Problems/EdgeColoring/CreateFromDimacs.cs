@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Parsing.DimacsToGraph;
@@ -13,7 +14,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.EdgeColoring
 public sealed class CreateEdgeColoringFromDimacsHandler(
     IDimacsToGraphParser parser,
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<CreateEdgeColoringFromDimacsHandler> logger
 ) : IRequestHandler<CreateEdgeColoringFromDimacsCommand, CreateEdgeColoringFromDimacsResult>
 {
     public async Task<Result<CreateEdgeColoringFromDimacsResult>> Handle(
@@ -35,6 +37,12 @@ public sealed class CreateEdgeColoringFromDimacsHandler(
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem created from DIMACS. ProblemId={ProblemId} ProblemType={ProblemType} ColorCount={ColorCount}",
+            problem.Id,
+            "edge-coloring",
+            request.ColorCount);
 
         return new CreateEdgeColoringFromDimacsResult(problem.Id);
     }

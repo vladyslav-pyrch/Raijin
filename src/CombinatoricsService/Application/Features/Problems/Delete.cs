@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -9,7 +10,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
 public sealed class DeleteProblemHandler(
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<DeleteProblemHandler> logger
 ) : IRequestHandler<DeleteProblemCommand, DeleteProblemResult>
 {
     public async Task<Result<DeleteProblemResult>> Handle(
@@ -26,6 +28,8 @@ public sealed class DeleteProblemHandler(
 
         await problemRepository.Delete(problem.Id, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation("Problem deleted. ProblemId={ProblemId}", problem.Id);
 
         return new DeleteProblemResult(problem.Id);
     }
