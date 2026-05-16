@@ -41,6 +41,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
             Enum.Parse<Satisfiability>(p.Satisfiability),
             p.CreatedAt,
             p.UpdatedAt,
+            p.StartedSolvingAt,
             p.CompletedAt,
             p.ElapsedTime))
         .FirstOrDefaultAsync(cancellationToken);
@@ -89,6 +90,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         existingModel.Satisfiability = problem.Satisfiability.ToString();
         existingModel.Assignment = problem.Assignment.ToArray();
         existingModel.UpdatedAt = problem.UpdatedAt;
+        existingModel.StartedSolvingAt = problem.StartedSolvingAt;
         existingModel.CompletedAt = problem.CompletedAt;
         existingModel.ElapsedTime = problem.ElapsedTime;
         existingModel.DimacsEncoding = problem.SatEncoding?.ToDimacs();
@@ -159,6 +161,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         Assignment = problem.Assignment.ToArray(),
         CreatedAt = problem.CreatedAt,
         UpdatedAt = problem.UpdatedAt,
+        StartedSolvingAt = problem.StartedSolvingAt,
         CompletedAt = problem.CompletedAt,
         ElapsedTime = problem.ElapsedTime,
         DimacsEncoding = problem.SatEncoding?.ToDimacs()
@@ -177,6 +180,7 @@ public class ProblemRepository(CombinatoricsServiceDbContext dbContext, BoolExpr
         Enum.Parse<SolvingStatus>(model.SolvingStatus),
         Enum.Parse<Satisfiability>(model.Satisfiability),
         model.Assignment,
+        model.StartedSolvingAt,
         model.CompletedAt,
         model.ElapsedTime,
         model.Solution?.Deserialize<Solution>()

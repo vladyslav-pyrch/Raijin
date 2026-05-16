@@ -18,7 +18,7 @@ public sealed class CreateEdgeColoringProblemHandler(
         CreateEdgeColoringProblemCommand request,
         CancellationToken cancellationToken)
     {
-        List<Vertex> vertices = request.Instance.Graph.Vertices.Select(dto => new Vertex(dto.Id, dto.X, dto.Y)).ToList();
+        List<Vertex> vertices = request.Instance.Graph.Vertices.Select(dto => new Vertex(dto.Id)).ToList();
         FrozenDictionary<string, Vertex> verticesLookup = vertices.ToFrozenDictionary(dto => dto.Id);
         List<Edge> edges = request.Instance.Graph.Edges.Select(e => new Edge(
                 e.Label,

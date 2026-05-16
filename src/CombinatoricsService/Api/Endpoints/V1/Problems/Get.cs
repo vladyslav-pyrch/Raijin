@@ -36,6 +36,7 @@ public sealed class GetProblemEndpoint : IEndpoint
                 result.Value.Satisfiability.ToString(),
                 result.Value.CreatedAt,
                 result.Value.UpdatedAt,
+                result.Value.StartedSolvingAt,
                 result.Value.CompletedAt,
                 result.Value.ElapsedTime))
             : result.ToProblemResult();
@@ -52,6 +53,7 @@ public sealed record GetProblemResponse(
     string Satisfiability,
     DateTime CreatedAt,
     DateTime UpdatedAt,
+    DateTime? StartedSolvingAt,
     DateTime? CompletedAt,
     TimeSpan? ElapsedTime
 );

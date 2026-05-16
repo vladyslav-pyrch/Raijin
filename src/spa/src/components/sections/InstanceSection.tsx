@@ -1,5 +1,8 @@
 import {Spinner} from '../Spinner';
+import {useState} from 'react';
 import {GraphCanvas} from '../GraphCanvas';
+import {Modal} from '../Modal';
+import {Button} from '../Button';
 import {PaginationBar} from '../PaginationBar';
 import {usePagination} from '../../hooks/usePagination';
 import type {AnyInstanceData} from '../../hooks/useInstance';
@@ -136,6 +139,8 @@ function GraphInstance({
     label: string;
 }) {
     const {graph, colorCount} = data;
+    const [showGraph, setShowGraph] = useState(false);
+    const {page, totalPages, pageItems, setPage} = usePagination(graph.edges, 50);
 
     return (
         <div className="space-y-3">
@@ -153,10 +158,36 @@ function GraphInstance({
           <strong className="text-neutral-900 dark:text-neutral-100">{colorCount}</strong>
         </span>
             </div>
-            <p className="text-xs text-neutral-400 dark:text-neutral-500">
-                Drag vertices to rearrange layout. Scroll to zoom.
-            </p>
-            <GraphCanvas vertices={graph.vertices} edges={graph.edges} movable height={300}/>
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                    Edges ({graph.edges.length})
+                </p>
+                <Button size="sm" onClick={() => setShowGraph(true)}>Show graph</Button>
+            </div>
+            <div className="overflow-auto max-h-64 border border-neutral-200 dark:border-neutral-700 rounded-md">
+                <table className="w-full text-xs">
+                    <thead className="table-header sticky top-0">
+                    <tr>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-500 dark:text-neutral-400">Label</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-500 dark:text-neutral-400">U</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-500 dark:text-neutral-400">V</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {pageItems.map((edge) => (
+                        <tr key={edge.label} className="table-row">
+                            <td className="px-3 py-1.5 font-geist-mono text-neutral-900 dark:text-neutral-100">{edge.label}</td>
+                            <td className="px-3 py-1.5 font-geist-mono text-neutral-900 dark:text-neutral-100">{edge.u}</td>
+                            <td className="px-3 py-1.5 font-geist-mono text-neutral-900 dark:text-neutral-100">{edge.v}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
+            <PaginationBar page={page} totalPages={totalPages} totalItems={graph.edges.length} pageSize={50} onPage={setPage} noun="edges"/>
+            <Modal open={showGraph} title="Graph" onClose={() => setShowGraph(false)} panelClassName="max-w-none w-[70vw]">
+                <GraphCanvas vertices={graph.vertices} edges={graph.edges} movable={false} height={Math.min(760, Math.max(420, graph.vertices.length * 12))}/>
+            </Modal>
         </div>
     );
 }

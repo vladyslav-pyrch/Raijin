@@ -28,6 +28,8 @@ internal class ProblemModel
 
     public DateTime UpdatedAt { get; set; }
 
+    public DateTime? StartedSolvingAt { get; set; }
+
     public DateTime? CompletedAt { get; set; }
     
     public TimeSpan? ElapsedTime { get; set; }

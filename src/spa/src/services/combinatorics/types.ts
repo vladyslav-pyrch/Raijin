@@ -34,6 +34,7 @@ export interface GetProblemResponse {
     satisfiability: string;
     createdAt: string;
     updatedAt: string;
+    startedSolvingAt: string | null;
     completedAt: string | null;
     elapsedTime: string | null;
 }
@@ -81,8 +82,6 @@ export type DeleteProblemResponse = void;
 
 export interface VertexDto {
     id: string;
-    x: number;
-    y: number;
 }
 
 export interface EdgeDto {

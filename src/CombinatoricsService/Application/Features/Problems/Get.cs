@@ -36,6 +36,7 @@ public sealed record GetProblemResult(
     Satisfiability Satisfiability,
     DateTime CreatedAt,
     DateTime UpdatedAt,
+    DateTime? StartedSolvingAt,
     DateTime? CompletedAt,
     TimeSpan? ElapsedTime
 );

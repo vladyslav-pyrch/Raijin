@@ -2,6 +2,8 @@ import {useState} from 'react';
 import {useSolution} from '../../hooks/useSolution';
 import {usePagination} from '../../hooks/usePagination';
 import {GraphCanvas} from '../GraphCanvas';
+import {Modal} from '../Modal';
+import {Button} from '../Button';
 import {Spinner} from '../Spinner';
 import {PaginationBar} from '../PaginationBar';
 import type {AnyInstanceData} from '../../hooks/useInstance';
@@ -184,6 +186,7 @@ const COLORING_PAGE_SIZE = 50;
 
 function VertexColoringSolution({data, instance}: VertexColoringSolutionProps) {
     const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({});
+    const [showGraph, setShowGraph] = useState(false);
     if (!data.solution) return null;
 
     const {colorAssignments} = data.solution;
@@ -202,10 +205,6 @@ function VertexColoringSolution({data, instance}: VertexColoringSolutionProps) {
 
     return (
         <div className="space-y-3">
-            <p className="text-xs text-neutral-400 dark:text-neutral-500">
-                Drag vertices to rearrange. Click a color swatch to reassign.
-            </p>
-            <GraphCanvas vertices={vertices} edges={edges} vertexColors={vertexColors} movable height={320}/>
             <div className="flex flex-wrap gap-4 pt-1">
                 {colorNumbers.map((n) => (
                     <ColorPickerRow
@@ -216,13 +215,16 @@ function VertexColoringSolution({data, instance}: VertexColoringSolutionProps) {
                     />
                 ))}
             </div>
-            <details className="text-xs">
-                <summary className="cursor-pointer link">View as table</summary>
-                <VertexColoringTable
-                    colorAssignments={colorAssignments}
-                    colorOverrides={colorOverrides}
-                />
-            </details>
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                    Vertex colors ({colorAssignments.length})
+                </p>
+                <Button size="sm" onClick={() => setShowGraph(true)}>Show graph</Button>
+            </div>
+            <VertexColoringTable colorAssignments={colorAssignments} colorOverrides={colorOverrides}/>
+            <Modal open={showGraph} title="Vertex coloring graph" onClose={() => setShowGraph(false)} panelClassName="max-w-none w-[70vw]">
+                <GraphCanvas vertices={vertices} edges={edges} vertexColors={vertexColors} movable={false} height={Math.min(760, Math.max(420, vertices.length * 12))}/>
+            </Modal>
         </div>
     );
 }
@@ -286,6 +288,7 @@ interface EdgeColoringSolutionProps {
 
 function EdgeColoringSolution({data, instance}: EdgeColoringSolutionProps) {
     const [colorOverrides, setColorOverrides] = useState<Record<number, string>>({});
+    const [showGraph, setShowGraph] = useState(false);
     if (!data.solution) return null;
 
     const {colorAssignments} = data.solution;
@@ -304,10 +307,6 @@ function EdgeColoringSolution({data, instance}: EdgeColoringSolutionProps) {
 
     return (
         <div className="space-y-3">
-            <p className="text-xs text-neutral-400 dark:text-neutral-500">
-                Drag vertices to rearrange. Click a color swatch to reassign.
-            </p>
-            <GraphCanvas vertices={vertices} edges={edges} edgeColors={edgeColors} movable height={320}/>
             <div className="flex flex-wrap gap-4 pt-1">
                 {colorNumbers.map((n) => (
                     <ColorPickerRow
@@ -318,13 +317,16 @@ function EdgeColoringSolution({data, instance}: EdgeColoringSolutionProps) {
                     />
                 ))}
             </div>
-            <details className="text-xs">
-                <summary className="cursor-pointer link">View as table</summary>
-                <EdgeColoringTable
-                    colorAssignments={colorAssignments}
-                    colorOverrides={colorOverrides}
-                />
-            </details>
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                    Edge colors ({colorAssignments.length})
+                </p>
+                <Button size="sm" onClick={() => setShowGraph(true)}>Show graph</Button>
+            </div>
+            <EdgeColoringTable colorAssignments={colorAssignments} colorOverrides={colorOverrides}/>
+            <Modal open={showGraph} title="Edge coloring graph" onClose={() => setShowGraph(false)} panelClassName="max-w-none w-[70vw]">
+                <GraphCanvas vertices={vertices} edges={edges} edgeColors={edgeColors} movable={false} height={Math.min(760, Math.max(420, vertices.length * 12))}/>
+            </Modal>
         </div>
     );
 }

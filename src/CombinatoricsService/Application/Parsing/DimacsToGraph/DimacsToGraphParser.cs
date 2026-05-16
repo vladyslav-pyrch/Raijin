@@ -165,26 +165,11 @@ public sealed class DimacsToGraphParser : IDimacsToGraphParser
     private static string[] SplitLine(string line) =>
         line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
-    private static List<Vertex> CreateVertices(int vertexCount)
-    {
-        const float radius = 100;
-
-        if (vertexCount == 0)
-            return [];
-
-        return Enumerable
+    private static List<Vertex> CreateVertices(int vertexCount) =>
+        Enumerable
             .Range(1, vertexCount)
-            .Select(index =>
-            {
-                float angle = 2 * MathF.PI * (index - 1) / vertexCount;
-
-                return new Vertex(
-                    $"v{index}",
-                    radius * MathF.Cos(angle),
-                    -radius * MathF.Sin(angle));
-            })
+            .Select(index => new Vertex($"v{index}"))
             .ToList();
-    }
 
     private sealed record Header(int VertexCount, int EdgeCount, int LineNumber);
 
