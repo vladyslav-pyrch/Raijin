@@ -29,5 +29,6 @@ builder.Services.AddOpenTelemetry().WithTracing(providerBuilder => providerBuild
 builder.Services.AddApplication();
 
 IHost host = builder.Build();
+host.LogRaijinStartup();
 
 await host.RunAsync();

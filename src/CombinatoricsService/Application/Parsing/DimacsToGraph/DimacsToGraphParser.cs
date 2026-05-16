@@ -1,9 +1,10 @@
 using FluentResults;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Domain.Graphs;
 
 namespace Raijin.CombinatoricsService.Application.Parsing.DimacsToGraph;
 
-public sealed class DimacsToGraphParser : IDimacsToGraphParser
+public sealed class DimacsToGraphParser(ILogger<DimacsToGraphParser> logger) : IDimacsToGraphParser
 {
     public Result<Graph> Parse(string input)
     {
@@ -83,16 +84,37 @@ public sealed class DimacsToGraphParser : IDimacsToGraphParser
         }
 
         if (errors.Count > 0)
+        {
+            logger.LogWarning(
+                "DIMACS graph parse failed. InputLength={InputLength} LineCount={LineCount} ErrorCount={ErrorCount}",
+                input.Length,
+                lines.Length,
+                errors.Count);
             return Result.Fail(errors);
+        }
 
         if (header is null)
+        {
+            logger.LogWarning(
+                "DIMACS graph parse failed. InputLength={InputLength} LineCount={LineCount} ErrorCount={ErrorCount}",
+                input.Length,
+                lines.Length,
+                1);
             return Result.Fail(new Error("Missing valid header line. Expected format 'p edge <number of vertices> <number of edges>'."));
+        }
 
         List<Vertex> vertices = CreateVertices(header.VertexCount);
 
         List<Edge> edges = parsedEdges
             .Select((edge, index) => new Edge($"e{index + 1}", vertices[edge.U - 1], vertices[edge.V - 1]))
             .ToList();
+
+        logger.LogDebug(
+            "DIMACS graph parsed. InputLength={InputLength} LineCount={LineCount} VertexCount={VertexCount} EdgeCount={EdgeCount}",
+            input.Length,
+            lines.Length,
+            vertices.Count,
+            edges.Count);
 
         return Result.Ok(new Graph(vertices, edges));
     }
@@ -165,26 +187,11 @@ public sealed class DimacsToGraphParser : IDimacsToGraphParser
     private static string[] SplitLine(string line) =>
         line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
-    private static List<Vertex> CreateVertices(int vertexCount)
-    {
-        const float radius = 100;
-
-        if (vertexCount == 0)
-            return [];
-
-        return Enumerable
+    private static List<Vertex> CreateVertices(int vertexCount) =>
+        Enumerable
             .Range(1, vertexCount)
-            .Select(index =>
-            {
-                float angle = 2 * MathF.PI * (index - 1) / vertexCount;
-
-                return new Vertex(
-                    $"v{index}",
-                    radius * MathF.Cos(angle),
-                    -radius * MathF.Sin(angle));
-            })
+            .Select(index => new Vertex($"v{index}"))
             .ToList();
-    }
 
     private sealed record Header(int VertexCount, int EdgeCount, int LineNumber);
 

@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Parsing.DimacsToGraph;
@@ -13,7 +14,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.VertexColori
 public sealed class CreateVertexColoringFromDimacsHandler(
     IDimacsToGraphParser parser,
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<CreateVertexColoringFromDimacsHandler> logger
 ) : IRequestHandler<CreateVertexColoringFromDimacsCommand, CreateVertexColoringFromDimacsResult>
 {
     public async Task<Result<CreateVertexColoringFromDimacsResult>> Handle(
@@ -35,6 +37,12 @@ public sealed class CreateVertexColoringFromDimacsHandler(
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem created from DIMACS. ProblemId={ProblemId} ProblemType={ProblemType} ColorCount={ColorCount}",
+            problem.Id,
+            "vertex-coloring",
+            request.ColorCount);
 
         return new CreateVertexColoringFromDimacsResult(problem.Id);
     }

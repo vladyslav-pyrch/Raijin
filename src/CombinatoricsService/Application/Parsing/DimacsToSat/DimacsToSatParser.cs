@@ -1,16 +1,23 @@
 using FluentResults;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 
 namespace Raijin.CombinatoricsService.Application.Parsing.DimacsToSat;
 
-public class DimacsToSatParser : IDimacsToSatParser
+public class DimacsToSatParser(ILogger<DimacsToSatParser> logger) : IDimacsToSatParser
 {
     public Result<BooleanSatisfiabilityInstance> Parse(string input)
     {
         Result<(List<ParsedClause> parsedClauses, Header header)> parsedClausesResult = ParseDetails(input);
         
         if (parsedClausesResult.IsFailed)
+        {
+            logger.LogWarning(
+                "DIMACS SAT parse failed. InputLength={InputLength} ErrorCount={ErrorCount}",
+                input.Length,
+                parsedClausesResult.Errors.Count);
             return Result.Fail(parsedClausesResult.Errors);
+        }
         List<ParsedClause> parsedClauses = parsedClausesResult.Value.parsedClauses;
         Header header = parsedClausesResult.Value.header;
 
@@ -24,6 +31,12 @@ public class DimacsToSatParser : IDimacsToSatParser
                 .ToList()))
             .ToList();
 
+        logger.LogDebug(
+            "DIMACS SAT parsed. InputLength={InputLength} VariableCount={VariableCount} ClauseCount={ClauseCount}",
+            input.Length,
+            header.VariableCount,
+            clauses.Count);
+
         return Result.Ok(new BooleanSatisfiabilityInstance(clauses));
     }
 
@@ -32,9 +45,20 @@ public class DimacsToSatParser : IDimacsToSatParser
         Result<(List<ParsedClause> parsedClauses, Header header)> parsedClausesResult = ParseDetails(input);
         
         if (parsedClausesResult.IsFailed)
+        {
+            logger.LogWarning(
+                "Stored SAT encoding parse failed. InputLength={InputLength} ErrorCount={ErrorCount}",
+                input.Length,
+                parsedClausesResult.Errors.Count);
             throw new Exception($"Parsing failed: {parsedClausesResult.Errors.First().Message}");
+        }
         
         List<ParsedClause> parsedClauses = parsedClausesResult.Value.parsedClauses;
+
+        logger.LogDebug(
+            "Stored SAT encoding parsed. InputLength={InputLength} ClauseCount={ClauseCount}",
+            input.Length,
+            parsedClauses.Count);
 
         return parsedClauses.Select(parsedClause => parsedClause.Literals).ToArray();
     }

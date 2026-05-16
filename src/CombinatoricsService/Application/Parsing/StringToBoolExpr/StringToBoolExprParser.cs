@@ -1,9 +1,10 @@
 using FluentResults;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 
 namespace Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 
-public sealed class StringToBoolExprParser : IStringToBoolExprParser
+public sealed class StringToBoolExprParser(ILogger<StringToBoolExprParser> logger) : IStringToBoolExprParser
 {
     private static readonly Dictionary<BoolTokenType, int> Precedences = new()
     {
@@ -39,7 +40,10 @@ public sealed class StringToBoolExprParser : IStringToBoolExprParser
     public Result<BoolExpr> Parse(string expression)
     {
         if (string.IsNullOrWhiteSpace(expression))
+        {
+            logger.LogWarning("Boolean expression parse failed. ExpressionLength={ExpressionLength} ErrorCount={ErrorCount}", expression?.Length ?? 0, 1);
             return Result.Fail(new Error("The expression is empty"));
+        }
 
         List<BoolToken> tokenList = StringToBoolExprLexer.Tokenize(expression).ToList();
         IEnumerable<BoolToken> unknownTokens = tokenList.Where(t => t.Type == BoolTokenType.Unknown);
@@ -47,14 +51,45 @@ public sealed class StringToBoolExprParser : IStringToBoolExprParser
             .ToList();
 
         if (unknownErrors.Count > 0)
+        {
+            logger.LogWarning(
+                "Boolean expression parse failed. ExpressionLength={ExpressionLength} TokenCount={TokenCount} ErrorCount={ErrorCount}",
+                expression.Length,
+                tokenList.Count,
+                unknownErrors.Count);
             return Result.Fail(unknownErrors);
+        }
 
         var tokens = new Tokens(tokenList);
         Result<PostfixTokens> postfixResult = tokens.ShuntingYard();
         if (postfixResult.IsFailed)
+        {
+            logger.LogWarning(
+                "Boolean expression parse failed. ExpressionLength={ExpressionLength} TokenCount={TokenCount} ErrorCount={ErrorCount}",
+                expression.Length,
+                tokenList.Count,
+                postfixResult.Errors.Count);
             return postfixResult.ToResult<BoolExpr>();
+        }
 
-        return postfixResult.Value.ToExpression();
+        Result<BoolExpr> expressionResult = postfixResult.Value.ToExpression();
+
+        if (expressionResult.IsFailed)
+        {
+            logger.LogWarning(
+                "Boolean expression parse failed. ExpressionLength={ExpressionLength} TokenCount={TokenCount} ErrorCount={ErrorCount}",
+                expression.Length,
+                tokenList.Count,
+                expressionResult.Errors.Count);
+            return expressionResult;
+        }
+
+        logger.LogDebug(
+            "Boolean expression parsed. ExpressionLength={ExpressionLength} TokenCount={TokenCount}",
+            expression.Length,
+            tokenList.Count);
+
+        return expressionResult;
     }
 
     private static bool IsOperator(BoolToken boolToken) => Precedences.ContainsKey(boolToken.Type);

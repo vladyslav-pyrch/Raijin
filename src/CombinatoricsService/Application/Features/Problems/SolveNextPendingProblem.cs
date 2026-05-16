@@ -28,6 +28,7 @@ public sealed class SolveNextPendingProblemHandler(
         if (problem is null)
         {
             await unitOfWork.Commit(cancellationToken);
+            logger.LogDebug("No pending problem available for solving.");
             return Result.Ok();
         }
 
@@ -36,7 +37,13 @@ public sealed class SolveNextPendingProblemHandler(
         await problemRepository.Update(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
 
-        logger.LogInformation("Claimed problem {ProblemId} for solving.", problem.Id);
+        using IDisposable? problemScope = logger.BeginScope(new Dictionary<string, object?>
+        {
+            ["ProblemId"] = problem.Id,
+            ["Solver"] = problem.Solver
+        });
+
+        logger.LogInformation("Problem claimed for solving. ProblemId={ProblemId}", problem.Id);
 
         ISatSolver? satSolver = problem.Solver is not null
             ? _satSolvers.FirstOrDefault(s => s.Name.Equals(problem.Solver, StringComparison.OrdinalIgnoreCase))
@@ -45,7 +52,7 @@ public sealed class SolveNextPendingProblemHandler(
         if (satSolver is null)
         {
             logger.LogError(
-                "Problem {ProblemId} specifies solver '{Solver}' which is not registered.",
+                "Requested solver is not registered. ProblemId={ProblemId} Solver={Solver}",
                 problem.Id,
                 problem.Solver);
             problem.Fail(TimeSpan.FromSeconds(0));
@@ -55,9 +62,9 @@ public sealed class SolveNextPendingProblemHandler(
         }
 
         logger.LogInformation(
-            "Using solver '{Solver}' for problem {ProblemId}.",
-            satSolver.Name,
-            problem.Id);
+            "Solver selected for problem. ProblemId={ProblemId} Solver={Solver}",
+            problem.Id,
+            satSolver.Name);
         
         var sw = Stopwatch.StartNew();
         
@@ -70,17 +77,31 @@ public sealed class SolveNextPendingProblemHandler(
             if (solveResult.IsSuccess)
             {
                 problem.Complete(solveResult.Value.Satisfiability, solveResult.Value.Assignment, sw.Elapsed);
-                logger.LogInformation("Problem {ProblemId} completed successfully.", problem.Id);
+                logger.LogInformation(
+                    "Problem solving completed. ProblemId={ProblemId} Solver={Solver} Outcome={Outcome} ElapsedMs={ElapsedMs}",
+                    problem.Id,
+                    satSolver.Name,
+                    solveResult.Value.Satisfiability,
+                    sw.ElapsedMilliseconds);
             }
             else if (solveResult.HasError<SolverTimeoutError>())
             {
                 problem.TimeOut(sw.Elapsed);
-                logger.LogWarning("Problem {ProblemId} timed out.", problem.Id);
+                logger.LogWarning(
+                    "Problem solving timed out. ProblemId={ProblemId} Solver={Solver} ElapsedMs={ElapsedMs}",
+                    problem.Id,
+                    satSolver.Name,
+                    sw.ElapsedMilliseconds);
             }
             else
             {
                 problem.Fail(sw.Elapsed);
-                logger.LogWarning("Problem {ProblemId} failed: {Errors}", problem.Id, solveResult.Errors);
+                logger.LogWarning(
+                    "Problem solving failed. ProblemId={ProblemId} Solver={Solver} ErrorCount={ErrorCount} ElapsedMs={ElapsedMs}",
+                    problem.Id,
+                    satSolver.Name,
+                    solveResult.Errors.Count,
+                    sw.ElapsedMilliseconds);
             }
         }
         catch (Exception ex)
@@ -88,7 +109,12 @@ public sealed class SolveNextPendingProblemHandler(
             sw.Stop();
             
             problem.Fail(sw.Elapsed);
-            logger.LogError(ex, "Problem {ProblemId} failed with exception.", problem.Id);
+            logger.LogError(
+                ex,
+                "Problem solving failed with exception. ProblemId={ProblemId} Solver={Solver} ElapsedMs={ElapsedMs}",
+                problem.Id,
+                satSolver.Name,
+                sw.ElapsedMilliseconds);
         }
 
         await problemRepository.Update(problem, cancellationToken);

@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Parsing.DimacsToSat;
@@ -12,7 +13,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatis
 public sealed class CreateBooleanSatisfiabilityFromDimacsHandler(
     IDimacsToSatParser parser,
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<CreateBooleanSatisfiabilityFromDimacsHandler> logger
 ) : IRequestHandler<CreateBooleanSatisfiabilityFromDimacsCommand, CreateBooleanSatisfiabilityFromDimacsResult>
 {
     public async Task<Result<CreateBooleanSatisfiabilityFromDimacsResult>> Handle(
@@ -34,6 +36,11 @@ public sealed class CreateBooleanSatisfiabilityFromDimacsHandler(
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem created from DIMACS. ProblemId={ProblemId} ProblemType={ProblemType}",
+            problem.Id,
+            "sat");
 
         return new CreateBooleanSatisfiabilityFromDimacsResult(problem.Id);
     }

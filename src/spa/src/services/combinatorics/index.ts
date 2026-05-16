@@ -20,6 +20,7 @@ export type {
     CspBooleanVariableAssignmentDto,
     CspInstanceDto,
     CspSolutionDto,
+    DeleteProblemResponse,
     DecisionVariableDto,
     DecisionVariableStateAssignmentDto,
     EdgeColorAssignmentDto,

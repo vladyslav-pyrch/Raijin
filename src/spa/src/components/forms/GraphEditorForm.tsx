@@ -44,17 +44,8 @@ function uid() {
     return `_v${++_uidCounter}`;
 }
 
-/**
- * Restore GraphVertex[] from VertexDto[] that already carry stored coordinates.
- * Use this when prefilling the editor from a saved graph instance.
- */
 export function layoutFromVertexDtos(dtos: VertexDto[]): GraphVertex[] {
-    return dtos.map((v) => ({
-        id: uid(),
-        name: v.id,
-        x: v.x,
-        y: v.y,
-    }));
+    return circleLayout(dtos.map((v) => v.id));
 }
 
 /** Lay out vertices in a circle for pre-fill when no positions are known. */
@@ -432,7 +423,7 @@ export function GraphEditorForm({
             setError('Color count must be at least 1');
             return;
         }
-        const graphVertices: VertexDto[] = vertices.map((v) => ({id: v.name, x: Math.round(v.x), y: Math.round(v.y)}));
+        const graphVertices: VertexDto[] = vertices.map((v) => ({id: v.name}));
         const graphEdges: EdgeDto[] = edges;
         await onSubmit({graph: {vertices: graphVertices, edges: graphEdges}, colorCount});
     };

@@ -10,6 +10,7 @@ internal sealed class CadicalCli(
     ILogger<CadicalCli> logger) : ICadicalCli
 {
     private readonly CadicalSolveOptions _options = options.Value;
+    private const string Solver = "cadical";
 
     public async Task<Result<string>> ExecuteAsync(
         string cnfFilePath,
@@ -27,7 +28,7 @@ internal sealed class CadicalCli(
 
         try
         {
-            logger.LogDebug("Starting CaDiCaL process for file: {FilePath}", cnfFilePath);
+            logger.LogDebug("Starting solver process. Solver={Solver} FilePath={FilePath}", Solver, cnfFilePath);
             process.Start();
 
             // Read stdout and stderr concurrently to prevent deadlock
@@ -44,27 +45,27 @@ internal sealed class CadicalCli(
 
             // Log stderr as warning; do not throw — exit code determines success/failure
             if (!string.IsNullOrWhiteSpace(error))
-                logger.LogWarning("CaDiCaL stderr: {Error}", error);
+                logger.LogWarning("Solver stderr emitted output. Solver={Solver} Error={Error}", Solver, error);
 
             // Only exit codes 10 (SAT) and 20 (UNSAT) are valid solver results
             if (process.ExitCode is not (10 or 20))
             {
-                logger.LogWarning("CaDiCaL exited with unexpected code {ExitCode}", process.ExitCode);
+                logger.LogWarning("Solver exited with unexpected code. Solver={Solver} ExitCode={ExitCode}", Solver, process.ExitCode);
                 return Result.Fail<string>($"CaDiCaL process failed with exit code {process.ExitCode}");
             }
 
-            logger.LogDebug("CaDiCaL completed successfully for file: {FilePath}", cnfFilePath);
+            logger.LogDebug("Solver process completed. Solver={Solver} FilePath={FilePath}", Solver, cnfFilePath);
             return Result.Ok(output.Trim());
         }
         catch (OperationCanceledException)
         {
-            logger.LogWarning("CaDiCaL execution cancelled for file: {FilePath}", cnfFilePath);
+            logger.LogWarning("Solver execution cancelled. Solver={Solver} FilePath={FilePath}", Solver, cnfFilePath);
             await KillProcessAsync(process);
             return Result.Fail<string>("CaDiCaL execution was cancelled");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error executing CaDiCaL for file: {FilePath}", cnfFilePath);
+            logger.LogError(ex, "Error executing solver process. Solver={Solver} FilePath={FilePath}", Solver, cnfFilePath);
             await KillProcessAsync(process);
             return Result.Fail<string>($"Error executing CaDiCaL: {ex.Message}");
         }
@@ -108,7 +109,7 @@ internal sealed class CadicalCli(
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Failed to kill CaDiCaL process");
+                logger.LogWarning(ex, "Failed to kill solver process. Solver={Solver}", Solver);
             }
         }
     }

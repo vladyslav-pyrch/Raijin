@@ -16,6 +16,7 @@ builder.Services.AddApplication();
 WebApplication app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseObservability();
 app.UseHttpLogging();
 app.UseForwardedHeaders();
 

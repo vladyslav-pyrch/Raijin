@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -9,7 +10,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 public sealed record GetSatEncodingQuery(Guid ProblemId) : IRequest<GetSatEncodingResult>;
 
 public sealed class GetSatEncodingHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetSatEncodingHandler> logger
 ) : IRequestHandler<GetSatEncodingQuery, GetSatEncodingResult>
 {
     public async Task<Result<GetSatEncodingResult>> Handle(
@@ -20,6 +22,12 @@ public sealed class GetSatEncodingHandler(
 
         if (result is null)
             return new NotFoundError($"There is no problem with id '{request.ProblemId}' or the problem does not have a SAT encoding.");
+
+        logger.LogDebug(
+            "SAT encoding read. ProblemId={ProblemId} VariableCount={VariableCount} ClauseCount={ClauseCount}",
+            request.ProblemId,
+            result.NumberOfVariables,
+            result.NumberOfClauses);
 
         return result;
     }

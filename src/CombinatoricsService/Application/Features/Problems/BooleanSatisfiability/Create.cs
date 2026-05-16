@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -9,7 +10,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatis
 
 public sealed class CreateSatProblemHandler(
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<CreateSatProblemHandler> logger
 ) : IRequestHandler<CreateSatProblemCommand, CreateSatProblemResult>
 {
     public async Task<Result<CreateSatProblemResult>> Handle(
@@ -35,6 +37,12 @@ public sealed class CreateSatProblemHandler(
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem created. ProblemId={ProblemId} ProblemType={ProblemType} ClauseCount={ClauseCount}",
+            problem.Id,
+            "sat",
+            clauses.Count);
 
         return new CreateSatProblemResult(problem.Id);
     }

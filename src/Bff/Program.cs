@@ -49,6 +49,21 @@ builder.Services.AddReverseProxy()
 WebApplication app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseObservability();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/combinatorics"))
+    {
+        app.Logger.LogInformation(
+            "Proxying request. ClusterId={ClusterId} Destination={Destination} Method={Method} Path={Path}",
+            "combinatorics-api",
+            "http://raijin-comb-api",
+            context.Request.Method,
+            context.Request.Path.Value);
+    }
+
+    await next(context);
+});
 app.UseHttpLogging();
 app.UseCors();
 app.UseHsts();
@@ -61,4 +76,11 @@ app.MapDefaultEndpoints();
 app.MapReverseProxy();
 app.MapFallbackToFile("index.html");
 
+app.Logger.LogInformation(
+    "Reverse proxy configured. RouteId={RouteId} ClusterId={ClusterId} Destination={Destination}",
+    "combinatorics-api",
+    "combinatorics-api",
+    "http://raijin-comb-api");
+
 app.Run();
+

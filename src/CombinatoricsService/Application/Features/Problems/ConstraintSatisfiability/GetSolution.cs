@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -12,7 +13,8 @@ public sealed record GetCspSolutionQuery(Guid ProblemId)
     : IRequest<GetCspSolutionResult>;
 
 public sealed class GetCspSolutionHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetCspSolutionHandler> logger
 ) : IRequestHandler<GetCspSolutionQuery, GetCspSolutionResult>
 {
     public async Task<Result<GetCspSolutionResult>> Handle(
@@ -46,6 +48,14 @@ public sealed class GetCspSolutionHandler(
                     .Select(a => new CspBooleanVariableAssignmentDto(a.Variable.Name, a.Value))
                     .ToList())
             : null;
+
+        logger.LogDebug(
+            "CSP solution read. ProblemId={ProblemId} Satisfiability={Satisfiability} HasSolution={HasSolution} ConfigurationCount={ConfigurationCount} AuxiliaryAssignmentCount={AuxiliaryAssignmentCount}",
+            request.ProblemId,
+            problem.Satisfiability,
+            solutionDto is not null,
+            solutionDto?.Configuration.Count ?? 0,
+            solutionDto?.AuxiliaryAssignments.Count ?? 0);
 
         return new GetCspSolutionResult(solutionDto, problem.Satisfiability);
     }

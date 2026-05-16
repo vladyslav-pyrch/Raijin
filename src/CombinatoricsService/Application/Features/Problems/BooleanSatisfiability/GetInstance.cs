@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -9,7 +10,8 @@ using Raijin.CombinatoricsService.Domain.Problems.BooleanSatisfiability;
 namespace Raijin.CombinatoricsService.Application.Features.Problems.BooleanSatisfiability;
 
 public sealed class GetBooleanSatisfiabilityInstanceHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetBooleanSatisfiabilityInstanceHandler> logger
 ) : IRequestHandler<GetBooleanSatisfiabilityInstanceQuery, GetBooleanSatisfiabilityInstanceResult>
 {
     public async Task<Result<GetBooleanSatisfiabilityInstanceResult>> Handle(
@@ -30,6 +32,11 @@ public sealed class GetBooleanSatisfiabilityInstanceHandler(
                 .Select(l => l.Negated ? $"~{l.Variable.Name}" : l.Variable.Name)
                 .ToList())
             .ToList();
+
+        logger.LogDebug(
+            "SAT instance read. ProblemId={ProblemId} ClauseCount={ClauseCount}",
+            request.ProblemId,
+            clauses.Count);
 
         return new GetBooleanSatisfiabilityInstanceResult(new SatInstanceDto(clauses));
     }

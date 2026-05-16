@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -8,7 +9,8 @@ using Raijin.CombinatoricsService.Domain.Problems;
 namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
 public sealed class ListProblemsHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<ListProblemsHandler> logger
 ) : IRequestHandler<ListProblemsQuery, ListProblemsResult>
 {
     public async Task<Result<ListProblemsResult>> Handle(
@@ -20,6 +22,14 @@ public sealed class ListProblemsHandler(
 
         if (result.TotalCount > 0 && request.Page > result.TotalPages)
             return new NotFoundError($"Page {request.Page} does not exist. Total pages: {result.TotalPages}.");
+
+        logger.LogDebug(
+            "Problem page read. Page={Page} PageSize={PageSize} ReturnedCount={ReturnedCount} TotalCount={TotalCount} TotalPages={TotalPages}",
+            result.Page,
+            result.PageSize,
+            result.Items.Count,
+            result.TotalCount,
+            result.TotalPages);
 
         return result;
     }

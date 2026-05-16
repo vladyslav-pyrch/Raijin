@@ -100,6 +100,7 @@ export function ProblemInfoSection({problem}: ProblemInfoSectionProps) {
                 </Row>
                 <Row label="Created">{fmt(problem.createdAt)}</Row>
                 <Row label="Updated">{fmt(problem.updatedAt)}</Row>
+                <Row label="Started solving">{fmt(problem.startedSolvingAt)}</Row>
                 <Row label="Completed">{fmt(problem.completedAt)}</Row>
                 <Row label="Duration">{fmtTimeSpan(problem.elapsedTime)}</Row>
             </div>

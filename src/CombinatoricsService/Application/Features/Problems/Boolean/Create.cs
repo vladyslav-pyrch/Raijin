@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
@@ -13,7 +14,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 public sealed class CreateBooleanProblemHandler(
     IStringToBoolExprParser parser,
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<CreateBooleanProblemHandler> logger
 ) : IRequestHandler<CreateBooleanProblemCommand, CreateBooleanProblemResult>
 {
     public async Task<Result<CreateBooleanProblemResult>> Handle(
@@ -38,6 +40,11 @@ public sealed class CreateBooleanProblemHandler(
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem created. ProblemId={ProblemId} ProblemType={ProblemType}",
+            problem.Id,
+            "boolean");
 
         return new CreateBooleanProblemResult(problem.Id);
     }

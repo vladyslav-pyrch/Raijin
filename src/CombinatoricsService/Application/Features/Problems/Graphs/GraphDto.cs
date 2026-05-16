@@ -9,7 +9,7 @@ public sealed record GraphDto(
     IReadOnlyList<EdgeDto> Edges
 );
 
-public sealed record VertexDto(string Id, float X, float Y);
+public sealed record VertexDto(string Id);
 
 public sealed record EdgeDto(string Label, string U, string V);
 

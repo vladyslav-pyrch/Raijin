@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -10,7 +11,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 public sealed record GetProblemQuery(Guid ProblemId) : IRequest<GetProblemResult>;
 
 public sealed class GetProblemHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetProblemHandler> logger
 ) : IRequestHandler<GetProblemQuery, GetProblemResult>
 {
     public async Task<Result<GetProblemResult>> Handle(
@@ -21,6 +23,12 @@ public sealed class GetProblemHandler(
 
         if (problem is null)
             return new NotFoundError($"Problem '{request.ProblemId}' not found.");
+
+        logger.LogDebug(
+            "Problem summary read. ProblemId={ProblemId} SolvingStatus={SolvingStatus} Satisfiability={Satisfiability}",
+            problem.Id,
+            problem.SolvingStatus,
+            problem.Satisfiability);
 
         return problem;
     }
@@ -36,6 +44,7 @@ public sealed record GetProblemResult(
     Satisfiability Satisfiability,
     DateTime CreatedAt,
     DateTime UpdatedAt,
+    DateTime? StartedSolvingAt,
     DateTime? CompletedAt,
     TimeSpan? ElapsedTime
 );
