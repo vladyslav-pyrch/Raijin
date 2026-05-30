@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Quartz;
 using Raijin.CombinatoricsService.Application.Messaging;
+using Raijin.CombinatoricsService.Application.Parsing.DimacsToSat;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Application.Solvers;
 using Raijin.CombinatoricsService.Infrastructure.Converters;
@@ -32,6 +33,7 @@ public static class InfrastructureModule
     public static void AddConverters(this IServiceCollection services)
     {
         services.AddTransient<BoolExprJsonConverter>();
+        services.AddSingleton<DimacsToSatParser>();
     }
 
     private static void AddMessaging(this IServiceCollection services)

@@ -4,13 +4,17 @@ import type {
     CreateBooleanProblemResponse,
     CreateCspProblemRequest,
     CreateCspProblemResponse,
+    CreateEdgeColoringProblemFromDimacsRequest,
     CreateEdgeColoringProblemRequest,
     CreateEdgeColoringProblemResponse,
+    CreateSatProblemFromDimacsRequest,
     CreateSatProblemRequest,
     CreateSatProblemResponse,
+    CreateVertexColoringProblemFromDimacsRequest,
     CreateVertexColoringProblemRequest,
     CreateVertexColoringProblemResponse,
     CspInstanceDto,
+    DeleteProblemResponse,
     EdgeColoringInstanceDto,
     GetBooleanInstanceResponse,
     GetBooleanSatisfiabilityInstanceResponse,
@@ -91,6 +95,10 @@ export class CombinatoricsApiService {
         return this.request<void>('PATCH', `/problems/${id}`, request);
     }
 
+    deleteProblem(id: string): Promise<DeleteProblemResponse> {
+        return this.request<DeleteProblemResponse>('DELETE', `/problems/${id}`);
+    }
+
     /** Trigger reduction + solve. solver passed as query param. */
     solve(id: string, solver: string): Promise<void> {
         return this.request<void>('POST', `/problems/${id}/solve?solver=${encodeURIComponent(solver)}`);
@@ -113,6 +121,14 @@ export class CombinatoricsApiService {
 
     createSatProblem(request: CreateSatProblemRequest): Promise<CreateSatProblemResponse> {
         return this.request<CreateSatProblemResponse>('POST', '/problems/sat', request);
+    }
+
+    createSatProblemFromDimacs(request: CreateSatProblemFromDimacsRequest): Promise<CreateSatProblemResponse> {
+        return this.request<CreateSatProblemResponse>(
+            'POST',
+            '/problems/sat-dimacs',
+            this.createDimacsFormData(request),
+        );
     }
 
     // ── Boolean Satisfiability (SAT) ───────────────────────────────────────────
@@ -145,6 +161,14 @@ export class CombinatoricsApiService {
         return this.request<CreateVertexColoringProblemResponse>('POST', '/problems/vertex-coloring', request);
     }
 
+    createVertexColoringProblemFromDimacs(request: CreateVertexColoringProblemFromDimacsRequest): Promise<CreateVertexColoringProblemResponse> {
+        return this.request<CreateVertexColoringProblemResponse>(
+            'POST',
+            '/problems/vertex-coloring-dimacs',
+            this.createDimacsFormData(request),
+        );
+    }
+
     // ── Vertex Coloring ────────────────────────────────────────────────────────
 
     async getVertexColoringInstance(id: string): Promise<VertexColoringInstanceDto> {
@@ -158,6 +182,14 @@ export class CombinatoricsApiService {
 
     createEdgeColoringProblem(request: CreateEdgeColoringProblemRequest): Promise<CreateEdgeColoringProblemResponse> {
         return this.request<CreateEdgeColoringProblemResponse>('POST', '/problems/edge-coloring', request);
+    }
+
+    createEdgeColoringProblemFromDimacs(request: CreateEdgeColoringProblemFromDimacsRequest): Promise<CreateEdgeColoringProblemResponse> {
+        return this.request<CreateEdgeColoringProblemResponse>(
+            'POST',
+            '/problems/edge-coloring-dimacs',
+            this.createDimacsFormData(request),
+        );
     }
 
     // ── Edge Coloring ──────────────────────────────────────────────────────────
@@ -181,14 +213,16 @@ export class CombinatoricsApiService {
         };
 
         if (body !== undefined) {
-            headers['Content-Type'] = 'application/json';
+            if (!(body instanceof FormData)) {
+                headers['Content-Type'] = 'application/json';
+            }
         }
 
         const url = `${this.baseUrl.replace(/\/$/, '')}${path}`;
 
         const init: RequestInit = {method: method, headers: headers};
         if (body !== undefined) {
-            init.body = JSON.stringify(body);
+            init.body = body instanceof FormData ? body : JSON.stringify(body);
         }
 
         const response = await fetch(url, init);
@@ -209,5 +243,30 @@ export class CombinatoricsApiService {
         }
 
         return response.json() as Promise<T>;
+    }
+
+    private createDimacsFormData(request: {
+        name?: string;
+        description?: string | null;
+        colorCount?: number;
+        file: File;
+    }): FormData {
+        const formData = new FormData();
+
+        if (request.name !== undefined) {
+            formData.append('Name', request.name);
+        }
+
+        if (request.description !== undefined && request.description !== null) {
+            formData.append('Description', request.description);
+        }
+
+        if (request.colorCount !== undefined) {
+            formData.append('ColorCount', String(request.colorCount));
+        }
+
+        formData.append('File', request.file);
+
+        return formData;
     }
 }

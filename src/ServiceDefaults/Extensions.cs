@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -48,6 +50,81 @@ public static class Extensions
         // });
 
         return builder;
+    }
+
+    public static WebApplication UseObservability(this WebApplication app)
+    {
+        ILogger logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Raijin.Startup");
+        bool useOtlpExporter = !string.IsNullOrWhiteSpace(app.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+        logger.LogInformation(
+            "Service starting. ServiceName={ServiceName} Environment={Environment} OtlpExporterEnabled={OtlpExporterEnabled} HealthEndpoint={HealthEndpoint} AlivenessEndpoint={AlivenessEndpoint} ServiceDiscoveryEnabled={ServiceDiscoveryEnabled} ResilienceEnabled={ResilienceEnabled}",
+            app.Environment.ApplicationName,
+            app.Environment.EnvironmentName,
+            useOtlpExporter,
+            HealthEndpointPath,
+            AlivenessEndpointPath,
+            true,
+            true);
+
+        app.Use(async (context, next) =>
+        {
+            string requestId = context.TraceIdentifier;
+            Activity? activity = Activity.Current;
+            string? traceId = activity?.TraceId.ToString();
+            string? spanId = activity?.SpanId.ToString();
+
+            using IDisposable? scope = app.Logger.BeginScope(new Dictionary<string, object?>
+            {
+                ["RequestId"] = requestId,
+                ["TraceId"] = traceId,
+                ["SpanId"] = spanId
+            });
+
+            var stopwatch = Stopwatch.StartNew();
+
+            try
+            {
+                await next(context);
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                if (!context.Request.Path.StartsWithSegments(HealthEndpointPath)
+                    && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath))
+                {
+                    app.Logger.LogInformation(
+                        "HTTP request completed. Method={Method} Path={Path} StatusCode={StatusCode} ElapsedMs={ElapsedMs}",
+                        context.Request.Method,
+                        context.Request.Path.Value,
+                        context.Response.StatusCode,
+                        stopwatch.ElapsedMilliseconds);
+                }
+            }
+        });
+
+        return app;
+    }
+
+    public static IHost LogRaijinStartup(this IHost host)
+    {
+        ILogger logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Raijin.Startup");
+        IHostEnvironment environment = host.Services.GetRequiredService<IHostEnvironment>();
+        IConfiguration configuration = host.Services.GetRequiredService<IConfiguration>();
+        bool useOtlpExporter = !string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+        logger.LogInformation(
+            "Service starting. ServiceName={ServiceName} Environment={Environment} OtlpExporterEnabled={OtlpExporterEnabled} HealthEndpoint={HealthEndpoint} AlivenessEndpoint={AlivenessEndpoint} ServiceDiscoveryEnabled={ServiceDiscoveryEnabled} ResilienceEnabled={ResilienceEnabled}",
+            environment.ApplicationName,
+            environment.EnvironmentName,
+            useOtlpExporter,
+            HealthEndpointPath,
+            AlivenessEndpointPath,
+            true,
+            true);
+
+        return host;
     }
 
     public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder)

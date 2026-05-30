@@ -46,21 +46,5 @@ internal sealed class ProblemModelConfiguration : IEntityTypeConfiguration<Probl
 
         builder.Property(problem => problem.UpdatedAt)
             .IsRequired();
-
-        builder.OwnsMany(problem => problem.Clauses, clause =>
-        {
-            clause.ToTable("Clauses");
-
-            clause.HasKey(c => c.Id);
-
-            clause.WithOwner()
-                .HasForeignKey(encoding => encoding.ProblemId);
-
-            clause.Property(c => c.Id)
-                .ValueGeneratedOnAdd();
-
-            clause.PrimitiveCollection(c => c.Literals)
-                .IsRequired();
-        });
     }
 }

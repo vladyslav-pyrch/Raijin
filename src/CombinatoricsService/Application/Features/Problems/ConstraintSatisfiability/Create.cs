@@ -1,8 +1,9 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
-using Raijin.CombinatoricsService.Application.Parsing;
+using Raijin.CombinatoricsService.Application.Parsing.StringToBoolExpr;
 using Raijin.CombinatoricsService.Application.Persistence;
 using Raijin.CombinatoricsService.Domain.BooleanExpressions;
 using Raijin.CombinatoricsService.Domain.Problems;
@@ -11,9 +12,10 @@ using Raijin.CombinatoricsService.Domain.Problems.ConstraintSatisfiability;
 namespace Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSatisfiability;
 
 public sealed class CreateCspProblemHandler(
-    IBoolExprParser parser,
+    IStringToBoolExprParser parser,
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<CreateCspProblemHandler> logger
 ) : IRequestHandler<CreateCspProblemCommand, CreateCspProblemResult>
 {
     public async Task<Result<CreateCspProblemResult>> Handle(
@@ -67,6 +69,13 @@ public sealed class CreateCspProblemHandler(
 
         await problemRepository.Add(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem created. ProblemId={ProblemId} ProblemType={ProblemType} VariableCount={VariableCount} ConstraintCount={ConstraintCount}",
+            problem.Id,
+            "csp",
+            variables.Count,
+            constraints.Count);
 
         return new CreateCspProblemResult(problem.Id);
     }

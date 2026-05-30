@@ -6,9 +6,10 @@ interface ModalProps {
     title: string;
     onClose: () => void;
     children: React.ReactNode;
+    panelClassName?: string;
 }
 
-export function Modal({open, title, onClose, children}: ModalProps) {
+export function Modal({open, title, onClose, children, panelClassName = ''}: ModalProps) {
     useEffect(() => {
         if (!open) return;
         const handler = (e: KeyboardEvent) => {
@@ -27,7 +28,7 @@ export function Modal({open, title, onClose, children}: ModalProps) {
                 if (e.target === e.currentTarget) onClose();
             }}
         >
-            <div className="card w-full max-w-xl animate-slide-up">
+            <div className={`card w-full max-w-xl animate-slide-up ${panelClassName}`}>
                 {/* Header */}
                 <div className="card-header flex items-center justify-between">
                     <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">

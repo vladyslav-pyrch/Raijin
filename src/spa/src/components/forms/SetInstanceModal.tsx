@@ -9,11 +9,11 @@ import {INSTANCE_TYPES, type InstanceTypeValue} from '../../lib/constants';
 import {api} from '../../lib/api';
 import type {AnyInstanceData} from '../../hooks/useInstance';
 import type {
-  BooleanProblemInstanceDto,
-  CspInstanceDto,
-  EdgeColoringInstanceDto,
-  SatInstanceDto,
-  VertexColoringInstanceDto,
+    BooleanProblemInstanceDto,
+    CspInstanceDto,
+    EdgeColoringInstanceDto,
+    SatInstanceDto,
+    VertexColoringInstanceDto,
 } from '../../services/combinatorics';
 
 // ─── Version name helper ──────────────────────────────────────────────────────
@@ -117,6 +117,17 @@ export function SetInstanceModal({
         });
     };
 
+    const handleSatDimacsSubmit = async (file: File) => {
+        await wrap(async () => {
+            const res = await api.createSatProblemFromDimacs({
+                name: name.trim(),
+                description: description || null,
+                file,
+            });
+            return res.problemId;
+        });
+    };
+
     const handleCspSubmit = async (instance: CspInstanceDto) => {
         await wrap(async () => {
             const res = await api.createCspProblem({
@@ -184,6 +195,7 @@ export function SetInstanceModal({
                     <SatInstanceForm
                         loading={loading}
                         onSubmit={handleSatSubmit}
+                        onDimacsSubmit={handleSatDimacsSubmit}
                         {...(prefillProps as { initialText?: string })}
                     />
                 );
@@ -199,6 +211,17 @@ export function SetInstanceModal({
                 return (
                     <GraphEditorForm
                         loading={loading}
+                        onDimacsSubmit={async (inst) => {
+                            await wrap(async () => {
+                                const res = await api.createVertexColoringProblemFromDimacs({
+                                    name: name.trim(),
+                                    description: description || null,
+                                    file: inst.file,
+                                    colorCount: inst.colorCount,
+                                });
+                                return res.problemId;
+                            });
+                        }}
                         onSubmit={async (inst) => {
                             await wrap(async () => {
                                 const res = await api.createVertexColoringProblem({
@@ -216,6 +239,17 @@ export function SetInstanceModal({
                 return (
                     <GraphEditorForm
                         loading={loading}
+                        onDimacsSubmit={async (inst) => {
+                            await wrap(async () => {
+                                const res = await api.createEdgeColoringProblemFromDimacs({
+                                    name: name.trim(),
+                                    description: description || null,
+                                    file: inst.file,
+                                    colorCount: inst.colorCount,
+                                });
+                                return res.problemId;
+                            });
+                        }}
                         onSubmit={async (inst) => {
                             await wrap(async () => {
                                 const res = await api.createEdgeColoringProblem({

@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -12,7 +13,8 @@ public sealed record GetEdgeColoringSolutionQuery(Guid ProblemId)
     : IRequest<GetEdgeColoringSolutionResult>;
 
 public sealed class GetEdgeColoringSolutionHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetEdgeColoringSolutionHandler> logger
 ) : IRequestHandler<GetEdgeColoringSolutionQuery, GetEdgeColoringSolutionResult>
 {
     public async Task<Result<GetEdgeColoringSolutionResult>> Handle(
@@ -42,6 +44,13 @@ public sealed class GetEdgeColoringSolutionHandler(
                 .Select(a => new EdgeColorAssignmentDto(a.EdgeLabel, a.Color))
                 .ToList())
             : null;
+
+        logger.LogDebug(
+            "Edge coloring solution read. ProblemId={ProblemId} Satisfiability={Satisfiability} HasSolution={HasSolution} AssignmentCount={AssignmentCount}",
+            request.ProblemId,
+            problem.Satisfiability,
+            solutionDto is not null,
+            solutionDto?.ColorAssignments.Count ?? 0);
 
         return new GetEdgeColoringSolutionResult(solutionDto, problem.Satisfiability);
     }

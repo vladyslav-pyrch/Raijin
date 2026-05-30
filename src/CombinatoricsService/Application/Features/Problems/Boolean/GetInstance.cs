@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -9,7 +10,8 @@ using Raijin.CombinatoricsService.Domain.Problems.Boolean;
 namespace Raijin.CombinatoricsService.Application.Features.Problems.Boolean;
 
 public sealed class GetBooleanInstanceHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetBooleanInstanceHandler> logger
 ) : IRequestHandler<GetBooleanInstanceQuery, GetBooleanInstanceResult>
 {
     public async Task<Result<GetBooleanInstanceResult>> Handle(
@@ -23,6 +25,8 @@ public sealed class GetBooleanInstanceHandler(
 
         if (problem.Instance is not BooleanProblemInstance instance)
             return new NotFoundError($"Problem '{request.ProblemId}' does not have a boolean instance.");
+
+        logger.LogDebug("Boolean instance read. ProblemId={ProblemId}", request.ProblemId);
 
         return new GetBooleanInstanceResult(
             new BooleanProblemInstanceDto(instance.Root.ToString())

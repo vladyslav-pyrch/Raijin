@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using FluentResults;
 using Microsoft.Extensions.Logging;
@@ -24,10 +25,21 @@ internal sealed class CryptominisatSolver(
         cancellationToken.ThrowIfCancellationRequested();
 
         logger.LogInformation(
-            "Starting SAT solving with {VariableCount} variables and {ClauseCount} clauses",
+            "SAT solver started. Solver={Solver} VariableCount={VariableCount} ClauseCount={ClauseCount}",
+            Name,
             satEncoding.NumberOfVariables,
             satEncoding.NumberOfClauses);
+        var stopwatch = Stopwatch.StartNew();
+        
+        using CancellationTokenSource? timeoutCts = _options.TimeoutSeconds.HasValue
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : null;
 
+        if (timeoutCts is not null)
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds!.Value));
+
+        CancellationToken effectiveToken = timeoutCts?.Token ?? cancellationToken;
+        
         Result<string> filePathResult = await WriteCnfFileAsync(satEncoding, cancellationToken);
         if (filePathResult.IsFailed)
             return Result.Fail<SatSolverResult>(filePathResult.Errors);
@@ -36,27 +48,49 @@ internal sealed class CryptominisatSolver(
 
         try
         {
-            CryptominisatArgumentsBuilder arguments = new CryptominisatArgumentsBuilder().WithVerbosity(0);
-
-            if (_options.TimeoutSeconds.HasValue)
-                arguments = arguments.WithMaxTime(_options.TimeoutSeconds.Value);
+            CryptominisatArgumentsBuilder arguments = new CryptominisatArgumentsBuilder()
+                .WithVerbosity(0);
 
             Result<string> executionResult = await cli.ExecuteAsync(
                 filePath,
                 arguments,
-                cancellationToken);
+                effectiveToken);
 
             if (executionResult.IsFailed)
             {
-                logger.LogWarning("CryptoMiniSat execution failed: {Errors}", executionResult.Errors);
+                bool wasTimeout = timeoutCts?.IsCancellationRequested == true
+                                  && !cancellationToken.IsCancellationRequested;
+
+                if (wasTimeout)
+                {
+                    logger.LogWarning(
+                        "SAT solver timed out. Solver={Solver} TimeoutSeconds={TimeoutSeconds} ElapsedMs={ElapsedMs}",
+                        Name,
+                        _options.TimeoutSeconds,
+                        stopwatch.ElapsedMilliseconds);
+                    return Result.Fail<SatSolverResult>(new SolverTimeoutError(_options.TimeoutSeconds!.Value));
+                }
+
+                logger.LogWarning(
+                    "SAT solver execution failed. Solver={Solver} ErrorCount={ErrorCount} ElapsedMs={ElapsedMs}",
+                    Name,
+                    executionResult.Errors.Count,
+                    stopwatch.ElapsedMilliseconds);
                 return Result.Fail<SatSolverResult>(executionResult.Errors);
             }
 
             Result<SatSolverResult> parseResult = ParseSolution(executionResult.Value);
             if (parseResult.IsFailed)
-                logger.LogError("Failed to parse CryptoMiniSat output: {Errors}", parseResult.Errors);
+                logger.LogError(
+                    "SAT solver output parse failed. Solver={Solver} ErrorCount={ErrorCount}",
+                    Name,
+                    parseResult.Errors.Count);
             else
-                logger.LogInformation("SAT solving completed successfully");
+                logger.LogInformation(
+                    "SAT solver completed. Solver={Solver} Outcome={Outcome} ElapsedMs={ElapsedMs}",
+                    Name,
+                    parseResult.Value.Satisfiability,
+                    stopwatch.ElapsedMilliseconds);
 
             return parseResult;
         }
@@ -89,7 +123,7 @@ internal sealed class CryptominisatSolver(
             await writer.WriteAsync(dimacs.AsMemory(), cancellationToken);
             await writer.FlushAsync(cancellationToken);
 
-            logger.LogDebug("CNF file written to: {FilePath}", filePath);
+            logger.LogDebug("CNF file written. Solver={Solver} FilePath={FilePath}", Name, filePath);
             return Result.Ok(filePath);
         }
         catch (Exception ex)
@@ -99,11 +133,11 @@ internal sealed class CryptominisatSolver(
                 try { File.Delete(filePath); }
                 catch (Exception deleteEx)
                 {
-                    logger.LogWarning(deleteEx, "Failed to clean up partial CNF file: {FilePath}", filePath);
+                    logger.LogWarning(deleteEx, "Failed to clean up partial CNF file. Solver={Solver} FilePath={FilePath}", Name, filePath);
                 }
             }
 
-            logger.LogError(ex, "Failed to write CNF file");
+            logger.LogError(ex, "Failed to write CNF file. Solver={Solver}", Name);
             return Result.Fail<string>($"Failed to write CNF file: {ex.Message}");
         }
     }
@@ -117,7 +151,7 @@ internal sealed class CryptominisatSolver(
 
         if (lines.Any(line => line.StartsWith("s UNSATISFIABLE")))
         {
-            logger.LogInformation("Problem is UNSATISFIABLE");
+            logger.LogDebug("SAT solver reported unsatisfiable outcome. Solver={Solver}", Name);
             return Result.Ok(new SatSolverResult(Satisfiability.Unsatisfiable, []));
         }
 
@@ -137,12 +171,12 @@ internal sealed class CryptominisatSolver(
                 .Select(int.Parse)
                 .ToList();
 
-            logger.LogDebug("Parsed solution with {Count} variable assignments", solution.Count);
+            logger.LogDebug("SAT solver solution parsed. Solver={Solver} AssignmentCount={AssignmentCount}", Name, solution.Count);
             return Result.Ok(new SatSolverResult(Satisfiability.Satisfiable, solution));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to parse solution literals");
+            logger.LogError(ex, "Failed to parse solution literals. Solver={Solver}", Name);
             return Result.Fail<SatSolverResult>($"Failed to parse solution: {ex.Message}");
         }
     }
@@ -154,12 +188,12 @@ internal sealed class CryptominisatSolver(
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
-                logger.LogDebug("Cleaned up CNF file: {FilePath}", filePath);
+                logger.LogDebug("CNF file cleaned up. Solver={Solver} FilePath={FilePath}", Name, filePath);
             }
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to delete CNF file: {FilePath}", filePath);
+            logger.LogWarning(ex, "Failed to delete CNF file. Solver={Solver} FilePath={FilePath}", Name, filePath);
         }
     }
 }

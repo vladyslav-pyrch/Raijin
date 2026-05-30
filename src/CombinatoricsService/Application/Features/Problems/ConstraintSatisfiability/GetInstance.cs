@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -11,7 +12,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems.ConstraintSa
 public sealed record GetCspInstanceQuery(Guid ProblemId) : IRequest<GetCspInstanceResult>;
 
 public sealed class GetCspInstanceHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetCspInstanceHandler> logger
 ) : IRequestHandler<GetCspInstanceQuery, GetCspInstanceResult>
 {
     public async Task<Result<GetCspInstanceResult>> Handle(
@@ -33,6 +35,12 @@ public sealed class GetCspInstanceHandler(
         IReadOnlyList<string> constraints = instance.Constraints
             .Select(c => c.ToString())
             .ToList();
+
+        logger.LogDebug(
+            "CSP instance read. ProblemId={ProblemId} VariableCount={VariableCount} ConstraintCount={ConstraintCount}",
+            request.ProblemId,
+            variables.Count,
+            constraints.Count);
 
         return new GetCspInstanceResult(new CspInstanceDto(variables, constraints));
     }

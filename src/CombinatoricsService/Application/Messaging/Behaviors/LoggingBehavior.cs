@@ -14,7 +14,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
     {
         string requestName = typeof(TRequest).Name;
 
-        logger.LogInformation("Handling {RequestName}", requestName);
+        logger.LogDebug("Handling {RequestName}", requestName);
         var stopwatch = Stopwatch.StartNew();
 
         Result<TResponse> result = await next();
@@ -22,7 +22,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
         stopwatch.Stop();
 
         if (result.IsSuccess)
-            logger.LogInformation("Handled {RequestName} successfully in {ElapsedMs}ms", requestName,
+            logger.LogDebug("Handled {RequestName} successfully in {ElapsedMs}ms", requestName,
                 stopwatch.ElapsedMilliseconds);
         else
             logger.LogWarning("Handled {RequestName} with errors in {ElapsedMs}ms: {Errors}", requestName,
@@ -40,7 +40,7 @@ public sealed class LoggingBehavior<TRequest>(
     {
         string requestName = typeof(TRequest).Name;
 
-        logger.LogInformation("Handling {RequestName}", requestName);
+        logger.LogDebug("Handling {RequestName}", requestName);
         var stopwatch = Stopwatch.StartNew();
 
         Result result = await next();
@@ -48,7 +48,7 @@ public sealed class LoggingBehavior<TRequest>(
         stopwatch.Stop();
 
         if (result.IsSuccess)
-            logger.LogInformation("Handled {RequestName} successfully in {ElapsedMs}ms", requestName,
+            logger.LogDebug("Handled {RequestName} successfully in {ElapsedMs}ms", requestName,
                 stopwatch.ElapsedMilliseconds);
         else
             logger.LogWarning("Handled {RequestName} with errors in {ElapsedMs}ms: {Errors}", requestName,

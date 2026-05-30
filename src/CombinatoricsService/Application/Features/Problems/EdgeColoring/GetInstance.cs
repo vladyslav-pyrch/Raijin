@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Features.Problems.Graphs;
 using Raijin.CombinatoricsService.Application.Messaging;
@@ -13,7 +14,8 @@ public sealed record GetEdgeColoringInstanceQuery(Guid ProblemId)
     : IRequest<GetEdgeColoringInstanceResult>;
 
 public sealed class GetEdgeColoringInstanceHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetEdgeColoringInstanceHandler> logger
 ) : IRequestHandler<GetEdgeColoringInstanceQuery, GetEdgeColoringInstanceResult>
 {
     public async Task<Result<GetEdgeColoringInstanceResult>> Handle(
@@ -29,13 +31,20 @@ public sealed class GetEdgeColoringInstanceHandler(
             return new NotFoundError($"Problem '{request.ProblemId}' does not have an edge coloring instance.");
 
         IReadOnlyList<VertexDto> vertices = instance.Graph.Vertices
-            .Select(v => new VertexDto(v.Id, v.X, v.Y))
+            .Select(v => new VertexDto(v.Id))
             .ToList();
         IReadOnlyList<EdgeDto> edges = instance.Graph.Edges
             .Select(e => new EdgeDto(e.Label, e.U.Id, e.V.Id))
             .ToList();
 
         var graph = new GraphDto(vertices, edges);
+
+        logger.LogDebug(
+            "Edge coloring instance read. ProblemId={ProblemId} VertexCount={VertexCount} EdgeCount={EdgeCount} ColorCount={ColorCount}",
+            request.ProblemId,
+            vertices.Count,
+            edges.Count,
+            instance.ColourCount);
 
         return new GetEdgeColoringInstanceResult(
             new EdgeColoringInstanceDto(graph, instance.ColourCount)

@@ -28,27 +28,45 @@ public class MigrationWorker(
             await RunMigrationAsync(dbContext, cancellationToken);
             logger.LogInformation("CombinatoricsService database migration completed successfully");
 
+            logger.LogInformation("Starting CombinatoricsService database seeding");
             await SeedDataAsync(dbContext, cancellationToken);
             logger.LogInformation("CombinatoricsService database seeding completed successfully");
         }
         catch (Exception ex)
         {
             activity?.AddException(ex);
-            logger.LogError(ex, "CombinatoricsService database migration failed");
+            logger.LogCritical(ex, "CombinatoricsService database migration failed");
             throw;
         }
 
         hostApplicationLifetime.StopApplication();
     }
 
-    private static async Task RunMigrationAsync(DbContext dbContext, CancellationToken cancellationToken)
+    private async Task RunMigrationAsync(DbContext dbContext, CancellationToken cancellationToken)
     {
         IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
-            // Run migration in a transaction to avoid partial migration if it fails.
-            await dbContext.Database.MigrateAsync(cancellationToken);
-            // await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+            try
+            {
+                // Try normal migration first
+                await dbContext.Database.MigrateAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Database migration failed. Dropping and recreating database before retrying migrations.");
+
+                await dbContext.Database.EnsureDeletedAsync(cancellationToken);
+                logger.LogWarning("Database dropped after failed migration attempt.");
+
+                await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+                logger.LogInformation("Database recreated after failed migration attempt.");
+
+                await dbContext.Database.MigrateAsync(cancellationToken);
+                logger.LogInformation("Database migrations reapplied after recreate fallback.");
+            }
         });
     }
 

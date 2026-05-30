@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -12,7 +13,8 @@ public sealed record GetBooleanSolutionQuery(Guid ProblemId)
     : IRequest<GetBooleanSolutionResult>;
 
 public sealed class GetBooleanSolutionHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetBooleanSolutionHandler> logger
 ) : IRequestHandler<GetBooleanSolutionQuery, GetBooleanSolutionResult>
 {
     public async Task<Result<GetBooleanSolutionResult>> Handle(
@@ -42,6 +44,13 @@ public sealed class GetBooleanSolutionHandler(
                 .Select(a => new BooleanVariableAssignmentDto(a.Variable.Name, a.Value))
                 .ToList())
             : null;
+
+        logger.LogDebug(
+            "Boolean solution read. ProblemId={ProblemId} Satisfiability={Satisfiability} HasSolution={HasSolution} AssignmentCount={AssignmentCount}",
+            request.ProblemId,
+            problem.Satisfiability,
+            solutionDto is not null,
+            solutionDto?.Assignments.Count ?? 0);
 
         return new GetBooleanSolutionResult(solutionDto, problem.Satisfiability);
     }

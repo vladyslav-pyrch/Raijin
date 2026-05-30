@@ -34,7 +34,9 @@ export interface GetProblemResponse {
     satisfiability: string;
     createdAt: string;
     updatedAt: string;
+    startedSolvingAt: string | null;
     completedAt: string | null;
+    elapsedTime: string | null;
 }
 
 export interface ProblemSummaryResponse {
@@ -74,12 +76,12 @@ export interface UpdateProblemRequest {
     description?: string | null;
 }
 
+export type DeleteProblemResponse = void;
+
 // ─── Graph primitives ─────────────────────────────────────────────────────────
 
 export interface VertexDto {
     id: string;
-    x: number;
-    y: number;
 }
 
 export interface EdgeDto {
@@ -124,6 +126,13 @@ export interface CreateVertexColoringProblemRequest {
     instance?: VertexColoringInstanceDto;
 }
 
+export interface CreateVertexColoringProblemFromDimacsRequest {
+    name?: string;
+    description?: string | null;
+    colorCount: number;
+    file: File;
+}
+
 export interface CreateVertexColoringProblemResponse {
     problemId: string;
 }
@@ -157,6 +166,13 @@ export interface CreateEdgeColoringProblemRequest {
     name?: string;
     description?: string | null;
     instance?: EdgeColoringInstanceDto;
+}
+
+export interface CreateEdgeColoringProblemFromDimacsRequest {
+    name?: string;
+    description?: string | null;
+    colorCount: number;
+    file: File;
 }
 
 export interface CreateEdgeColoringProblemResponse {
@@ -272,6 +288,12 @@ export interface CreateSatProblemRequest {
     name?: string;
     description?: string | null;
     instance?: SatInstanceDto;
+}
+
+export interface CreateSatProblemFromDimacsRequest {
+    name?: string;
+    description?: string | null;
+    file: File;
 }
 
 export interface CreateSatProblemResponse {

@@ -35,7 +35,11 @@ public sealed class Problem
 
     public DateTime UpdatedAt { get; private set; }
 
+    public DateTime? StartedSolvingAt { get; private set; }
+
     public DateTime? CompletedAt { get; private set; }
+    
+    public TimeSpan? ElapsedTime { get; private set; }
 
     public static Problem Create(Guid id, string name, string description, Instance instance)
     {
@@ -67,7 +71,9 @@ public sealed class Problem
         SolvingStatus solvingStatus,
         Satisfiability satisfiability,
         IReadOnlyList<int> assignment,
+        DateTime? startedSolvingAt,
         DateTime? completedAt,
+        TimeSpan? elapsedTime,
         Solution? solution
     ) => new(id, name, description, instance, createdAt)
     {
@@ -77,7 +83,9 @@ public sealed class Problem
         SolvingStatus = solvingStatus,
         Satisfiability = satisfiability,
         Assignment = assignment,
+        StartedSolvingAt = startedSolvingAt,
         CompletedAt = completedAt,
+        ElapsedTime = elapsedTime,
         Solution = solution
     };
 
@@ -142,11 +150,14 @@ public sealed class Problem
         if (SolvingStatus != SolvingStatus.Pending)
             throw new InvalidOperationException($"Cannot mark a problem as running in '{SolvingStatus}' status.");
 
+        DateTime now = DateTime.UtcNow;
+
         SolvingStatus = SolvingStatus.Running;
-        UpdatedAt = DateTime.UtcNow;
+        StartedSolvingAt = now;
+        UpdatedAt = now;
     }
 
-    public void Complete(Satisfiability satisfiability, IReadOnlyList<int> assignment)
+    public void Complete(Satisfiability satisfiability, IReadOnlyList<int> assignment, TimeSpan elapsedTime)
     {
         ArgumentNullException.ThrowIfNull(assignment);
         EnsureActiveStatus("complete");
@@ -159,24 +170,27 @@ public sealed class Problem
         SolvingStatus = SolvingStatus.Completed;
         CompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        ElapsedTime = elapsedTime;
     }
 
-    public void Fail()
+    public void Fail(TimeSpan elapsedTime)
     {
         EnsureActiveStatus("fail");
 
         SolvingStatus = SolvingStatus.Failed;
         CompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        ElapsedTime = elapsedTime;
     }
 
-    public void TimeOut()
+    public void TimeOut(TimeSpan elapsedTime)
     {
         EnsureActiveStatus("time out");
 
         SolvingStatus = SolvingStatus.TimedOut;
         CompletedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        ElapsedTime = elapsedTime;
     }
 
     private void EnsureActiveStatus(string action)

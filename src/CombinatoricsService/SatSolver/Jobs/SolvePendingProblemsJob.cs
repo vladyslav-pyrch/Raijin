@@ -28,9 +28,23 @@ public sealed class SolvePendingProblemsJob(
 
     public async Task Execute(IJobExecutionContext context)
     {
+        using IDisposable? scope = logger.BeginScope(new Dictionary<string, object?>
+        {
+            ["JobKey"] = context.JobDetail.Key.ToString()
+        });
+
+        logger.LogDebug("SAT solve job triggered. JobKey={JobKey}", context.JobDetail.Key);
+
         bool acquired = await Semaphore.WaitAsync(TimeSpan.Zero, context.CancellationToken);
         if (!acquired)
+        {
+            logger.LogInformation(
+                "SAT solve job skipped because concurrency limit is reached. JobKey={JobKey}",
+                context.JobDetail.Key);
             return;
+        }
+
+        logger.LogDebug("SAT solve job acquired worker slot. JobKey={JobKey}", context.JobDetail.Key);
 
         _ = SolveAsync(context.CancellationToken)
             .ContinueWith(
@@ -50,14 +64,17 @@ public sealed class SolvePendingProblemsJob(
 
             if (result.IsFailed)
                 logger.LogWarning("Solve pending SAT run returned failure: {Errors}", result.Errors);
+            else
+                logger.LogDebug("SAT solve job completed. Outcome={Outcome}", "Success");
         }
         catch (Exception e)
         {
-            logger.LogError(e, "An exception occured during solving of a pending job.");
+            logger.LogError(e, "An exception occurred during solving of a pending job.");
         }
         finally
         {
             Semaphore.Release();
+            logger.LogDebug("SAT solve job released worker slot.");
         }
     }
 }

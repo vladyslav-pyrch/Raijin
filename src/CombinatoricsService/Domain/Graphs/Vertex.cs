@@ -10,7 +10,7 @@ public sealed record Vertex
         RegexOptions.Compiled | RegexOptions.CultureInvariant,
         TimeSpan.FromMilliseconds(100));
 
-    public Vertex(string id, float x, float y)
+    public Vertex(string id)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
 
@@ -18,13 +18,7 @@ public sealed record Vertex
             throw new ArgumentException($"Vertex id '{id}' is not a valid variable name.", nameof(id));
 
         Id = id;
-        X = x;
-        Y = y;
     }
 
     public string Id { get; }
-
-    public float X { get; init; }
-
-    public float Y { get; init; }
 }

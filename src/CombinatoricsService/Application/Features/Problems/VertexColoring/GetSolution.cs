@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -12,7 +13,8 @@ public sealed record GetVertexColoringSolutionQuery(Guid ProblemId)
     : IRequest<GetVertexColoringSolutionResult>;
 
 public sealed class GetVertexColoringSolutionHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetVertexColoringSolutionHandler> logger
 ) : IRequestHandler<GetVertexColoringSolutionQuery, GetVertexColoringSolutionResult>
 {
     public async Task<Result<GetVertexColoringSolutionResult>> Handle(
@@ -42,6 +44,13 @@ public sealed class GetVertexColoringSolutionHandler(
                 .Select(a => new VertexColorAssignmentDto(a.VertexId, a.Color))
                 .ToList())
             : null;
+
+        logger.LogDebug(
+            "Vertex coloring solution read. ProblemId={ProblemId} Satisfiability={Satisfiability} HasSolution={HasSolution} AssignmentCount={AssignmentCount}",
+            request.ProblemId,
+            problem.Satisfiability,
+            solutionDto is not null,
+            solutionDto?.ColorAssignments.Count ?? 0);
 
         return new GetVertexColoringSolutionResult(solutionDto, problem.Satisfiability);
     }

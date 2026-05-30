@@ -15,6 +15,8 @@ public interface IProblemRepository
 
     public Task Update(Problem problem, CancellationToken cancellationToken);
 
+    public Task Delete(Guid id, CancellationToken cancellationToken);
+
     public Task<Problem?> GetOldestPendingWithLock(CancellationToken cancellationToken);
 
     public Task<ListProblemsResult> ListProblems(int page, int pageSize, CancellationToken cancellationToken);

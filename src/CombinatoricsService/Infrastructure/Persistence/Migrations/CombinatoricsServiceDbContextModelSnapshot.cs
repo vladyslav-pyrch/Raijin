@@ -18,7 +18,7 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -43,6 +43,12 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(5000)
                         .HasColumnType("character varying(5000)");
+
+                    b.Property<string>("DimacsEncoding")
+                        .HasColumnType("text");
+
+                    b.Property<TimeSpan?>("ElapsedTime")
+                        .HasColumnType("interval");
 
                     b.Property<JsonDocument>("Instance")
                         .IsRequired()
@@ -75,40 +81,15 @@ namespace Raijin.CombinatoricsService.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<DateTime?>("StartedSolvingAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.ToTable("Problems");
-                });
-
-            modelBuilder.Entity("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ProblemModel", b =>
-                {
-                    b.OwnsMany("Raijin.CombinatoricsService.Infrastructure.Persistence.Models.ClauseModel", "Clauses", b1 =>
-                        {
-                            b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uuid");
-
-                            b1.PrimitiveCollection<int[]>("Literals")
-                                .IsRequired()
-                                .HasColumnType("integer[]");
-
-                            b1.Property<Guid>("ProblemId")
-                                .HasColumnType("uuid");
-
-                            b1.HasKey("Id");
-
-                            b1.HasIndex("ProblemId");
-
-                            b1.ToTable("Clauses", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("ProblemId");
-                        });
-
-                    b.Navigation("Clauses");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,6 @@
 ﻿using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -9,7 +10,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 
 public sealed class UpdateProblemHandler(
     IProblemRepository problemRepository,
-    IUnitOfWork unitOfWork
+    IUnitOfWork unitOfWork,
+    ILogger<UpdateProblemHandler> logger
 ) : IRequestHandler<UpdateProblemCommand>
 {
     public async Task<Result> Handle(UpdateProblemCommand request, CancellationToken cancellationToken)
@@ -27,6 +29,12 @@ public sealed class UpdateProblemHandler(
 
         await problemRepository.Update(problem, cancellationToken);
         await unitOfWork.Commit(cancellationToken);
+
+        logger.LogInformation(
+            "Problem updated. ProblemId={ProblemId} NameChanged={NameChanged} DescriptionChanged={DescriptionChanged}",
+            problem.Id,
+            request.Name is not null,
+            request.Description is not null);
 
         return Result.Ok();
     }

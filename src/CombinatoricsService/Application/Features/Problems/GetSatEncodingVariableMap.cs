@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Raijin.CombinatoricsService.Application.Errors;
 using Raijin.CombinatoricsService.Application.Messaging;
 using Raijin.CombinatoricsService.Application.Persistence;
@@ -10,7 +11,8 @@ namespace Raijin.CombinatoricsService.Application.Features.Problems;
 public sealed record GetSatEncodingVariableMapQuery(Guid ProblemId) : IRequest<GetSatEncodingVariableMapResult>;
 
 public sealed class GetSatEncodingVariableMapHandler(
-    IProblemRepository problemRepository
+    IProblemRepository problemRepository,
+    ILogger<GetSatEncodingVariableMapHandler> logger
 ) : IRequestHandler<GetSatEncodingVariableMapQuery, GetSatEncodingVariableMapResult>
 {
     public async Task<Result<GetSatEncodingVariableMapResult>> Handle(
@@ -31,6 +33,11 @@ public sealed class GetSatEncodingVariableMapHandler(
             .Select(kvp => new VariableMapEntry(kvp.Key, kvp.Value))
             .OrderBy(e => e.Index)
             .ToList();
+
+        logger.LogDebug(
+            "SAT encoding variable map read. ProblemId={ProblemId} VariableCount={VariableCount}",
+            request.ProblemId,
+            variables.Count);
 
         return new GetSatEncodingVariableMapResult(variables);
     }

@@ -13,4 +13,5 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource(MigrationWorker.ActivitySourceName));
 
 IHost host = builder.Build();
+host.LogRaijinStartup();
 host.Run();
