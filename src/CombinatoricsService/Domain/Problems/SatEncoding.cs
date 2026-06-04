@@ -11,7 +11,7 @@ public sealed record SatEncoding
 
     public IEnumerable<IEnumerable<int>> Clauses { get; }
 
-    public int NumberOfVariables => Clauses.Select(ints => ints.Max()).Append(0).Max();
+    public int NumberOfVariables => Clauses.Select(ints => ints.Select(Math.Abs).Max()).Append(0).Max();
 
     public int NumberOfClauses => Clauses.Count();
 

@@ -46,10 +46,7 @@ public sealed class SolvePendingProblemsJob(
 
         logger.LogDebug("SAT solve job acquired worker slot. JobKey={JobKey}", context.JobDetail.Key);
 
-        _ = SolveAsync(context.CancellationToken)
-            .ContinueWith(
-                t => logger.LogError(t.Exception, "Unhandled exception in SolveAsync."),
-                TaskContinuationOptions.OnlyOnFaulted);
+        await SolveAsync(context.CancellationToken);
     }
 
     private async Task SolveAsync(CancellationToken cancellationToken)
