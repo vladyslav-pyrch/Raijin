@@ -53,6 +53,8 @@ var combinatoricsServiceMigrationWorker = builder
 builder.AddDockerfile("raijin-comb-sat-solver", "../../", "./src/CombinatoricsService/SatSolver/Dockerfile")
     .WithOtlpExporter()
     .WithEnvironment("MAX_JOBS_COUNT", "3")
+    .WithEnvironment("Cadical__TimeoutSeconds", "1800")
+    .WithEnvironment("Cryptominisat__TimeoutSeconds", "1800")
     .WithReference(combinatoricsServiceDb)
     .WaitFor(combinatoricsServiceDb)
     .WaitForCompletion(combinatoricsServiceMigrationWorker);

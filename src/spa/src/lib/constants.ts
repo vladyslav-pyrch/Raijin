@@ -8,13 +8,9 @@ export const STATUS_COLOR: Record<string, string> = {
     TimedOut: '#FF6D2A',  // warning-500
 };
 
-/** @deprecated Use STATUS_COLOR */
-export const STATUS_BORDER_COLOR = STATUS_COLOR;
-
 export const SOLVER_OPTIONS = ['cadical', 'cryptominisat'] as const;
 
 export const STATUSES_WITH_ENCODING = [
-    'Pending',
     'Running',
     'Completed',
     'Failed',

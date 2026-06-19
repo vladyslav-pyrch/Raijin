@@ -26,6 +26,7 @@
 
   <Target Name="BuildSpaAssets" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
     <Message Importance="high" Text="Building SPA assets from $(SpaRoot)" />
+    <RemoveDir Directories="$(SpaDist)" />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
 
